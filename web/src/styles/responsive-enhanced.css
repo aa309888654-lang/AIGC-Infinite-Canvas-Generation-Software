@@ -1,0 +1,461 @@
+/**
+ * 响应式设计增强 - 针对不同屏幕尺寸的优化
+ */
+
+/* ========================================
+   1. 超大屏幕 (1920px+)
+   ======================================== */
+@media (min-width: 1920px) {
+  .container {
+    max-width: 1600px;
+  }
+  
+  :root {
+    --space-base: 20px;
+    --font-base: 1.125rem;
+  }
+  
+  .ai-clip-left-panel {
+    width: 340px;
+  }
+  
+  .ai-clip-right-panel {
+    width: 360px;
+  }
+  
+  .ai-clip-timeline {
+    height: 220px;
+  }
+}
+
+/* ========================================
+   2. 大屏幕 (1280px - 1919px)
+   ======================================== */
+@media (min-width: 1280px) and (max-width: 1919px) {
+  :root {
+    --space-base: 16px;
+    --font-base: 1rem;
+  }
+  
+  .ai-clip-left-panel {
+    width: 300px;
+  }
+  
+  .ai-clip-right-panel {
+    width: 320px;
+  }
+}
+
+/* ========================================
+   3. 中等屏幕 (1024px - 1279px)
+   ======================================== */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  :root {
+    --space-base: 14px;
+    --font-base: 0.9375rem;
+  }
+  
+  .ai-clip-left-panel {
+    width: 260px;
+  }
+  
+  .ai-clip-right-panel {
+    width: 280px;
+  }
+  
+  .ai-clip-timeline {
+    height: 160px;
+  }
+  
+  .hide-large {
+    display: none !important;
+  }
+}
+
+/* ========================================
+   4. 平板竖屏 (768px - 1023px)
+   ======================================== */
+@media (min-width: 768px) and (max-width: 1023px) {
+  :root {
+    --space-base: 12px;
+    --font-base: 0.875rem;
+  }
+  
+  .app-header {
+    height: 52px;
+    padding: 0 var(--space-3);
+  }
+  
+  .app-sidebar {
+    width: 56px;
+  }
+  
+  .app-content {
+    padding: var(--space-3);
+  }
+  
+  .ai-clip-left-panel,
+  .ai-clip-right-panel {
+    position: fixed;
+    top: 52px;
+    bottom: 0;
+    width: 85%;
+    max-width: 300px;
+    z-index: 50;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+  
+  .ai-clip-left-panel {
+    left: 0;
+  }
+  
+  .ai-clip-right-panel {
+    right: 0;
+    transform: translateX(100%);
+  }
+  
+  .ai-clip-left-panel.open,
+  .ai-clip-right-panel.open {
+    transform: translateX(0);
+  }
+  
+  .ai-clip-preview-area {
+    min-height: 300px;
+  }
+  
+  .ai-clip-timeline {
+    height: 140px;
+  }
+  
+  .hide-medium {
+    display: none !important;
+  }
+  
+  .landing-features-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .landing-quick-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ========================================
+   5. 手机横屏 (640px - 767px)
+   ======================================== */
+@media (min-width: 640px) and (max-width: 767px) {
+  :root {
+    --space-base: 10px;
+    --font-base: 0.8125rem;
+  }
+  
+  .app-header {
+    height: 48px;
+    padding: 0 var(--space-2);
+  }
+  
+  .app-sidebar {
+    width: 48px;
+  }
+  
+  .app-content {
+    padding: var(--space-2);
+  }
+  
+  .ai-clip-left-panel,
+  .ai-clip-right-panel {
+    position: fixed;
+    top: 48px;
+    bottom: 0;
+    width: 90%;
+    max-width: 280px;
+    z-index: 50;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+  
+  .ai-clip-left-panel {
+    left: 0;
+  }
+  
+  .ai-clip-right-panel {
+    right: 0;
+    transform: translateX(100%);
+  }
+  
+  .ai-clip-left-panel.open,
+  .ai-clip-right-panel.open {
+    transform: translateX(0);
+  }
+  
+  .ai-clip-preview-area {
+    min-height: 240px;
+  }
+  
+  .ai-clip-timeline {
+    height: 120px;
+  }
+  
+  .ai-clip-header {
+    padding: 0 var(--space-2);
+  }
+  
+  .ai-clip-header-center {
+    display: none;
+  }
+  
+  .hide-small {
+    display: none !important;
+  }
+  
+  .landing-hero-title {
+    font-size: 2rem;
+  }
+  
+  .landing-hero-desc {
+    font-size: 1rem;
+  }
+  
+  .landing-features-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .landing-quick-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ========================================
+   6. 手机竖屏 (小于 640px)
+   ======================================== */
+@media (max-width: 639px) {
+  :root {
+    --space-base: 8px;
+    --font-base: 0.75rem;
+  }
+  
+  .app-header {
+    height: 44px;
+    padding: 0 var(--space-2);
+  }
+  
+  .app-sidebar {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 60px;
+    flex-direction: row;
+    justify-content: space-around;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    border-right: none;
+    z-index: 100;
+  }
+  
+  .app-content {
+    padding: var(--space-2);
+    margin-bottom: 60px;
+  }
+  
+  .ai-clip-left-panel,
+  .ai-clip-right-panel {
+    position: fixed;
+    top: 44px;
+    bottom: 60px;
+    width: 100%;
+    z-index: 50;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+  
+  .ai-clip-left-panel {
+    left: 0;
+  }
+  
+  .ai-clip-right-panel {
+    right: 0;
+    transform: translateX(100%);
+  }
+  
+  .ai-clip-left-panel.open,
+  .ai-clip-right-panel.open {
+    transform: translateX(0);
+  }
+  
+  .ai-clip-preview-area {
+    min-height: 180px;
+  }
+  
+  .ai-clip-timeline {
+    height: 100px;
+  }
+  
+  .ai-clip-header {
+    height: 44px;
+    padding: 0 var(--space-2);
+  }
+  
+  .ai-clip-header-center {
+    display: none;
+  }
+  
+  .ai-clip-header-right {
+    gap: var(--space-1);
+  }
+  
+  .hide-mobile {
+    display: none !important;
+  }
+  
+  .landing-hero {
+    padding: var(--space-4);
+  }
+  
+  .landing-hero-title {
+    font-size: 1.5rem;
+  }
+  
+  .landing-hero-desc {
+    font-size: 0.875rem;
+  }
+  
+  .landing-import-zone {
+    padding: var(--space-4);
+  }
+  
+  .landing-quick-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-2);
+  }
+  
+  .landing-quick-card {
+    padding: var(--space-3);
+  }
+  
+  .landing-features-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-2);
+  }
+  
+  .landing-feature-card {
+    padding: var(--space-3);
+  }
+}
+
+/* ========================================
+   6. 触控设备优化
+   ======================================== */
+@media (hover: none) and (pointer: coarse) {
+  .ai-clip-btn-icon,
+  .ai-clip-btn-secondary,
+  .ai-clip-btn-primary {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  .ai-clip-panel-tab {
+    min-height: 48px;
+  }
+  
+  .ai-clip-ai-feature {
+    min-height: 72px;
+  }
+  
+  .ai-clip-media-item {
+    min-height: 64px;
+  }
+  
+  .list-item {
+    min-height: 48px;
+  }
+  
+  .tab {
+    min-height: 40px;
+    padding: var(--space-3) var(--space-4);
+  }
+  
+  .btn {
+    min-height: 40px;
+    padding: var(--space-3) var(--space-4);
+  }
+}
+
+/* ========================================
+   7. 深色模式增强
+   ======================================== */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-primary: #0a0a0f;
+    --bg-secondary: #12121a;
+    --bg-tertiary: #1a1a24;
+    --text-primary: #ffffff;
+    --text-secondary: #9ca3af;
+    --border-color: rgba(255, 255, 255, 0.08);
+  }
+}
+
+/* ========================================
+   8. 流畅滚动优化
+   ======================================== */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  * {
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ========================================
+   9. 高对比度模式
+   ======================================== */
+@media (prefers-contrast: high) {
+  .ai-clip-btn-icon,
+  .ai-clip-btn-secondary,
+  .ai-clip-btn-primary {
+    border-width: 2px;
+  }
+  
+  .panel,
+  .card {
+    border-width: 2px;
+  }
+  
+  .list-item {
+    border-left-width: 4px;
+  }
+}
+
+/* ========================================
+   10. 打印样式
+   ======================================== */
+@media print {
+  .app-sidebar,
+  .app-header,
+  .app-footer,
+  .ai-clip-timeline {
+    display: none !important;
+  }
+  
+  .app-content,
+  .ai-clip-preview-area {
+    width: 100% !important;
+    max-width: none !important;
+  }
+  
+  .ai-clip-studio {
+    background: white !important;
+    color: black !important;
+  }
+}
+

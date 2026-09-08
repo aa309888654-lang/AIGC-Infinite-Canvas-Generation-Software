@@ -1,0 +1,202 @@
+# 对搜索引擎全面开放，禁止AI训练爬虫
+
+# ============================================================
+# 禁止所有AI训练爬虫
+# ============================================================
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ChatGPT-User
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: OmgiliBot
+Disallow: /
+
+User-agent: Omgili
+Disallow: /
+
+User-agent: FacebookBot
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
+
+User-agent: ClaudeBot
+Disallow: /
+
+User-agent: Anthropic-AI
+Disallow: /
+
+User-agent: Applebot-Extended
+Disallow: /
+
+User-agent: cohere-ai
+Disallow: /
+
+User-agent: Diffbot
+Disallow: /
+
+User-agent: ImagesiftBot
+Disallow: /
+
+User-agent: PerplexityBot
+Disallow: /
+
+User-agent: YouBot
+Disallow: /
+
+User-agent: Amazonbot
+Disallow: /
+
+User-agent: SemrushBot-BA
+Disallow: /
+
+User-agent: AI2Bot
+Disallow: /
+
+User-agent: Timpibot
+Disallow: /
+
+User-agent: KangarooBot
+Disallow: /
+
+User-agent: Dotbot
+Disallow: /
+
+User-agent: TurnitinBot
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
+
+User-agent: SentiBot
+Disallow: /
+
+User-agent: ElectricMonk
+Disallow: /
+
+User-agent: Findxbot
+Disallow: /
+
+# ============================================================
+# 允许所有搜索引擎全面抓取（SEO优化）
+# ============================================================
+
+# Google
+User-agent: Googlebot
+Allow: /
+Disallow: /api/
+Disallow: /admin
+Disallow: /1
+
+# Google 图片搜索
+User-agent: Googlebot-Image
+Allow: /
+Disallow: /api/
+
+# Bing / Microsoft
+User-agent: Bingbot
+Allow: /
+Disallow: /api/
+Disallow: /admin
+Disallow: /1
+
+User-agent: msnbot
+Allow: /
+Disallow: /api/
+Disallow: /admin
+
+# 百度
+User-agent: Baiduspider
+Allow: /
+Disallow: /api/
+Disallow: /admin
+Disallow: /1
+
+User-agent: Baiduspider-image
+Allow: /
+Disallow: /api/
+
+# 搜狗
+User-agent: Sogou web spider
+Allow: /
+Disallow: /api/
+Disallow: /admin
+Disallow: /1
+
+User-agent: Sogou inst spider
+Allow: /
+Disallow: /api/
+Disallow: /admin
+
+# 360搜索
+User-agent: 360Spider
+Allow: /
+Disallow: /api/
+Disallow: /admin
+Disallow: /1
+
+# Yandex（俄罗斯）
+User-agent: YandexBot
+Allow: /
+Disallow: /api/
+Disallow: /admin
+Disallow: /1
+
+User-agent: YandexImages
+Allow: /
+Disallow: /api/
+
+# DuckDuckGo
+User-agent: DuckDuckBot
+Allow: /
+Disallow: /api/
+Disallow: /admin
+Disallow: /1
+
+# 神马搜索（移动端）
+User-agent: YisouSpider
+Allow: /
+Disallow: /api/
+Disallow: /admin
+Disallow: /1
+
+# 头条搜索
+User-agent: ToutiaoSpider
+Allow: /
+Disallow: /api/
+Disallow: /admin
+Disallow: /1
+
+# 宜搜搜索
+User-agent: EasouSpider
+Allow: /
+Disallow: /api/
+Disallow: /admin
+
+# Exabot
+User-agent: Exabot
+Allow: /
+Disallow: /api/
+Disallow: /admin
+
+# Alexa
+User-agent: ia_archiver
+Allow: /
+Disallow: /api/
+Disallow: /admin
+
+# ============================================================
+# 其他未识别爬虫 - 允许抓取公开内容，禁止敏感路径
+# ============================================================
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin
+Disallow: /1

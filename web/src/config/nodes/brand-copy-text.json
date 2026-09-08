@@ -1,0 +1,41 @@
+{
+  "id": "brandCopyText",
+  "name": "品牌文案",
+  "category": "text",
+  "description": "独立品牌文案轻节点：输出品牌主张、海报标题与视觉关键词",
+  "icon": "🏷️",
+  "color": "#A855F7",
+  "ports": {
+    "inputs": [{ "id": "input", "name": "品牌资料输入", "type": "string", "optional": true }],
+    "outputs": [
+      { "id": "output", "name": "品牌文案", "type": "string" },
+      { "id": "prompt", "name": "视觉提示词", "type": "prompt", "optional": true }
+    ]
+  },
+  "ui": { "shell": "glass", "promptPanel": true, "resultRenderer": "text", "toolbar": "default" },
+  "execution": {
+    "executable": true,
+    "handler": "ai-gen-text",
+    "mode": "async",
+    "maxRetries": 1,
+    "timeout": 60000,
+    "requiredParams": [{ "key": "prompt", "type": "string", "required": true, "minLength": 1, "label": "提示词" }]
+  },
+  "models": {
+    "mediaType": "text",
+    "useTextModelGroups": true,
+    "defaultModelId": "apipaths",
+    "fallbackModels": [
+      { "modelId": "apipaths", "provider": "apipaths" },
+      { "modelId": "apipaths-gpt-5.5", "provider": "apipaths" },
+      { "modelId": "deepseek-v4-pro", "provider": "deepseek" },
+      { "modelId": "deepseek-v4-flash", "provider": "sensenova" },
+      { "modelId": "sensenova-6.7-flash-lite", "provider": "sensenova" },
+      { "modelId": "gemini-3.5-flash", "provider": "apipaths" },
+      { "modelId": "gemini-3.1-pro-high", "provider": "apipaths" },
+      { "modelId": "gemini-3.1-pro-low", "provider": "apipaths" },
+      { "modelId": "gemini-3.1-pro-preview", "provider": "apipaths" },
+      { "modelId": "gemini-3-flash", "provider": "apipaths" }
+    ]
+  }
+}

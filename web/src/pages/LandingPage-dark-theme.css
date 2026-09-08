@@ -1,0 +1,393 @@
+/* ═══════════════════════════════════════════════════════════════
+   LandingPage 深色 AI 企业风格覆盖样式
+   基于 ai-business-homepage 风格设计
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ═══════════════ 全局背景 ═══════════════ */
+.landing-page {
+  background: #000000 !important;
+  color: #ffffff !important;
+}
+
+/* 移除原有背景，使用纯黑 */
+.landing-page::before,
+.landing-page [class*="background"],
+.landing-page [class*="bg-gradient"] {
+  background: transparent !important;
+}
+
+/* ═══════════════ 背景光晕效果 ═══════════════ */
+.landing-page .hero-glow {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(100px);
+  opacity: 0.3;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.serenade-hero-glow {
+  position: fixed;
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #00d4aa 0%, transparent 70%);
+  filter: blur(100px);
+  opacity: 0.3;
+  pointer-events: none;
+  z-index: 0;
+  top: -200px;
+  right: 20%;
+  animation: pulse-glow 8s ease-in-out infinite;
+}
+
+.landing-page .hero-glow--primary {
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, #00d4aa 0%, transparent 70%);
+  top: -200px;
+  right: 20%;
+  animation: pulse-glow 8s ease-in-out infinite;
+}
+
+.landing-page .hero-glow--secondary {
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, #7c3aed 0%, transparent 70%);
+  bottom: 20%;
+  left: -100px;
+  animation: pulse-glow 10s ease-in-out infinite reverse;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.3;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.5;
+  }
+}
+
+/* 鼠标跟随光晕 */
+.landing-page .cursor-glow {
+  position: fixed;
+  width: 400px;
+  height: 400px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0, 212, 170, 0.15) 0%, transparent 70%);
+  filter: blur(60px);
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  transition: opacity 0.3s ease;
+}
+
+/* ═══════════════ 导航栏 ═══════════════ */
+.landing-page .site-header,
+.landing-page header,
+.landing-page nav {
+  background: rgba(0, 0, 0, 0.5) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+.landing-page .site-header a,
+.landing-page header a,
+.landing-page nav a {
+  color: rgba(255, 255, 255, 0.7) !important;
+  transition: color 0.3s ease, transform 0.3s ease !important;
+}
+
+.landing-page .site-header a:hover,
+.landing-page header a:hover,
+.landing-page nav a:hover {
+  color: #ffffff !important;
+  transform: translateY(-2px);
+}
+
+/* ═══════════════ Hero 区域 ═══════════════ */
+.landing-page .hero-section,
+.landing-page [class*="hero"] {
+  background: transparent !important;
+  position: relative;
+  z-index: 1;
+}
+
+.landing-page .hero-title,
+.landing-page h1 {
+  color: #ffffff !important;
+  font-size: clamp(2.8rem, 7vw, 4.5rem) !important;
+  font-weight: 600 !important;
+  line-height: 1.1 !important;
+  letter-spacing: -0.03em !important;
+}
+
+.landing-page .hero-title span,
+.landing-page h1 span,
+.landing-page .gradient-text {
+  background: linear-gradient(135deg, #00d4aa 0%, #00a8e8 50%, #7c3aed 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+}
+
+.landing-page .hero-subtitle,
+.landing-page [class*="subtitle"] {
+  color: rgba(255, 255, 255, 0.6) !important;
+  font-size: clamp(1rem, 1.6vw, 1.15rem) !important;
+  line-height: 1.7 !important;
+}
+
+/* ═══════════════ CTA 按钮 ═══════════════ */
+.landing-page .cta-button,
+.landing-page [class*="cta"],
+.landing-page button[class*="primary"],
+.landing-page .btn-primary {
+  background: linear-gradient(135deg, #00d4aa 0%, #00a8e8 100%) !important;
+  color: #000000 !important;
+  font-weight: 600 !important;
+  border-radius: 50px !important;
+  padding: 16px 32px !important;
+  border: none !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 4px 20px rgba(0, 212, 170, 0.3) !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.landing-page .cta-button:hover,
+.landing-page [class*="cta"]:hover,
+.landing-page button[class*="primary"]:hover,
+.landing-page .btn-primary:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 30px rgba(0, 212, 170, 0.4) !important;
+}
+
+/* 按钮流光效果 */
+.landing-page .cta-button::before,
+.landing-page [class*="cta"]::before {
+  content: '' !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: -100% !important;
+  width: 100% !important;
+  height: 100% !important;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent) !important;
+  transition: left 0.5s ease !important;
+}
+
+.landing-page .cta-button:hover::before,
+.landing-page [class*="cta"]:hover::before {
+  left: 100% !important;
+}
+
+/* 按钮点击波纹效果 */
+.landing-page .cta-button:active::after,
+.landing-page [class*="cta"]:active::after {
+  content: '' !important;
+  position: absolute !important;
+  width: 100% !important;
+  height: 100% !important;
+  top: 50% !important;
+  left: 50% !important;
+  background: rgba(255, 255, 255, 0.4) !important;
+  border-radius: 50% !important;
+  transform: translate(-50%, -50%) scale(0) !important;
+  animation: ripple-effect 0.6s ease-out !important;
+}
+
+@keyframes ripple-effect {
+  to {
+    transform: translate(-50%, -50%) scale(2);
+    opacity: 0;
+  }
+}
+
+/* ═══════════════ 卡片样式 ═══════════════ */
+.landing-page .feature-card,
+.landing-page [class*="card"],
+.landing-page .tool-card {
+  background: rgba(14, 14, 18, 0.8) !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border-radius: 16px !important;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.3s ease,
+              box-shadow 0.3s ease !important;
+}
+
+.landing-page .feature-card:hover,
+.landing-page [class*="card"]:hover,
+.landing-page .tool-card:hover {
+  transform: translateY(-4px) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+}
+
+.landing-page .feature-card h3,
+.landing-page [class*="card"] h3,
+.landing-page .card-title {
+  color: #ffffff !important;
+}
+
+.landing-page .feature-card p,
+.landing-page [class*="card"] p,
+.landing-page .card-description {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* ═══════════════ 输入框样式 ═══════════════ */
+.landing-page input,
+.landing-page textarea,
+.landing-page [class*="input"] {
+  background: rgba(8, 8, 10, 0.6) !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  color: #ffffff !important;
+  border-radius: 12px !important;
+  transition: border-color 0.2s, box-shadow 0.2s !important;
+}
+
+.landing-page input:focus,
+.landing-page textarea:focus,
+.landing-page [class*="input"]:focus {
+  border-color: rgba(0, 212, 170, 0.4) !important;
+  box-shadow: 0 0 0 3px rgba(0, 212, 170, 0.08) !important;
+  outline: none !important;
+}
+
+.landing-page input::placeholder,
+.landing-page textarea::placeholder {
+  color: rgba(255, 255, 255, 0.3) !important;
+}
+
+/* ═══════════════ 底部波浪 ═══════════════ */
+.landing-page .waves-container {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 300px;
+  overflow: hidden;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.landing-page .wave {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 200%;
+  height: 100%;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%2300d4aa' fill-opacity='0.1' d='M0,192L48,197.3C96,203,192,213,288,229.3C384,245,480,267,576,250.7C672,235,768,181,864,181.3C960,181,1056,235,1152,234.7C1248,235,1344,181,1392,154.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E") repeat-x;
+  background-size: 50% 100%;
+  animation: wave-animation 20s linear infinite;
+}
+
+.landing-page .wave:nth-child(2) {
+  bottom: 10px;
+  opacity: 0.5;
+  animation: wave-animation 15s linear infinite reverse;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%2300a8e8' fill-opacity='0.15' d='M0,64L48,80C96,96,192,128,288,128C384,128,480,96,576,106.7C672,117,768,171,864,176C960,181,1056,139,1152,128C1248,117,1344,139,1392,149.3L1440,160L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E") repeat-x;
+  background-size: 50% 100%;
+}
+
+.landing-page .wave:nth-child(3) {
+  bottom: 20px;
+  opacity: 0.3;
+  animation: wave-animation 25s linear infinite;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%237c3aed' fill-opacity='0.1' d='M0,256L48,261.3C96,267,192,277,288,266.7C384,256,480,224,576,213.3C672,203,768,213,864,224C960,235,1056,245,1152,234.7C1248,224,1344,192,1392,176L1440,160L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E") repeat-x;
+  background-size: 50% 100%;
+}
+
+@keyframes wave-animation {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+/* ═══════════════ 页脚 ═══════════════ */
+.landing-page footer,
+.landing-page .site-footer {
+  background: rgba(0, 0, 0, 0.8) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.landing-page footer a,
+.landing-page .site-footer a {
+  color: rgba(255, 255, 255, 0.6) !important;
+  transition: color 0.3s ease !important;
+}
+
+.landing-page footer a:hover,
+.landing-page .site-footer a:hover {
+  color: #00d4aa !important;
+}
+
+/* ═══════════════ 滚动条 ═══════════════ */
+.landing-page ::-webkit-scrollbar {
+  width: 8px;
+}
+
+.landing-page ::-webkit-scrollbar-track {
+  background: #000000;
+}
+
+.landing-page ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.landing-page ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* ═══════════════ 选择文本颜色 ═══════════════ */
+.landing-page ::selection {
+  background: rgba(0, 212, 170, 0.3);
+  color: #ffffff;
+}
+
+/* ═══════════════ 响应式调整 ═══════════════ */
+@media (max-width: 968px) {
+  .landing-page .hero-title,
+  .landing-page h1 {
+    font-size: clamp(2rem, 7vw, 3rem) !important;
+  }
+  
+  .landing-page .waves-container {
+    height: 200px;
+  }
+}
+
+@media (max-width: 480px) {
+  .landing-page .hero-title,
+  .landing-page h1 {
+    font-size: 1.8rem !important;
+  }
+  
+  .landing-page .cta-button,
+  .landing-page [class*="cta"] {
+    padding: 14px 28px !important;
+    font-size: 14px !important;
+  }
+}
+
+/* ═══════════════ 减少动画偏好 ═══════════════ */
+@media (prefers-reduced-motion: reduce) {
+  .landing-page .hero-glow,
+  .landing-page .wave,
+  .landing-page .cta-button::before,
+  .landing-page .cta-button::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

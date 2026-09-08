@@ -1,0 +1,227 @@
+/* 响应式布局样式 */
+
+/* 节点控制器样式修复 */
+.sidebar {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  border: none;
+  box-shadow: none;
+}
+
+/* 修复白边问题 */
+.sidebar .flex-1 {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* 确保没有额外的边距 */
+.sidebar > div {
+  margin: 0;
+  padding: 0;
+}
+
+/* 节点组样式修复 */
+.node-group {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+/* 修复关闭按钮样式 */
+.sidebar-close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.5);
+  border: none;
+  border-radius: 4px;
+  padding: 4px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.sidebar-close-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* 大屏幕 (1920px 及以上) */
+@media (min-width: 1920px) {
+  .panel-container {
+    transform: scale(1);
+  }
+  
+  .canvas-container {
+    margin-left: 256px;
+    margin-right: 320px;
+    margin-bottom: 0;
+  }
+}
+
+/* 中等屏幕 (1280px - 1919px) */
+@media (max-width: 1919px) and (min-width: 1280px) {
+  .panel-container {
+    transform: scale(0.95);
+    transform-origin: top right;
+  }
+  
+  .left-dock-panel {
+    width: 240px;
+  }
+  
+  .right-dock-panel {
+    width: 300px;
+  }
+  
+  .canvas-container {
+    margin-left: 240px;
+    margin-right: 300px;
+  }
+}
+
+/* 小屏幕 (768px - 1279px) */
+@media (max-width: 1279px) and (min-width: 768px) {
+  .panel-container {
+    transform: scale(0.9);
+    transform-origin: top right;
+  }
+  
+  .left-dock-panel {
+    width: 200px;
+  }
+  
+  .right-dock-panel {
+    width: 280px;
+  }
+  
+  .canvas-container {
+    margin-left: 200px;
+    margin-right: 280px;
+    margin-bottom: 60px;
+  }
+  
+  .bottom-dock-panel {
+    height: 180px;
+  }
+  
+  .bottom-dock-panel.collapsed {
+    height: 40px;
+  }
+}
+
+/* 平板 (768px 以下) */
+@media (max-width: 767px) {
+  .mobile-layout {
+    flex-direction: column;
+    overflow-y: auto;
+  }
+  
+  .left-dock-panel {
+    position: relative;
+    width: 100%;
+    height: auto;
+    max-height: 200px;
+  }
+  
+  .right-dock-panel {
+    position: relative;
+    width: 100%;
+    height: auto;
+    max-height: 200px;
+  }
+  
+  .bottom-dock-panel {
+    position: relative;
+    height: auto;
+    max-height: 150px;
+  }
+  
+  .canvas-container {
+    margin: 0;
+    height: calc(100vh - 400px);
+  }
+  
+  .floating-panel {
+    position: fixed;
+    max-width: 90vw;
+    max-height: 80vh;
+  }
+}
+
+/* 手机 (480px 以下) */
+@media (max-width: 479px) {
+  .panel-tabs {
+    font-size: 12px;
+    padding: 8px 12px;
+  }
+  
+  .panel-content {
+    padding: 12px;
+  }
+  
+  .canvas-container {
+    height: calc(100vh - 300px);
+  }
+}
+
+/* 触摸设备优化 */
+@media (hover: none) and (pointer: coarse) {
+  .touch-target {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 8px;
+  }
+  
+  .touch-button {
+    @apply touch-target flex items-center justify-center rounded-lg;
+  }
+  
+  .resize-handle {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+/* 高DPI屏幕优化 */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .border {
+    border-width: 0.5px;
+  }
+}
+
+/* 暗色主题优化 */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #F8FAFC;
+    --surface: #FFFFFF;
+    --surface-elevated: #F1F5F9;
+    --text-primary: #0F172A;
+    --text-secondary: #334155;
+    --border: #E2E8F0;
+  }
+}
+
+/* 减少动画偏好 */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* 打印样式 */
+@media print {
+  .panel-container,
+  .floating-panel {
+    display: none;
+  }
+  
+  .canvas-container {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+  }
+}

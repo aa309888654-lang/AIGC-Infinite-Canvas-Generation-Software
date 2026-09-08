@@ -1,0 +1,15 @@
+{
+  "id": "videoInput",
+  "name": "视频输入",
+  "category": "input",
+  "description": "输入视频文件",
+  "icon": "🎬",
+  "color": "#3498DB",
+  "ports": {
+    "inputs": [{ "id": "input", "name": "视频输入", "type": "video", "optional": true }],
+    "outputs": [{ "id": "videoOutput", "name": "视频", "type": "video" }]
+  },
+  "ui": { "shell": "glass", "promptPanel": false, "resultRenderer": "video", "toolbar": "minimal" },
+  "execution": { "executable": false },
+  "models": { "mediaType": "none" }
+}

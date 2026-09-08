@@ -1,0 +1,314 @@
+/* AI 缓存启动动画 — 暗色科幻 */
+
+.ai-cache-splash {
+  --acs-bg: #050508;
+  --acs-cyan: #22d3ee;
+  --acs-violet: #818cf8;
+  --acs-orange: #ff8c00;
+  --acs-text: #e2e8f0;
+  --acs-muted: rgba(226, 232, 240, 0.45);
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: var(--acs-bg);
+  color: var(--acs-text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Noto Sans SC', 'Segoe UI', Roboto, sans-serif;
+}
+
+.ai-cache-splash--exit {
+  animation: acs-fade-out 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  pointer-events: none;
+}
+
+@keyframes acs-fade-out {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+/* 背景网格 */
+.ai-cache-splash__grid {
+  position: absolute;
+  inset: -20%;
+  background-image:
+    linear-gradient(rgba(34, 211, 238, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(34, 211, 238, 0.06) 1px, transparent 1px);
+  background-size: 48px 48px;
+  transform: perspective(600px) rotateX(58deg) translateY(-8%);
+  transform-origin: center 80%;
+  animation: acs-grid-drift 18s linear infinite;
+  mask-image: radial-gradient(ellipse 70% 55% at 50% 45%, #000 20%, transparent 75%);
+}
+
+@keyframes acs-grid-drift {
+  from { background-position: 0 0, 0 0; }
+  to { background-position: 0 480px, 480px 0; }
+}
+
+/* 扫描线 */
+.ai-cache-splash__scan {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(34, 211, 238, 0.04) 48%,
+    rgba(129, 140, 248, 0.08) 50%,
+    rgba(34, 211, 238, 0.04) 52%,
+    transparent 100%
+  );
+  background-size: 100% 240%;
+  animation: acs-scan 3.2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes acs-scan {
+  0%, 100% { background-position: 0 -120%; }
+  50% { background-position: 0 120%; }
+}
+
+/* 粒子 */
+.ai-cache-splash__particles {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.ai-cache-splash__particle {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: var(--acs-cyan);
+  box-shadow: 0 0 6px var(--acs-cyan);
+  animation: acs-particle-float var(--dur, 4s) ease-in-out infinite;
+  animation-delay: var(--delay, 0s);
+  opacity: 0.6;
+}
+
+@keyframes acs-particle-float {
+  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.2; }
+  50% { transform: translate(var(--dx, 20px), var(--dy, -40px)) scale(1.4); opacity: 0.85; }
+}
+
+/* 核心内容 */
+.ai-cache-splash__core {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 24px;
+  text-align: center;
+}
+
+/* 能量环 + 核心球 */
+.ai-cache-splash__orb-wrap {
+  position: relative;
+  width: 112px;
+  height: 112px;
+  margin-bottom: 4px;
+}
+
+.ai-cache-splash__orb {
+  position: absolute;
+  inset: 28px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff 0%, var(--acs-cyan) 25%, var(--acs-violet) 70%, #1e1b4b 100%);
+  box-shadow:
+    0 0 24px rgba(34, 211, 238, 0.55),
+    0 0 48px rgba(129, 140, 248, 0.35),
+    inset 0 0 16px rgba(255, 255, 255, 0.25);
+  animation: acs-orb-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes acs-orb-pulse {
+  0%, 100% { transform: scale(1); filter: brightness(1); }
+  50% { transform: scale(1.06); filter: brightness(1.15); }
+}
+
+.ai-cache-splash__ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1.5px solid transparent;
+}
+
+.ai-cache-splash__ring--1 {
+  border-top-color: var(--acs-cyan);
+  border-right-color: rgba(34, 211, 238, 0.2);
+  animation: acs-spin 1.8s linear infinite;
+}
+
+.ai-cache-splash__ring--2 {
+  inset: 10px;
+  border-bottom-color: var(--acs-violet);
+  border-left-color: rgba(129, 140, 248, 0.25);
+  animation: acs-spin 2.6s linear infinite reverse;
+}
+
+.ai-cache-splash__ring--3 {
+  inset: 20px;
+  border-top-color: var(--acs-orange);
+  border-right-color: rgba(255, 140, 0, 0.15);
+  animation: acs-spin 3.4s linear infinite;
+}
+
+@keyframes acs-spin {
+  to { transform: rotate(360deg); }
+}
+
+.ai-cache-splash__hex {
+  position: absolute;
+  inset: 6px;
+  border-radius: 50%;
+  border: 1px dashed rgba(34, 211, 238, 0.25);
+  animation: acs-spin 12s linear infinite;
+}
+
+/* 品牌标题 */
+.ai-cache-splash__brand {
+  margin: 0;
+  font-size: clamp(22px, 4vw, 28px);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  background: linear-gradient(90deg, #fff 0%, var(--acs-cyan) 45%, var(--acs-violet) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 30px rgba(34, 211, 238, 0.25);
+}
+
+.ai-cache-splash__brand-sub {
+  margin: -6px 0 0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.35em;
+  color: var(--acs-muted);
+  text-transform: uppercase;
+}
+
+/* 状态文字 — 打字机光标 */
+.ai-cache-splash__status {
+  margin: 0;
+  min-height: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  color: var(--acs-cyan);
+  font-family: 'Consolas', 'SF Mono', 'Fira Code', monospace;
+}
+
+.ai-cache-splash__status::after {
+  content: '▋';
+  margin-left: 2px;
+  animation: acs-blink 0.9s step-end infinite;
+  color: var(--acs-violet);
+}
+
+@keyframes acs-blink {
+  50% { opacity: 0; }
+}
+
+/* 进度条 */
+.ai-cache-splash__progress {
+  width: min(280px, 72vw);
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  position: relative;
+}
+
+.ai-cache-splash__progress-bar {
+  height: 100%;
+  width: 35%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--acs-violet), var(--acs-cyan), var(--acs-orange));
+  box-shadow: 0 0 12px rgba(34, 211, 238, 0.6);
+  animation: acs-progress 2.2s ease-in-out infinite;
+}
+
+@keyframes acs-progress {
+  0% { transform: translateX(-120%); width: 28%; }
+  50% { width: 42%; }
+  100% { transform: translateX(320%); width: 28%; }
+}
+
+.ai-cache-splash__progress-glow {
+  position: absolute;
+  inset: -4px 0;
+  background: linear-gradient(90deg, transparent, rgba(34, 211, 238, 0.15), transparent);
+  animation: acs-progress 2.2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* 模块标签 */
+.ai-cache-splash__tags {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.ai-cache-splash__tag {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: rgba(226, 232, 240, 0.7);
+  border: 1px solid rgba(34, 211, 238, 0.2);
+  background: rgba(34, 211, 238, 0.06);
+  animation: acs-tag-pulse 2s ease-in-out infinite;
+}
+
+.ai-cache-splash__tag:nth-child(2) { animation-delay: 0.3s; border-color: rgba(129, 140, 248, 0.25); background: rgba(129, 140, 248, 0.08); }
+.ai-cache-splash__tag:nth-child(3) { animation-delay: 0.6s; border-color: rgba(255, 140, 0, 0.25); background: rgba(255, 140, 0, 0.08); }
+.ai-cache-splash__tag:nth-child(4) { animation-delay: 0.9s; }
+
+@keyframes acs-tag-pulse {
+  0%, 100% { opacity: 0.55; transform: translateY(0); }
+  50% { opacity: 1; transform: translateY(-2px); }
+}
+
+/* 角标装饰 */
+.ai-cache-splash__corner {
+  position: absolute;
+  width: 48px;
+  height: 48px;
+  border-color: rgba(34, 211, 238, 0.35);
+  border-style: solid;
+  pointer-events: none;
+}
+
+.ai-cache-splash__corner--tl { top: 24px; left: 24px; border-width: 2px 0 0 2px; }
+.ai-cache-splash__corner--tr { top: 24px; right: 24px; border-width: 2px 2px 0 0; }
+.ai-cache-splash__corner--bl { bottom: 24px; left: 24px; border-width: 0 0 2px 2px; }
+.ai-cache-splash__corner--br { bottom: 24px; right: 24px; border-width: 0 2px 2px 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ai-cache-splash__grid,
+  .ai-cache-splash__scan,
+  .ai-cache-splash__ring,
+  .ai-cache-splash__hex,
+  .ai-cache-splash__orb,
+  .ai-cache-splash__progress-bar,
+  .ai-cache-splash__progress-glow,
+  .ai-cache-splash__particle,
+  .ai-cache-splash__tag {
+    animation: none !important;
+  }
+  .ai-cache-splash__status::after {
+    animation: none;
+    opacity: 0.5;
+  }
+}

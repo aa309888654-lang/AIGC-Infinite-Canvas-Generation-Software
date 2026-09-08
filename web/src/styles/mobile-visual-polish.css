@@ -1,0 +1,391 @@
+/* ============================================================
+   小天 AICG · 手机端视觉美化层 (Mobile Visual Polish · ART TEMPLE × CRYSTAL)
+   作用域：仅 @media (max-width: 767px)，不触碰桌面端布局
+   目标：统一提升手机端「整体视觉风格」
+   设计基调：艺术殿堂 × 水晶质感
+     · 完整殿堂纵深背景（穹顶放射光 / 壁柱暗影 / 反光台 / 星尘）
+     · 水晶折射质感按钮（通透、切面高光、内部折射）
+     · 文艺衬线标题 + 克制的漂浮音符
+   ============================================================ */
+
+@media (max-width: 767px) {
+  /* ============ 1. 艺术殿堂专属设计令牌（少灰·彩色艺术调） ============ */
+  :root {
+    /* 圆角：宝石切割般的利落柔润 */
+    --mvp-radius-xs: 12px;
+    --mvp-radius-sm: 16px;
+    --mvp-radius-md: 22px;
+    --mvp-radius-lg: 28px;
+    --mvp-radius-xl: 34px;
+
+    /* 艺术主色（高饱和，减少灰） */
+    --mvp-violet: #8B5CFF;     /* 艺术紫 */
+    --mvp-magenta: #FF5CA8;    /* 品红 */
+    --mvp-cyan: #34E3D6;       /* 青绿 */
+    --mvp-amber: #FFB35C;      /* 琥珀金 */
+    --mvp-blue: #5C8BFF;       /* 天蓝 */
+
+    /* 玻璃拟态（带艺术色调，不再死灰） */
+    --mvp-glass-bg: rgba(40, 26, 66, 0.52);
+    --mvp-glass-border: rgba(255, 160, 230, 0.20);
+    --mvp-glass-blur: saturate(180%) blur(22px);
+
+    /* 水晶色系 */
+    --mvp-crystal-1: #8AB4FF;
+    --mvp-crystal-2: #B98CFF;
+    --mvp-crystal-3: #5FE6D6;
+    --mvp-gold: #FFC98A;
+
+    /* 渐变（殿堂艺术光辉，彩色） */
+    --mvp-hall-glow: radial-gradient(120% 70% at 50% -25%, rgba(255, 92, 168, 0.22) 0%, rgba(255, 92, 168, 0) 60%);
+    --mvp-text-gradient: linear-gradient(115deg, #FFFFFF 0%, #FFE3C9 28%, #FFB9E6 58%, #C9B6FF 80%, #A7F3E6 100%);
+    --mvp-surface-gradient: linear-gradient(165deg, rgba(255,160,230,0.10) 0%, rgba(120,160,255,0.04) 60%, rgba(255,255,255,0.012) 100%);
+
+    /* 阴影（彩色光晕，替代死黑） */
+    --mvp-shadow-card: 0 10px 30px rgba(60, 20, 70, 0.45);
+    --mvp-shadow-float: 0 18px 50px rgba(80, 25, 90, 0.55);
+    --mvp-shadow-glow: 0 10px 34px rgba(255, 92, 168, 0.28);
+    --mvp-shadow-glow-soft: 0 0 0 1px rgba(255, 140, 210, 0.22), 0 12px 30px rgba(180, 90, 200, 0.22);
+
+    /* 安全区 */
+    --mvp-safe-top: env(safe-area-inset-top, 0px);
+    --mvp-safe-bottom: env(safe-area-inset-bottom, 0px);
+    --mvp-safe-left: env(safe-area-inset-left, 0px);
+    --mvp-safe-right: env(safe-area-inset-right, 0px);
+
+    /* 节奏 */
+    --mvp-gap: 16px;
+    --mvp-section-gap: 26px;
+
+    /* 字体 */
+    --mvp-serif: 'Noto Serif SC', 'Songti SC', 'STSong', Georgia, serif;
+    --mvp-sans: 'Noto Sans SC', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  }
+
+  /* ============ 2. 艺术殿堂背景（彩色油画感：品红/紫/青/金光晕，少灰） ============ */
+  html, body, #root {
+    background-color: #160a2b !important;
+  }
+
+  /* 保留 index.css 的 body::before 噪点纹理（不覆盖），用 body::after 做殿堂背景主层 */
+  body::after {
+    content: '♪';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    /* 漂浮音符（多个偏移 + 多彩） */
+    color: rgba(255, 220, 250, 0.0);
+    font-size: 18px;
+    text-shadow:
+      14vw 16vh 0 rgba(255, 92, 168, 0.22),
+      82vw 28vh 0 rgba(139, 92, 255, 0.20),
+      46vw 64vh 0 rgba(52, 227, 214, 0.18),
+      24vw 82vh 0 rgba(255, 179, 92, 0.18),
+      68vw 88vh 0 rgba(92, 139, 255, 0.16);
+    background:
+      /* 顶部品红/紫艺术光晕（穹顶透光） */
+      radial-gradient(120% 60% at 18% -10%, rgba(255, 92, 168, 0.42) 0%, rgba(255, 92, 168, 0) 55%),
+      radial-gradient(110% 55% at 92% -6%, rgba(139, 92, 255, 0.46) 0%, rgba(139, 92, 255, 0) 55%),
+      /* 右上青绿辉光 */
+      radial-gradient(90% 50% at 100% 22%, rgba(52, 227, 214, 0.20) 0%, rgba(52, 227, 214, 0) 60%),
+      /* 底部琥珀金反光台 */
+      radial-gradient(95% 45% at 50% 104%, rgba(255, 179, 92, 0.22) 0%, rgba(255, 179, 92, 0) 60%),
+      /* 左下紫罗兰晕染 */
+      radial-gradient(80% 50% at -8% 78%, rgba(139, 92, 255, 0.26) 0%, rgba(139, 92, 255, 0) 62%),
+      /* 艺术基底（深紫罗兰，非灰黑） */
+      linear-gradient(168deg, #2a1147 0%, #1c0c38 45%, #140826 100%);
+    animation: mvp-drift 26s ease-in-out infinite alternate;
+  }
+
+  @keyframes mvp-drift {
+    0%   { background-position: 0 0, 0 0, 0 0, 0 0, 0 0, 0 0; }
+    100% { background-position: 0 -8px, 0 5px, 0 -4px, 0 6px, 0 4px, 0 0; }
+  }
+
+  /* ============ 3. 触摸目标与点击反馈 ============ */
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  a, [role="button"], .touch-target, .touch-button {
+    min-height: 44px;
+  }
+
+  /* 大按钮（水晶主/次按钮）单独保证触摸高度，避免误伤页面内绝对定位/内联小按钮 */
+  .btn-luxury-primary,
+  .btn-luxury-secondary {
+    min-height: 48px;
+  }
+
+  button:active,
+  .touch-button:active,
+  [role="button"]:active,
+  .card-luxury:active {
+    transform: scale(0.975);
+    transition: transform 0.12s ease;
+  }
+
+  /* ============ 4. 卡片：艺术玻璃 + 彩色切面高光 ============ */
+  .card-luxury {
+    border-radius: var(--mvp-radius-md) !important;
+    background:
+      var(--mvp-surface-gradient),
+      rgba(34, 18, 56, 0.88) !important;
+    border: 1px solid rgba(255, 160, 230, 0.16) !important;
+    box-shadow: var(--mvp-shadow-card) !important;
+    overflow: hidden;
+  }
+
+  .card-luxury::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(150deg, rgba(255, 160, 230, 0.42), rgba(120, 220, 255, 0.18) 42%, rgba(255,255,255,0) 70%);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    opacity: 0.8;
+  }
+
+  .card-luxury:hover {
+    transform: translateY(-4px) !important;
+    box-shadow: var(--mvp-shadow-float), var(--mvp-shadow-glow-soft) !important;
+    border-color: rgba(255, 140, 210, 0.32) !important;
+  }
+
+  /* ============ 5. 水晶质感按钮（通透 / 切面高光 / 内部折射） ============ */
+  .btn-luxury-primary,
+  .btn-luxury-secondary {
+    border-radius: var(--mvp-radius-sm) !important;
+    width: 100%;
+    justify-content: center;
+    letter-spacing: 0.06em;
+    font-weight: 600;
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+  }
+
+  /* 主按钮 = 艺术水晶（品红→紫→青，深色字更精致） */
+  .btn-luxury-primary {
+    border: 1px solid rgba(255, 255, 255, 0.5) !important;
+    color: #fff !important;
+    background:
+      linear-gradient(135deg, rgba(255,255,255,0.42) 0%, rgba(255,255,255,0.04) 28%, rgba(255,92,168,0.20) 52%, rgba(255,255,255,0.10) 68%, rgba(139,92,255,0.40) 100%),
+      linear-gradient(135deg, #FF5CA8 0%, #8B5CFF 52%, #34E3D6 100%);
+    background-blend-mode: overlay;
+    backdrop-filter: blur(12px) saturate(180%);
+    box-shadow:
+      inset 0 1px 1px rgba(255, 255, 255, 0.7),
+      inset 0 -3px 8px rgba(60, 20, 70, 0.35),
+      0 8px 26px rgba(255, 92, 168, 0.42);
+  }
+
+  /* 水晶切面高光（顶部受光面，置于文字层之下，避免盖住按钮文字） */
+  .btn-luxury-primary::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 46%;
+    z-index: -1;
+    border-radius: var(--mvp-radius-sm) var(--mvp-radius-sm) 40% 40%;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.46), rgba(255, 255, 255, 0));
+    pointer-events: none;
+  }
+
+  .btn-luxury-primary:active {
+    filter: brightness(1.05);
+    box-shadow:
+      inset 0 1px 1px rgba(255, 255, 255, 0.5),
+      inset 0 -2px 6px rgba(60, 20, 70, 0.4),
+      0 4px 14px rgba(255, 92, 168, 0.46);
+  }
+
+  /* 次按钮 = 淡紫水晶玻璃 */
+  .btn-luxury-secondary {
+    background: rgba(255, 160, 230, 0.08) !important;
+    border: 1px solid rgba(255, 160, 230, 0.34) !important;
+    color: #FFE6F6 !important;
+    box-shadow:
+      inset 0 1px 1px rgba(255, 255, 255, 0.25),
+      0 4px 16px rgba(255, 92, 168, 0.16);
+    backdrop-filter: var(--mvp-glass-blur);
+  }
+
+  /* ============ 6. 输入框：艺术玻璃 + 聚焦彩色光环 ============ */
+  input, textarea, select,
+  .jimeng-input-box,
+  .responsive-input {
+    border-radius: var(--mvp-radius-sm) !important;
+    background: rgba(255, 160, 230, 0.06) !important;
+    border: 1px solid rgba(255, 160, 230, 0.22) !important;
+    min-height: 48px;
+    backdrop-filter: var(--mvp-glass-blur);
+    color: #FBEFFB;
+  }
+
+  input:focus, textarea:focus, select:focus,
+  .jimeng-input-box:focus-within {
+    border-color: rgba(255, 120, 200, 0.7) !important;
+    box-shadow:
+      0 0 0 3px rgba(255, 120, 200, 0.18),
+      0 0 20px rgba(255, 92, 168, 0.24) !important;
+    background: rgba(255, 160, 230, 0.10) !important;
+    outline: none;
+  }
+
+  input::placeholder, textarea::placeholder {
+    color: rgba(255, 210, 240, 0.5);
+  }
+
+  /* ============ 7. 文艺标题（衬线 + 殿堂光辉渐变） ============ */
+  .seko-hero-title,
+  [class*="hero-title"],
+  [class*="HeroTitle"],
+  h1[class*="title"],
+  h1, h2 {
+    font-family: var(--mvp-serif) !important;
+    background: var(--mvp-text-gradient) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    letter-spacing: 0.01em;
+    line-height: 1.25;
+  }
+
+  /* ============ 8. 对话框 / 弹层：殿堂水晶玻璃 ============ */
+  .responsive-modal,
+  [class*="modal"],
+  [class*="Modal"],
+  [class*="dialog"],
+  [class*="Drawer"] {
+    border-radius: var(--mvp-radius-lg) var(--mvp-radius-lg) 0 0 !important;
+    background: var(--mvp-glass-bg) !important;
+    backdrop-filter: var(--mvp-glass-blur);
+    border: 1px solid var(--mvp-glass-border) !important;
+    box-shadow: var(--mvp-shadow-float) !important;
+  }
+
+  /* ============ 9. 导航栏 / 底部栏：殿堂冷调玻璃 ============ */
+  header,
+  nav,
+  [class*="navbar"],
+  [class*="Navbar"],
+  [class*="topbar"],
+  [class*="TopBar"],
+  [class*="Header"] {
+    background: var(--mvp-glass-bg) !important;
+    backdrop-filter: var(--mvp-glass-blur);
+    border-bottom: 1px solid var(--mvp-glass-border) !important;
+    padding-top: calc(var(--mvp-safe-top) + 6px) !important;
+    padding-left: calc(var(--mvp-safe-left) + 12px) !important;
+    padding-right: calc(var(--mvp-safe-right) + 12px) !important;
+  }
+
+  footer,
+  [class*="bottom-bar"],
+  [class*="BottomBar"],
+  [class*="footer-nav"],
+  [class*="FooterNav"] {
+    background: var(--mvp-glass-bg) !important;
+    backdrop-filter: var(--mvp-glass-blur);
+    border-top: 1px solid var(--mvp-glass-border) !important;
+    padding-bottom: calc(var(--mvp-safe-bottom) + 8px) !important;
+  }
+
+  /* ============ 10. 列表/网格间距节奏 ============ */
+  .responsive-grid,
+  .grid {
+    gap: var(--mvp-gap) !important;
+  }
+
+  section,
+  [class*="section"] {
+    margin-bottom: var(--mvp-section-gap);
+  }
+
+  /* ============ 11. 徽标 / 标签：水晶胶囊 ============ */
+  .responsive-badge,
+  [class*="badge"],
+  [class*="Badge"],
+  [class*="tag"],
+  [class*="Tag"],
+  [class*="chip"],
+  [class*="Chip"] {
+    border-radius: 999px !important;
+    border: 1px solid rgba(255, 160, 230, 0.30) !important;
+    background: linear-gradient(135deg, rgba(255,92,168,0.16), rgba(139,92,255,0.10)) !important;
+    padding: 5px 14px !important;
+    color: #FFE6F6 !important;
+  }
+
+  /* ============ 12. 图片 / 封面：宝石圆角 ============ */
+  img,
+  [class*="cover"],
+  [class*="Cover"],
+  [class*="thumbnail"],
+  [class*="Thumb"],
+  [class*="poster"],
+  [class*="Poster"] {
+    border-radius: var(--mvp-radius-sm) !important;
+  }
+
+  /* ============ 13. 滚动条隐藏 ============ */
+  ::-webkit-scrollbar {
+    width: 0 !important;
+    height: 0 !important;
+    background: transparent !important;
+  }
+
+  /* ============ 14. 进场微动效（如展卷般展开） ============ */
+  @media (prefers-reduced-motion: no-preference) {
+    .card-luxury,
+    [class*="fade-in"],
+    [class*="FadeIn"],
+    [class*="reveal"] {
+      animation: mvp-rise 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+
+    @keyframes mvp-rise {
+      from {
+        opacity: 0;
+        transform: translateY(16px) scale(0.99);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+  }
+}
+
+/* ============ 极窄屏 (≤380px) 微调 ============ */
+@media (max-width: 380px) {
+  :root {
+    --mvp-gap: 12px;
+    --mvp-section-gap: 20px;
+  }
+}
+
+/* Authentication controls stay inside their rounded hit area on mobile. */
+@media (max-width: 767px) {
+  .aicg-auth-body button.aicg-auth-action-button {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden !important;
+    background-clip: padding-box !important;
+    -webkit-background-clip: padding-box !important;
+  }
+
+  .aicg-auth-body button.aicg-auth-action-button::before,
+  .aicg-auth-body button.aicg-auth-action-button::after {
+    content: none !important;
+    display: none !important;
+  }
+}

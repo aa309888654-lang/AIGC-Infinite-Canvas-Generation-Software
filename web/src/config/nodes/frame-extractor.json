@@ -1,0 +1,22 @@
+{
+  "id": "frameExtractor",
+  "name": "视频抽帧",
+  "category": "video",
+  "description": "从视频中抽取关键帧并作为图片输出",
+  "icon": "🎞️",
+  "color": "#F59E0B",
+  "ports": {
+    "inputs": [{ "id": "input", "name": "视频输入", "type": "video", "optional": true }],
+    "outputs": [{ "id": "output", "name": "图片帧", "type": "image", "multiple": true }]
+  },
+  "defaultParams": {
+    "frameCount": 10,
+    "intervalSeconds": 1,
+    "extractionMode": "even",
+    "quality": "high",
+    "outputFormat": "image/jpeg"
+  },
+  "ui": { "shell": "glass", "promptPanel": false, "resultRenderer": "image", "toolbar": "minimal" },
+  "execution": { "executable": false },
+  "models": { "mediaType": "none" }
+}

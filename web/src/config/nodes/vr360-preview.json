@@ -1,0 +1,18 @@
+{
+  "id": "vr360Preview",
+  "name": "VR360预览",
+  "category": "video",
+  "description": "独立 VR360 沉浸预览轻节点：负责视角热点、路径说明和全景转视频提示词",
+  "icon": "🥽",
+  "color": "#06B6D4",
+  "ports": {
+    "inputs": [{ "id": "input", "name": "全景/视角输入", "type": "string", "optional": true }],
+    "outputs": [
+      { "id": "output", "name": "VR视角数据", "type": "string" },
+      { "id": "prompt", "name": "VR提示词", "type": "prompt", "optional": true }
+    ]
+  },
+  "ui": { "shell": "glass", "promptPanel": true, "resultRenderer": "text", "toolbar": "minimal" },
+  "execution": { "executable": false },
+  "models": { "mediaType": "none" }
+}

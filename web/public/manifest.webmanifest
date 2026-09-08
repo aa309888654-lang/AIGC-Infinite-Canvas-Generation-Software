@@ -1,0 +1,25 @@
+{
+  "name": "NEXUS - AI创意工作台",
+  "short_name": "NEXUS",
+  "description": "NEXUS AI创意工作台，一键生成AI视频、AI漫剧、AI音乐",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "theme_color": "#0c0c0d",
+  "background_color": "#0c0c0d",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/app-icon.webp",
+      "sizes": "192x192",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "/app-icon.webp",
+      "sizes": "512x512",
+      "type": "image/webp",
+      "purpose": "any maskable"
+    }
+  ]
+}

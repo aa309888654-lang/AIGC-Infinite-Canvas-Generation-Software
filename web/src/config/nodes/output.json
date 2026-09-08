@@ -1,0 +1,19 @@
+{
+  "id": "output",
+  "name": "输出",
+  "category": "video",
+  "description": "输出最终结果 - 支持图片、视频等多种格式",
+  "icon": "📤",
+  "color": "#00E5FF",
+  "ports": {
+    "inputs": [
+      { "id": "image", "name": "图片输入", "type": "image", "optional": true },
+      { "id": "video", "name": "视频输入", "type": "video", "optional": true },
+      { "id": "audio", "name": "音频输入", "type": "audio", "optional": true }
+    ],
+    "outputs": []
+  },
+  "ui": { "shell": "glass", "promptPanel": false, "resultRenderer": "none", "toolbar": "minimal" },
+  "execution": { "executable": false },
+  "models": { "mediaType": "none" }
+}

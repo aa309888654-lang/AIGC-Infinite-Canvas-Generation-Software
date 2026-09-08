@@ -1,0 +1,46 @@
+{
+  "id": "gridDirector",
+  "name": "分镜导演",
+  "category": "video",
+  "description": "统一宫格生成、分镜编排与混合流程 - 支持快速宫格/魔法分镜/高级导演三种模式",
+  "icon": "🎬",
+  "color": "#F59E0B",
+  "ports": {
+    "inputs": [
+      { "id": "scriptInput", "name": "剧本/文本", "type": "string", "optional": true, "multiple": true },
+      { "id": "imageInput", "name": "图片参考", "type": "image", "optional": true, "multiple": true },
+      { "id": "characterRef", "name": "角色参考", "type": "image", "optional": true, "multiple": true },
+      { "id": "outfitRef", "name": "服装参考", "type": "image", "optional": true },
+      { "id": "environmentRef", "name": "环境参考", "type": "image", "optional": true },
+      { "id": "input", "name": "兼容输入", "type": "image", "optional": true, "multiple": true }
+    ],
+    "outputs": [
+      { "id": "output", "name": "输出", "type": "image" },
+      { "id": "scenes", "name": "分镜数据", "type": "string" }
+    ]
+  },
+  "ui": { "shell": "glass-stack", "promptPanel": true, "resultRenderer": "image", "toolbar": "default" },
+  "execution": {
+    "executable": true,
+    "handler": "grid-director",
+    "mode": "async",
+    "maxRetries": 2,
+    "timeout": 300000,
+    "requiredParams": [
+      { "key": "prompt", "type": "string", "required": true, "minLength": 1, "label": "提示词" },
+      { "key": "modelId", "type": "string", "required": true, "label": "模型" },
+      { "key": "modelProvider", "type": "string", "required": true, "label": "提供商" }
+    ]
+  },
+  "models": {
+    "mediaType": "image",
+    "allowedProviders": ["doubao", "apipaths"],
+    "defaultModelId": "doubao-seedream-5-0-pro",
+    "excludeIdPatterns": ["gpt-5", "claude", "gemini-pro-vision", "speech", "tts", "music", "video"],
+    "requireCapabilities": ["image", "text-to-image", "image-to-image", "reference", "image-edit"],
+    "fallbackModels": [
+      { "modelId": "doubao-seedream-5-0-pro", "provider": "doubao", "name": "豆包 豆包 Seedream 5.0 Pro" },
+      { "modelId": "doubao-seedream-5-0-pro", "provider": "apipaths", "name": "小天3 豆包 Seedream 5.0 Pro" }
+    ]
+  }
+}

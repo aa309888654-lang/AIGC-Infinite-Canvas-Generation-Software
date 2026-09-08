@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://aicg.local/schemas/node-manifest.schema.json",
+  "title": "AICG Node Manifest",
+  "type": "object",
+  "required": ["id", "name", "category", "description", "icon", "color"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^[a-zA-Z][a-zA-Z0-9_-]*$" },
+    "name": { "type": "string" },
+    "category": {
+      "type": "string",
+      "enum": ["input", "output", "processing", "effect", "text", "audio", "image", "video", "utility"]
+    },
+    "description": { "type": "string" },
+    "icon": { "type": "string" },
+    "color": { "type": "string" },
+    "ports": {
+      "type": "object",
+      "properties": {
+        "inputs": { "type": "array" },
+        "outputs": { "type": "array" }
+      }
+    },
+    "defaultParams": { "type": "object" },
+    "ui": {
+      "type": "object",
+      "properties": {
+        "shell": { "enum": ["glass", "glass-stack", "classic", "agent"] },
+        "promptPanel": { "type": "boolean" },
+        "resultRenderer": { "enum": ["image", "video", "audio", "text", "none"] },
+        "hiddenFromPalette": { "type": "boolean" }
+      }
+    },
+    "execution": {
+      "type": "object",
+      "properties": {
+        "executable": { "type": "boolean" },
+        "handler": { "type": "string" },
+        "mode": { "enum": ["sync", "async", "agent"] },
+        "maxRetries": { "type": "integer", "minimum": 0, "maximum": 5 }
+      }
+    }
+  }
+}

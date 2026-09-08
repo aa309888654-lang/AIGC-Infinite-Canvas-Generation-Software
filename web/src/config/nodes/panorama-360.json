@@ -1,0 +1,20 @@
+{
+  "id": "panorama360",
+  "name": "360°全景图",
+  "category": "video",
+  "description": "360度全景图浏览 - 支持全景图上传、视角控制、FOV调节、自动旋转",
+  "icon": "🌐",
+  "color": "#06B6D4",
+  "ports": {
+    "inputs": [{ "id": "input", "name": "全景图输入", "type": "image", "optional": true }],
+    "outputs": [
+      { "id": "imageOutput", "name": "全景图输出", "type": "image" },
+      { "id": "output", "name": "全景视角数据", "type": "string" },
+      { "id": "viewData", "name": "视角数据", "type": "string", "optional": true },
+      { "id": "prompt", "name": "全景提示词", "type": "prompt" }
+    ]
+  },
+  "ui": { "shell": "glass-stack", "promptPanel": true, "resultRenderer": "text", "toolbar": "default" },
+  "execution": { "executable": false },
+  "models": { "mediaType": "none" }
+}

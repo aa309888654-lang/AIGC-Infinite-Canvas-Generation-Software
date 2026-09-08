@@ -1,0 +1,654 @@
+/* Omnichart-inspired homepage flow canvas. Reference only; all visuals are custom for 小天 AICG. */
+
+@media (min-width: 901px) {
+  .seko-launch-dark-layout {
+    --omni-bg: #050812;
+    --omni-panel: rgba(7, 14, 24, 0.78);
+    --omni-panel-strong: rgba(10, 18, 30, 0.9);
+    --omni-border: rgba(148, 163, 184, 0.16);
+    --omni-text: rgba(248, 250, 252, 0.94);
+    --omni-muted: rgba(203, 213, 225, 0.58);
+    --omni-cyan: #67e8f9;
+    --omni-teal: #2dd4bf;
+    --omni-green: #22c55e;
+    --omni-amber: #fbbf24;
+    --omni-blue: #60a5fa;
+    background:
+      radial-gradient(circle at 50% -18%, rgba(103, 232, 249, 0.16), transparent 34vw),
+      radial-gradient(circle at 18% 18%, rgba(45, 212, 191, 0.12), transparent 26vw),
+      radial-gradient(circle at 86% 18%, rgba(251, 191, 36, 0.08), transparent 22vw),
+      var(--omni-bg) !important;
+  }
+
+  .seko-launch-dark-layout .seko-hero {
+    min-height: max(850px, calc(100vh - 16px)) !important;
+    padding-top: clamp(108px, 10vh, 132px) !important;
+    overflow: hidden !important;
+  }
+
+  .seko-launch-dark-layout .seko-hero-bg {
+    background:
+      radial-gradient(circle at 50% 4%, rgba(103, 232, 249, 0.12), transparent 36%),
+      linear-gradient(180deg, rgba(5, 8, 18, 0.12), rgba(5, 8, 18, 0.96)),
+      var(--omni-bg) !important;
+  }
+
+  .seko-launch-dark-layout .seko-hero-bg::before {
+    background-image:
+      linear-gradient(rgba(125, 211, 252, 0.065) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(125, 211, 252, 0.065) 1px, transparent 1px),
+      radial-gradient(circle, rgba(125, 211, 252, 0.12) 1px, transparent 1.5px) !important;
+    background-size: 72px 72px, 72px 72px, 24px 24px !important;
+    mask-image: radial-gradient(ellipse 86% 78% at 50% 42%, #000 18%, transparent 76%) !important;
+    opacity: 0.8 !important;
+  }
+
+  .seko-launch-dark-layout .seko-ai-output-rail {
+    opacity: 0.1 !important;
+  }
+
+  .seko-omni-flow-board {
+    position: absolute;
+    inset: 88px max(18px, calc((100vw - 1280px) / 2)) auto;
+    height: min(680px, calc(100vh - 118px));
+    min-height: 560px;
+    pointer-events: none;
+    z-index: 2;
+    opacity: 0.78;
+  }
+
+  .seko-omni-flow-board::before {
+    content: '';
+    position: absolute;
+    inset: 18px 0 auto;
+    height: 520px;
+    border-radius: 40px;
+    background:
+      linear-gradient(180deg, rgba(15, 23, 42, 0.36), rgba(2, 6, 23, 0.08)),
+      radial-gradient(circle at 44% 38%, rgba(103, 232, 249, 0.1), transparent 28%),
+      radial-gradient(circle at 76% 18%, rgba(251, 191, 36, 0.06), transparent 24%);
+    border: 1px solid rgba(148, 163, 184, 0.08);
+    box-shadow:
+      0 42px 120px rgba(0, 0, 0, 0.28),
+      0 0 0 1px rgba(255, 255, 255, 0.02) inset;
+    opacity: 0.46;
+  }
+
+  .seko-omni-flow-lines {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  .seko-omni-line {
+    fill: none;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-dasharray: 10 14;
+    filter: drop-shadow(0 0 10px rgba(103, 232, 249, 0.22));
+    animation: sekoOmniDash 18s linear infinite;
+  }
+
+  .seko-omni-line.main {
+    stroke: url('#sekoOmniCyanLine');
+    stroke-width: 2.8;
+  }
+
+  .seko-omni-line.branch-a,
+  .seko-omni-line.branch-b,
+  .seko-omni-line.branch-c {
+    stroke: url('#sekoOmniAmberLine');
+    opacity: 0.5;
+  }
+
+  .seko-omni-node {
+    position: absolute;
+    width: 178px;
+    min-height: 96px;
+    border-radius: 8px;
+    padding: 13px 15px 13px 58px;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.052), rgba(255, 255, 255, 0.018)),
+      rgba(7, 14, 24, 0.64);
+    border: 1px solid var(--omni-border);
+    color: var(--omni-text);
+    box-shadow:
+      0 18px 48px rgba(0, 0, 0, 0.28),
+      0 0 0 1px rgba(255, 255, 255, 0.025) inset;
+    backdrop-filter: blur(20px) saturate(1.18);
+    -webkit-backdrop-filter: blur(20px) saturate(1.18);
+    transform: translate(-50%, -50%);
+  }
+
+  .seko-omni-node-icon {
+    position: absolute;
+    left: 14px;
+    top: 14px;
+    display: inline-flex;
+    width: 32px;
+    height: 32px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    color: var(--omni-cyan);
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0.035)),
+      rgba(8, 18, 30, 0.76);
+    border: 1px solid rgba(125, 211, 252, 0.18);
+    box-shadow:
+      0 12px 28px rgba(0, 0, 0, 0.28),
+      0 0 24px color-mix(in srgb, currentColor 30%, transparent),
+      0 0 0 1px rgba(255, 255, 255, 0.035) inset;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+
+  .seko-omni-node::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    pointer-events: none;
+  }
+
+  .seko-omni-node-meta {
+    display: block;
+    color: rgba(125, 211, 252, 0.78);
+    font-size: 10px;
+    font-weight: 800;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .seko-omni-node strong {
+    display: block;
+    margin-top: 11px;
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: 760;
+    line-height: 1.18;
+    letter-spacing: 0;
+  }
+
+  .seko-omni-node small {
+    display: block;
+    margin-top: 8px;
+    color: var(--omni-muted);
+    font-size: 12px;
+    font-weight: 540;
+    line-height: 1.45;
+    letter-spacing: 0;
+  }
+
+  .seko-omni-node-start { left: 9%; top: 27%; opacity: 0.74; }
+  .seko-omni-node-image { left: 8%; top: 52%; opacity: 0.66; }
+  .seko-omni-node-story { left: 91%; top: 49%; opacity: 0.72; }
+  .seko-omni-node-video { left: 91%; top: 25%; }
+  .seko-omni-node-voice { left: 12%; top: 73%; }
+  .seko-omni-node-music { display: none; }
+  .seko-omni-node-clip { left: 91%; top: 73%; }
+
+  .seko-omni-node-start .seko-omni-node-icon,
+  .seko-omni-node-start .seko-omni-node-meta {
+    color: var(--omni-cyan);
+  }
+
+  .seko-omni-node-image .seko-omni-node-icon,
+  .seko-omni-node-image .seko-omni-node-meta {
+    color: var(--omni-teal);
+  }
+
+  .seko-omni-node-story .seko-omni-node-icon,
+  .seko-omni-node-story .seko-omni-node-meta {
+    color: var(--omni-amber);
+  }
+
+  .seko-omni-node-video .seko-omni-node-icon,
+  .seko-omni-node-video .seko-omni-node-meta {
+    color: var(--omni-blue);
+  }
+
+  .seko-omni-node-voice .seko-omni-node-icon,
+  .seko-omni-node-voice .seko-omni-node-meta {
+    color: #34d399;
+  }
+
+  .seko-omni-node-music .seko-omni-node-icon,
+  .seko-omni-node-music .seko-omni-node-meta {
+    color: #f472b6;
+  }
+
+  .seko-omni-node-clip .seko-omni-node-icon,
+  .seko-omni-node-clip .seko-omni-node-meta {
+    color: #fb923c;
+  }
+
+  .seko-launch-dark-layout .seko-hero-content {
+    z-index: 5 !important;
+    max-width: 1040px !important;
+  }
+
+  .seko-launch-dark-layout .seko-hero-slogan {
+    max-width: 920px !important;
+    margin-top: 76px !important;
+  }
+
+  .seko-launch-dark-layout .seko-launch-badge {
+    color: rgba(204, 251, 241, 0.9) !important;
+    border-color: rgba(45, 212, 191, 0.2) !important;
+    background:
+      linear-gradient(180deg, rgba(20, 184, 166, 0.12), rgba(2, 6, 23, 0.72)),
+      rgba(5, 8, 18, 0.74) !important;
+  }
+
+  .seko-launch-dark-layout .seko-hero-slogan h1 {
+    max-width: 900px !important;
+    background: linear-gradient(108deg, #ffffff 0%, #ccfbf1 34%, #bae6fd 62%, #fff7ed 100%) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+    color: transparent !important;
+    text-shadow: 0 28px 78px rgba(0, 0, 0, 0.48) !important;
+  }
+
+  .seko-launch-dark-layout .seko-light-gradient-text {
+    background: linear-gradient(110deg, #67e8f9 0%, #2dd4bf 44%, #fbbf24 100%) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+    color: transparent !important;
+  }
+
+  .seko-launch-dark-layout .seko-launch-subtitle {
+    color: rgba(226, 232, 240, 0.82) !important;
+  }
+
+  .seko-launch-dark-layout .seko-launch-hero-stats {
+    border-color: rgba(148, 163, 184, 0.14) !important;
+    background: rgba(5, 8, 18, 0.56) !important;
+  }
+
+  .seko-launch-dark-layout .seko-launch-hero-stats span,
+  .seko-launch-dark-layout .seko-intel-cap,
+  .seko-launch-dark-layout .seko-ai-live-pill {
+    border-radius: 8px !important;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.022)),
+      rgba(10, 18, 30, 0.66) !important;
+  }
+
+  .seko-launch-dark-layout .seko-hero-input-bar.collapsed {
+    border-radius: 12px !important;
+    border-color: rgba(103, 232, 249, 0.24) !important;
+    background:
+      linear-gradient(180deg, rgba(15, 23, 42, 0.92), rgba(5, 8, 18, 0.88)),
+      rgba(5, 8, 18, 0.9) !important;
+  }
+
+  .seko-launch-dark-layout .seko-tool-bar {
+    border-radius: 12px !important;
+  }
+
+  .seko-launch-dark-layout .seko-tool-btn {
+    border-radius: 8px !important;
+  }
+
+  @keyframes sekoOmniDash {
+    from { stroke-dashoffset: 0; }
+    to { stroke-dashoffset: -240; }
+  }
+}
+
+@media (min-width: 901px) and (max-width: 1180px) {
+  .seko-omni-flow-board {
+    opacity: 0.66;
+    transform: scale(0.9);
+    transform-origin: top center;
+  }
+
+  .seko-omni-node {
+    width: 160px;
+  }
+}
+
+@media (max-width: 900px) {
+  .seko-omni-flow-board {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .seko-omni-line {
+    animation: none !important;
+  }
+}
+
+@media (min-width: 901px) {
+  .seko-launch-dark-layout {
+    --omni-bg: #020203;
+    --omni-panel: rgba(6, 7, 10, 0.86);
+    --omni-panel-strong: rgba(10, 11, 15, 0.94);
+    --omni-border: rgba(255, 255, 255, 0.14);
+    --omni-text: rgba(255, 255, 255, 0.96);
+    --omni-muted: rgba(229, 231, 235, 0.7);
+    --omni-cyan: #8eeeff;
+    --omni-teal: #6ee7d8;
+    --omni-green: #86efac;
+    --omni-amber: #f8d46b;
+    --omni-blue: #a7c7ff;
+    background:
+      radial-gradient(circle at 50% -12%, rgba(255, 255, 255, 0.1), transparent 30vw),
+      radial-gradient(circle at 16% 18%, rgba(142, 238, 255, 0.08), transparent 24vw),
+      linear-gradient(180deg, #030305 0%, #020203 58%, #000 100%) !important;
+  }
+
+  .seko-launch-dark-layout .seko-hero-bg {
+    background:
+      linear-gradient(180deg, rgba(0, 0, 0, 0.06), rgba(0, 0, 0, 0.9)),
+      radial-gradient(circle at 50% 10%, rgba(255, 255, 255, 0.08), transparent 34%),
+      #020203 !important;
+  }
+
+  .seko-launch-dark-layout .seko-hero-bg::before {
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+      radial-gradient(circle, rgba(255, 255, 255, 0.08) 1px, transparent 1.5px) !important;
+    opacity: 0.62 !important;
+  }
+
+  .seko-launch-dark-layout .seko-hero-content {
+    max-width: 1000px !important;
+  }
+
+  .seko-launch-dark-layout .seko-hero-slogan {
+    max-width: 960px !important;
+    margin-top: 70px !important;
+  }
+
+  .seko-launch-dark-layout .seko-launch-badge {
+    height: 40px !important;
+    padding: 0 18px !important;
+    color: rgba(250, 250, 250, 0.92) !important;
+    border-color: rgba(255, 255, 255, 0.15) !important;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.026)),
+      rgba(5, 5, 7, 0.84) !important;
+    box-shadow:
+      0 18px 46px rgba(0, 0, 0, 0.48),
+      0 0 0 1px rgba(255, 255, 255, 0.045) inset !important;
+  }
+
+  .seko-launch-dark-layout .seko-hero-slogan h1 {
+    max-width: 940px !important;
+    margin-top: 22px !important;
+    color: transparent !important;
+    background: linear-gradient(180deg, #ffffff 0%, #f5f5f5 42%, #bfc3ca 100%) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+    font-size: 74px !important;
+    font-weight: 820 !important;
+    line-height: 1.08 !important;
+    letter-spacing: 0 !important;
+    text-shadow: none !important;
+    filter:
+      drop-shadow(0 22px 42px rgba(0, 0, 0, 0.82))
+      drop-shadow(0 0 20px rgba(255, 255, 255, 0.08)) !important;
+  }
+
+  .seko-launch-dark-layout .seko-light-gradient-text {
+    display: inline-block;
+    color: #ffffff !important;
+    background: linear-gradient(180deg, #ffffff 0%, #d9dde5 100%) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+    text-shadow: none !important;
+  }
+
+  .seko-launch-dark-layout .seko-launch-subtitle {
+    max-width: 760px !important;
+    margin-top: 20px !important;
+    color: rgba(244, 244, 245, 0.82) !important;
+    font-size: 18px !important;
+    font-weight: 520 !important;
+    line-height: 1.78 !important;
+    letter-spacing: 0 !important;
+    text-shadow: 0 12px 30px rgba(0, 0, 0, 0.72) !important;
+  }
+
+  .seko-launch-dark-layout .seko-launch-hero-stats {
+    width: min(690px, 100%) !important;
+    margin-top: 20px !important;
+    padding: 6px !important;
+    border-color: rgba(255, 255, 255, 0.14) !important;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.018)),
+      rgba(4, 4, 6, 0.72) !important;
+    box-shadow:
+      0 24px 58px rgba(0, 0, 0, 0.5),
+      0 0 0 1px rgba(255, 255, 255, 0.03) inset !important;
+  }
+
+  .seko-launch-dark-layout .seko-launch-hero-stats span {
+    min-height: 64px !important;
+    border-radius: 10px !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    background: rgba(255, 255, 255, 0.045) !important;
+  }
+
+  .seko-launch-dark-layout .seko-launch-hero-stats strong {
+    color: #ffffff !important;
+    font-size: 25px !important;
+    font-weight: 820 !important;
+    line-height: 1 !important;
+  }
+
+  .seko-launch-dark-layout .seko-launch-hero-stats em {
+    margin-top: 7px !important;
+    color: rgba(229, 231, 235, 0.74) !important;
+    font-size: 12px !important;
+    font-style: normal !important;
+    font-weight: 650 !important;
+    letter-spacing: 0 !important;
+  }
+
+  .seko-launch-dark-layout .seko-intel-capabilities {
+    margin-top: 16px !important;
+    gap: 9px !important;
+  }
+
+  .seko-launch-dark-layout .seko-intel-cap,
+  .seko-launch-dark-layout .seko-ai-live-pill {
+    height: 34px !important;
+    border-radius: 999px !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.024)),
+      rgba(5, 5, 7, 0.72) !important;
+    color: rgba(245, 245, 245, 0.84) !important;
+    font-size: 13px !important;
+    font-weight: 650 !important;
+    letter-spacing: 0 !important;
+  }
+
+  .seko-launch-dark-layout .seko-intel-cap-icon {
+    color: rgba(142, 238, 255, 0.92) !important;
+  }
+
+  .seko-launch-dark-layout .seko-hero-input-bar.collapsed {
+    width: min(740px, calc(100vw - 40px)) !important;
+    min-height: 68px !important;
+    margin-top: 18px !important;
+    border-radius: 14px !important;
+    border-color: rgba(255, 255, 255, 0.16) !important;
+    background:
+      linear-gradient(180deg, rgba(18, 18, 22, 0.96), rgba(3, 3, 5, 0.96)),
+      #050506 !important;
+    box-shadow:
+      0 26px 68px rgba(0, 0, 0, 0.66),
+      0 0 0 1px rgba(255, 255, 255, 0.045) inset,
+      0 0 42px rgba(142, 238, 255, 0.06) !important;
+  }
+
+  .seko-launch-dark-layout .seko-hero-input-placeholder,
+  .seko-launch-dark-layout .seko-hero-input-placeholder span {
+    color: rgba(255, 255, 255, 0.78) !important;
+    font-size: 15px !important;
+    font-weight: 580 !important;
+    letter-spacing: 0 !important;
+  }
+
+  .seko-launch-dark-layout .seko-hero-send-icon,
+  .seko-launch-dark-layout .seko-send-btn {
+    border-color: rgba(255, 255, 255, 0.18) !important;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(205, 211, 220, 0.92)) !important;
+    color: #050506 !important;
+    box-shadow:
+      0 14px 30px rgba(0, 0, 0, 0.46),
+      0 0 22px rgba(255, 255, 255, 0.16) !important;
+  }
+
+  .seko-launch-dark-layout .seko-tool-bar {
+    margin-top: 12px !important;
+    padding: 7px !important;
+    border-radius: 14px !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.018)),
+      rgba(4, 4, 6, 0.76) !important;
+  }
+
+  .seko-launch-dark-layout .seko-tool-btn {
+    height: 42px !important;
+    min-width: 112px !important;
+    border-radius: 10px !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    background: rgba(255, 255, 255, 0.045) !important;
+    color: rgba(250, 250, 250, 0.88) !important;
+    font-size: 14px !important;
+    font-weight: 660 !important;
+    letter-spacing: 0 !important;
+  }
+
+  .seko-launch-dark-layout .seko-tool-btn svg {
+    color: rgba(142, 238, 255, 0.9) !important;
+  }
+
+  .seko-launch-dark-layout .seko-tool-btn:hover {
+    border-color: rgba(255, 255, 255, 0.24) !important;
+    background: rgba(255, 255, 255, 0.085) !important;
+  }
+
+  .seko-omni-flow-board {
+    opacity: 0.88;
+  }
+
+  .seko-omni-flow-board::before {
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.01)),
+      rgba(3, 3, 5, 0.24);
+    border-color: rgba(255, 255, 255, 0.07);
+    opacity: 0.52;
+  }
+
+  .seko-omni-line {
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.14));
+  }
+
+  .seko-omni-line.branch-a,
+  .seko-omni-line.branch-b,
+  .seko-omni-line.branch-c {
+    opacity: 0.42;
+  }
+
+  .seko-omni-node {
+    width: 188px;
+    min-height: 102px;
+    padding: 14px 16px 14px 60px;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.022)),
+      rgba(4, 4, 6, 0.82);
+    border-color: rgba(255, 255, 255, 0.14);
+    box-shadow:
+      0 22px 58px rgba(0, 0, 0, 0.5),
+      0 0 0 1px rgba(255, 255, 255, 0.035) inset;
+  }
+
+  .seko-omni-node-icon {
+    width: 34px;
+    height: 34px;
+    border-color: rgba(255, 255, 255, 0.16);
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.03)),
+      rgba(0, 0, 0, 0.62);
+    box-shadow:
+      0 14px 30px rgba(0, 0, 0, 0.44),
+      0 0 18px color-mix(in srgb, currentColor 24%, transparent),
+      0 0 0 1px rgba(255, 255, 255, 0.045) inset;
+  }
+
+  .seko-omni-node-meta {
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 11px;
+    font-weight: 850;
+    letter-spacing: 0;
+  }
+
+  .seko-omni-node strong {
+    margin-top: 10px;
+    color: #ffffff;
+    font-size: 17px;
+    font-weight: 820;
+    line-height: 1.22;
+  }
+
+  .seko-omni-node small {
+    margin-top: 7px;
+    color: rgba(229, 231, 235, 0.76);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.45;
+  }
+
+  .seko-omni-node-start { left: 8%; top: 27%; opacity: 0.82; }
+  .seko-omni-node-image { left: 7%; top: 52%; opacity: 0.78; }
+  .seko-omni-node-story { left: 92%; top: 49%; opacity: 0.8; }
+  .seko-omni-node-video { left: 92%; top: 25%; opacity: 0.88; }
+  .seko-omni-node-voice { left: 11%; top: 73%; opacity: 0.82; }
+  .seko-omni-node-clip { left: 92%; top: 73%; opacity: 0.88; }
+
+  .seko-launch-dark-layout .seko-top-bar {
+    background:
+      linear-gradient(180deg, rgba(16, 16, 20, 0.92), rgba(4, 4, 6, 0.82)) !important;
+    border-color: rgba(255, 255, 255, 0.13) !important;
+    box-shadow:
+      0 24px 70px rgba(0, 0, 0, 0.58),
+      0 0 0 1px rgba(255, 255, 255, 0.035) inset !important;
+  }
+
+  .seko-launch-dark-layout .seko-logo,
+  .seko-launch-dark-layout .seko-top-action-btn {
+    color: rgba(255, 255, 255, 0.92) !important;
+    background: rgba(255, 255, 255, 0.045) !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+  }
+
+  .seko-launch-dark-layout .seko-top-action-btn-primary {
+    background: rgba(255, 255, 255, 0.12) !important;
+    color: #ffffff !important;
+  }
+}
+
+@media (min-width: 901px) and (max-width: 1180px) {
+  .seko-launch-dark-layout .seko-hero-slogan h1 {
+    font-size: 62px !important;
+  }
+
+  .seko-omni-node {
+    width: 172px;
+    min-height: 98px;
+    padding-left: 56px;
+  }
+}

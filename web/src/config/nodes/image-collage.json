@@ -1,0 +1,15 @@
+{
+  "id": "imageCollage",
+  "name": "图片拼图",
+  "category": "image",
+  "description": "AICG 图片节点的卫星工具：多图拼接、模板排版与导出",
+  "icon": "🧩",
+  "color": "#8B5CF6",
+  "ports": {
+    "inputs": [{ "id": "input", "name": "图片输入", "type": "image", "optional": true, "multiple": true }],
+    "outputs": [{ "id": "output", "name": "拼图输出", "type": "image" }]
+  },
+  "ui": { "hiddenFromPalette": true, "shell": "glass", "promptPanel": false, "resultRenderer": "image", "toolbar": "minimal" },
+  "execution": { "executable": false },
+  "models": { "mediaType": "none" }
+}

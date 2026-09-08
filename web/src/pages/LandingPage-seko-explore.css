@@ -1,0 +1,258 @@
+/* ═══════════════════════════════════════════════════════════════
+   Seko Explore 参考布局 — 极简沉浸式首页
+   https://seko.sensetime.com/explore
+   ═══════════════════════════════════════════════════════════════ */
+
+.seko-explore-layout {
+  --seko-bg: #0a0a0b;
+  --seko-text: #f5f5f7;
+  --seko-muted: rgba(245, 245, 247, 0.52);
+  --seko-border: rgba(255, 255, 255, 0.1);
+  --seko-input-bg: rgba(22, 22, 24, 0.88);
+  background: var(--seko-bg);
+}
+
+/* 隐藏多余装饰，对齐 Seko 干净视觉 */
+.seko-explore-layout .seko-hero-intelligence-layer,
+.seko-explore-layout .seko-ai-field,
+.seko-explore-layout .seko-ai-output-rail {
+  display: none !important;
+}
+
+/* Hero 垂直居中 */
+.seko-explore-layout .seko-hero {
+  min-height: calc(100vh - 72px) !important;
+  padding: 0 clamp(20px, 4vw, 48px) 48px !important;
+  justify-content: center !important;
+  align-items: center !important;
+  background: var(--seko-bg) !important;
+}
+
+.seko-explore-layout .seko-hero-bg {
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(255, 255, 255, 0.04) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 20%, rgba(120, 120, 255, 0.06) 0%, transparent 55%),
+    var(--seko-bg) !important;
+  transform: none !important;
+  animation: none !important;
+}
+
+.seko-explore-layout .seko-hero-bg::before,
+.seko-explore-layout .seko-hero-bg::after {
+  display: none !important;
+}
+
+.seko-explore-layout .seko-hero-bg-loaded {
+  background:
+    linear-gradient(180deg, rgba(10, 10, 11, 0.72) 0%, rgba(10, 10, 11, 0.92) 55%, rgba(10, 10, 11, 0.98) 100%),
+    url('/hero-bg-ai.webp') center 30% / cover no-repeat !important;
+  opacity: 0.55 !important;
+}
+
+.seko-explore-layout .seko-hero-content {
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  gap: 32px !important;
+}
+
+/* 标语 — Seko 单句问句 */
+.seko-explore-layout .seko-hero-slogan {
+  margin: 0 auto 8px !important;
+  padding: 0 !important;
+  max-width: 100%;
+}
+
+.seko-explore-layout .seko-hero-slogan h1 {
+  font-size: clamp(28px, 4.2vw, 44px) !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.02em !important;
+  line-height: 1.25 !important;
+  color: var(--seko-text) !important;
+  background: none !important;
+  -webkit-text-fill-color: var(--seko-text) !important;
+  text-shadow: none !important;
+}
+
+.seko-explore-layout .seko-hero-slogan h1::after {
+  display: none;
+}
+
+.seko-explore-layout .seko-intel-badge,
+.seko-explore-layout .seko-intel-subtitle,
+.seko-explore-layout .seko-intel-capabilities {
+  display: none !important;
+}
+
+/* 输入框 — Seko 胶囊主入口 */
+.seko-explore-layout .seko-hero-input-bar {
+  width: min(900px, calc(100vw - 40px)) !important;
+  border-radius: 40px !important;
+  border: 1px solid var(--seko-border) !important;
+  background: var(--seko-input-bg) !important;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+}
+
+.seko-explore-layout .seko-hero-input-bar::before,
+.seko-explore-layout .seko-hero-input-bar::after {
+  display: none !important;
+}
+
+.seko-explore-layout .seko-hero-input-bar.collapsed {
+  padding: 18px 28px 18px 32px !important;
+  min-height: 60px !important;
+}
+
+.seko-explore-layout .seko-hero-input-bar.focused,
+.seko-explore-layout .seko-hero-input-bar:focus-within {
+  border-color: rgba(255, 255, 255, 0.22) !important;
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.06) !important;
+}
+
+.seko-explore-layout .seko-hero-input-bar.expanded {
+  border-radius: 28px !important;
+  width: min(1000px, calc(100vw - 40px)) !important;
+}
+
+.seko-explore-layout .seko-hero-input-placeholder span {
+  color: var(--seko-muted) !important;
+  font-size: 15px !important;
+  font-weight: 400 !important;
+}
+
+.seko-explore-layout .seko-hero-send-icon {
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 50% !important;
+  background: rgba(255, 255, 255, 0.12) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.seko-explore-layout .seko-hero-send-icon:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* 收起工具栏，Seko explore 无此区块 */
+.seko-explore-layout .seko-tool-bar {
+  display: none !important;
+}
+
+/* 顶栏极简 */
+.seko-explore-layout .seko-top-bar {
+  background: transparent !important;
+  border-bottom: none !important;
+  box-shadow: none !important;
+}
+
+.seko-explore-layout .seko-logo-text {
+  background: none !important;
+  -webkit-text-fill-color: var(--seko-text) !important;
+  color: var(--seko-text) !important;
+  font-weight: 600 !important;
+}
+
+.seko-explore-layout .seko-sidebar-login-btn {
+  border: none !important;
+  background: transparent !important;
+  color: var(--seko-muted) !important;
+  font-size: 14px !important;
+  padding: 8px 12px !important;
+}
+
+.seko-explore-layout .seko-sidebar-login-btn:hover {
+  color: var(--seko-text) !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+/* 灵感广场 */
+.seko-explore-layout .seko-showcase-inline {
+  margin-top: clamp(48px, 10vh, 96px) !important;
+  padding-top: 32px !important;
+  width: min(1180px, calc(100vw - 48px));
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.seko-explore-layout .seko-showcase-inline::before {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent) !important;
+}
+
+.seko-explore-layout .seko-showcase-header--explore {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.seko-explore-layout .seko-showcase-header--explore h2 {
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  color: var(--seko-text) !important;
+  margin: 0 !important;
+  background: none !important;
+  -webkit-text-fill-color: var(--seko-text) !important;
+}
+
+.seko-explore-layout .seko-showcase-header--explore p {
+  display: none;
+}
+
+.seko-explore-layout .seko-publish-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--seko-border);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--seko-text);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+  white-space: nowrap;
+}
+
+.seko-explore-layout .seko-publish-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.seko-explore-layout .seko-photo-cell {
+  border-radius: 10px !important;
+  border-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+.seko-explore-layout .seko-photo-cell:hover {
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.seko-explore-layout .seko-main {
+  background: var(--seko-bg) !important;
+}
+
+@media (max-width: 768px) {
+  .seko-explore-layout .seko-hero {
+    min-height: auto !important;
+    padding-top: 100px !important;
+  }
+
+  .seko-explore-layout .seko-hero-slogan h1 {
+    font-size: 24px !important;
+  }
+
+  .seko-explore-layout .seko-showcase-header--explore {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

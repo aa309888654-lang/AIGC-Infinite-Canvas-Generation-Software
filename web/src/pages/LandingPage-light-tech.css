@@ -1,0 +1,824 @@
+.seko-light-tech-layout.seko-style-landing {
+  --lt-bg: #f0f4fc;
+  --lt-bg-soft: #e8eef9;
+  --lt-surface: rgba(255, 255, 255, 0.82);
+  --lt-surface-strong: rgba(255, 255, 255, 0.94);
+  --lt-text: #0f172a;
+  --lt-text-secondary: #475569;
+  --lt-text-muted: #64748b;
+  --lt-cyan: #0891b2;
+  --lt-cyan-bright: #06b6d4;
+  --lt-indigo: #4f46e5;
+  --lt-violet: #7c3aed;
+  --lt-border: rgba(79, 70, 229, 0.12);
+  --lt-border-active: rgba(6, 182, 212, 0.38);
+  --lt-glow: rgba(6, 182, 212, 0.22);
+  --lt-shadow: 0 8px 32px rgba(15, 23, 42, 0.08);
+  --lt-shadow-lg: 0 20px 60px rgba(79, 70, 229, 0.12);
+  --ai-cyan: #06b6d4;
+  --ai-violet: #6366f1;
+  --ai-gold: #f59e0b;
+  --ai-bg: var(--lt-bg);
+  --ai-glass: rgba(255, 255, 255, 0.72);
+  --ai-border: rgba(6, 182, 212, 0.18);
+  background: var(--lt-bg);
+  color: var(--lt-text);
+}
+
+/* 覆盖 LandingPage 内联 SafeStyle 对 body 的暗色设定 */
+body:has(.seko-light-tech-layout) {
+  background: #f0f4fc !important;
+  color: #0f172a !important;
+}
+
+/* ── 主背景：明亮网格 + 光晕 ── */
+.seko-light-tech-layout .seko-main {
+  background:
+    radial-gradient(ellipse 90% 60% at 50% -10%, rgba(99, 102, 241, 0.1) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 40% at 90% 20%, rgba(6, 182, 212, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse 40% 35% at 8% 60%, rgba(124, 58, 237, 0.06) 0%, transparent 50%),
+    var(--lt-bg) !important;
+}
+
+.seko-light-tech-layout .seko-hero {
+  min-height: calc(100vh - 72px) !important;
+  padding: clamp(88px, 12vh, 128px) clamp(20px, 4vw, 48px) 56px !important;
+  justify-content: flex-start !important;
+  align-items: center !important;
+  background: transparent !important;
+  overflow: hidden;
+}
+
+.seko-light-tech-layout .seko-hero-bg {
+  background:
+    linear-gradient(180deg, rgba(240, 244, 252, 0.3) 0%, rgba(240, 244, 252, 0.85) 70%, var(--lt-bg) 100%),
+    url('/hero-bg-ai.webp') center 20% / cover no-repeat !important;
+  opacity: 0.35 !important;
+  transform: none !important;
+  animation: lt-hero-breathe 24s ease-in-out infinite !important;
+  filter: saturate(1.15) brightness(1.08);
+}
+
+.seko-light-tech-layout .seko-hero-bg::before {
+  display: block !important;
+  background:
+    linear-gradient(rgba(79, 70, 229, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(79, 70, 229, 0.06) 1px, transparent 1px),
+    repeating-linear-gradient(118deg, transparent 0 118px, rgba(6, 182, 212, 0.04) 119px 120px) !important;
+  background-size: 64px 64px, 64px 64px, 200px 200px !important;
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 40%, #000 20%, transparent 75%) !important;
+  opacity: 0.55 !important;
+  mix-blend-mode: normal !important;
+  animation: lt-grid-drift 40s linear infinite !important;
+}
+
+.seko-light-tech-layout .seko-hero-bg::after {
+  background:
+    linear-gradient(118deg, transparent 0%, rgba(6, 182, 212, 0.06) 42%, rgba(99, 102, 241, 0.05) 58%, transparent 100%) !important;
+}
+
+@keyframes lt-hero-breathe {
+  0%, 100% { transform: scale(1); opacity: 0.32; }
+  50% { transform: scale(1.02); opacity: 0.4; }
+}
+
+@keyframes lt-grid-drift {
+  from { background-position: 0 0, 0 0, 0 0; }
+  to { background-position: 64px 64px, 64px 64px, 200px 200px; }
+}
+
+/* ── 启用 AI 智能化层（explore 曾隐藏） ── */
+.seko-light-tech-layout .seko-hero-intelligence-layer,
+.seko-light-tech-layout .seko-ai-field,
+.seko-light-tech-layout .seko-ai-output-rail {
+  display: block !important;
+}
+
+.seko-light-tech-layout .seko-intel-orb {
+  filter: blur(90px);
+  opacity: 0.55;
+}
+
+.seko-light-tech-layout .seko-intel-orb--a {
+  background: radial-gradient(circle, rgba(6, 182, 212, 0.28) 0%, transparent 68%) !important;
+}
+
+.seko-light-tech-layout .seko-intel-orb--b {
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.22) 0%, transparent 70%) !important;
+}
+
+.seko-light-tech-layout .seko-intel-orb--c {
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.14) 0%, transparent 72%) !important;
+}
+
+.seko-light-tech-layout .seko-intel-scan-line {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(6, 182, 212, 0) 18%,
+    rgba(6, 182, 212, 0.45) 50%,
+    rgba(6, 182, 212, 0) 82%,
+    transparent 100%
+  ) !important;
+  box-shadow: 0 0 20px rgba(6, 182, 212, 0.25) !important;
+}
+
+.seko-light-tech-layout .seko-intel-data-rain {
+  background: repeating-linear-gradient(
+    180deg,
+    transparent 0 38px,
+    rgba(79, 70, 229, 0.035) 39px 40px
+  ) !important;
+  opacity: 0.5 !important;
+}
+
+.seko-light-tech-layout .seko-neural-path {
+  stroke: rgba(79, 70, 229, 0.28) !important;
+}
+
+.seko-light-tech-layout .seko-neural-path--gold {
+  stroke: rgba(6, 182, 212, 0.22) !important;
+}
+
+.seko-light-tech-layout .seko-ai-node {
+  border-color: rgba(6, 182, 212, 0.75) !important;
+  background: rgba(255, 255, 255, 0.92) !important;
+  box-shadow: 0 0 16px rgba(6, 182, 212, 0.35) !important;
+}
+
+.seko-light-tech-layout .seko-ai-field::before,
+.seko-light-tech-layout .seko-ai-field::after {
+  border-color: rgba(99, 102, 241, 0.12) !important;
+}
+
+.seko-light-tech-layout .seko-ai-output-card {
+  border-color: rgba(255, 255, 255, 0.85) !important;
+  background: rgba(255, 255, 255, 0.78) !important;
+  box-shadow:
+    0 16px 48px rgba(15, 23, 42, 0.12),
+    0 0 0 1px rgba(6, 182, 212, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+  opacity: 0.88 !important;
+  backdrop-filter: blur(12px);
+}
+
+/* ── 顶栏：明亮玻璃 ── */
+.seko-light-tech-layout .seko-top-bar {
+  background: rgba(255, 255, 255, 0.72) !important;
+  backdrop-filter: blur(20px) saturate(1.5) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(1.5) !important;
+  border-bottom: 1px solid var(--lt-border) !important;
+  box-shadow: 0 4px 24px rgba(15, 23, 42, 0.04) !important;
+}
+
+.seko-light-tech-layout .seko-logo-text {
+  background: linear-gradient(135deg, var(--lt-indigo) 0%, var(--lt-cyan-bright) 100%) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  font-weight: 700 !important;
+}
+
+.seko-light-tech-layout .seko-sidebar-login-btn {
+  border: 1px solid var(--lt-border) !important;
+  background: rgba(255, 255, 255, 0.65) !important;
+  color: var(--lt-text-secondary) !important;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04) !important;
+}
+
+.seko-light-tech-layout .seko-sidebar-login-btn:hover {
+  border-color: var(--lt-border-active) !important;
+  color: var(--lt-cyan) !important;
+  background: rgba(255, 255, 255, 0.95) !important;
+  box-shadow: 0 4px 16px rgba(6, 182, 212, 0.12) !important;
+}
+
+/* ── Hero 标语区 ── */
+.seko-light-tech-layout .seko-hero-content {
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  gap: 24px !important;
+  position: relative;
+  z-index: 3;
+}
+
+.seko-light-tech-layout .seko-hero-slogan {
+  text-align: center;
+  margin: 0 auto 4px !important;
+  padding: 0 !important;
+}
+
+.seko-light-tech-layout .seko-intel-badge {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px 6px 10px;
+  margin-bottom: 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(6, 182, 212, 0.22);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(240, 249, 255, 0.88));
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--lt-text-secondary);
+  box-shadow: 0 4px 16px rgba(6, 182, 212, 0.08), inset 0 1px 0 rgba(255, 255, 255, 1);
+}
+
+.seko-light-tech-layout .seko-intel-badge-dot {
+  background: var(--lt-cyan-bright) !important;
+  box-shadow: 0 0 10px rgba(6, 182, 212, 0.6) !important;
+}
+
+.seko-light-tech-layout .seko-hero-slogan h1 {
+  font-size: clamp(28px, 4.5vw, 48px) !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.03em !important;
+  line-height: 1.2 !important;
+  color: var(--lt-text) !important;
+  background: none !important;
+  -webkit-text-fill-color: var(--lt-text) !important;
+  text-shadow: none !important;
+}
+
+.seko-light-gradient-text {
+  background: linear-gradient(135deg, var(--lt-indigo) 0%, var(--lt-cyan-bright) 55%, var(--lt-violet) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.seko-light-tech-layout .seko-hero-slogan h1::after {
+  background: linear-gradient(90deg, transparent, var(--lt-cyan-bright), var(--lt-indigo), transparent) !important;
+  opacity: 0.45 !important;
+}
+
+.seko-light-tech-layout .seko-intel-subtitle {
+  display: flex !important;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 12px auto 0 !important;
+  font-size: 14px;
+  color: var(--lt-text-muted);
+}
+
+.seko-light-tech-layout .seko-intel-typing {
+  color: var(--lt-cyan) !important;
+  font-weight: 600;
+  min-width: 12ch;
+  transition: opacity 0.3s ease;
+}
+
+.seko-light-tech-layout .seko-intel-subtitle-sep {
+  color: rgba(100, 116, 139, 0.35) !important;
+}
+
+.seko-light-tech-layout .seko-intel-capabilities {
+  display: flex !important;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.seko-light-tech-layout .seko-intel-cap {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--lt-border);
+  background: rgba(255, 255, 255, 0.75);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--lt-text-secondary);
+  cursor: default;
+  transition: border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+  backdrop-filter: blur(8px);
+}
+
+.seko-light-tech-layout .seko-intel-cap:hover {
+  border-color: var(--lt-border-active);
+  color: var(--lt-cyan);
+  box-shadow: 0 6px 20px rgba(6, 182, 212, 0.12);
+  transform: translateY(-2px);
+}
+
+.seko-light-tech-layout .seko-intel-cap-icon {
+  color: var(--lt-indigo) !important;
+}
+
+/* ── AI 实时指标条 ── */
+.seko-ai-live-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.seko-ai-live-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--lt-border);
+  background: rgba(255, 255, 255, 0.7);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--lt-text-secondary);
+  letter-spacing: 0.02em;
+  backdrop-filter: blur(10px);
+  box-shadow: var(--lt-shadow);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.seko-ai-live-pill:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--lt-shadow-lg);
+}
+
+.seko-ai-live-pill-value {
+  font-variant-numeric: tabular-nums;
+  color: var(--lt-indigo);
+  font-weight: 700;
+}
+
+.seko-ai-live-pulse {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
+  animation: lt-live-pulse 2s ease-in-out infinite;
+}
+
+@keyframes lt-live-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.85); }
+}
+
+/* ── 输入框：明亮玻璃胶囊 ── */
+.seko-light-tech-layout .seko-hero-input-bar {
+  width: min(720px, calc(100vw - 40px)) !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(79, 70, 229, 0.14) !important;
+  background: var(--lt-surface-strong) !important;
+  box-shadow:
+    var(--lt-shadow),
+    0 0 0 1px rgba(255, 255, 255, 0.8) inset !important;
+  backdrop-filter: blur(20px) saturate(1.4) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(1.4) !important;
+}
+
+.seko-light-tech-layout .seko-hero-input-bar::before,
+.seko-light-tech-layout .seko-hero-input-bar::after {
+  display: none;
+}
+
+.seko-light-tech-layout .seko-hero-input-bar.collapsed {
+  padding: 16px 22px 16px 26px !important;
+  min-height: 56px !important;
+}
+
+.seko-light-tech-layout .seko-hero-input-bar.focused,
+.seko-light-tech-layout .seko-hero-input-bar:focus-within {
+  border-color: var(--lt-border-active) !important;
+  border-radius: 24px !important;
+  box-shadow:
+    var(--lt-shadow-lg),
+    0 0 0 3px rgba(6, 182, 212, 0.1),
+    0 0 40px rgba(6, 182, 212, 0.08) !important;
+}
+
+.seko-light-tech-layout .seko-hero-input-bar.expanded {
+  border-radius: 24px !important;
+  width: min(800px, calc(100vw - 40px)) !important;
+}
+
+.seko-light-tech-layout .seko-hero-input-placeholder span {
+  color: var(--lt-text-muted) !important;
+}
+
+.seko-light-tech-layout .seko-hero-send-icon {
+  background: linear-gradient(135deg, var(--lt-indigo), var(--lt-cyan-bright)) !important;
+  border: none !important;
+  color: #fff !important;
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.3) !important;
+}
+
+.seko-light-tech-layout .seko-hero-send-icon:hover {
+  box-shadow: 0 6px 20px rgba(6, 182, 212, 0.35) !important;
+  transform: scale(1.05);
+}
+
+/* ── 工具栏：可见 + 交互 ── */
+.seko-light-tech-layout .seko-tool-bar {
+  display: flex !important;
+  margin-top: 18px !important;
+}
+
+.seko-light-tech-layout .seko-tool-btn {
+  border-color: var(--lt-border) !important;
+  background: rgba(255, 255, 255, 0.78) !important;
+  color: var(--lt-text-secondary) !important;
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04) !important;
+}
+
+.seko-light-tech-layout .seko-tool-btn:hover {
+  border-color: var(--lt-border-active) !important;
+  background: rgba(255, 255, 255, 0.98) !important;
+  color: var(--lt-indigo) !important;
+  box-shadow: 0 8px 24px rgba(6, 182, 212, 0.12) !important;
+}
+
+.seko-light-tech-layout .seko-tool-btn-sparkle {
+  border-color: rgba(245, 158, 11, 0.25) !important;
+  background: linear-gradient(135deg, rgba(254, 243, 199, 0.6), rgba(255, 255, 255, 0.85)) !important;
+  color: #b45309 !important;
+}
+
+.seko-light-tech-layout .seko-tool-btn-sparkle:hover {
+  border-color: rgba(245, 158, 11, 0.4) !important;
+  color: #d97706 !important;
+}
+
+/* ── 灵感广场 ── */
+.seko-light-tech-layout .seko-showcase-inline {
+  margin-top: clamp(48px, 8vh, 80px) !important;
+  padding-top: 32px !important;
+  width: min(1180px, calc(100vw - 48px));
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.seko-light-tech-layout .seko-showcase-inline::before {
+  background: linear-gradient(90deg, transparent, rgba(79, 70, 229, 0.12), transparent) !important;
+}
+
+.seko-light-tech-layout .seko-showcase-header--explore h2 {
+  font-size: 20px !important;
+  font-weight: 700 !important;
+  color: var(--lt-text) !important;
+  background: linear-gradient(135deg, var(--lt-text) 0%, var(--lt-indigo) 100%) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
+.seko-light-tech-layout .seko-publish-btn {
+  border: 1px solid var(--lt-border) !important;
+  background: rgba(255, 255, 255, 0.85) !important;
+  color: var(--lt-indigo) !important;
+  box-shadow: var(--lt-shadow) !important;
+}
+
+.seko-light-tech-layout .seko-publish-btn:hover {
+  border-color: var(--lt-border-active) !important;
+  background: #fff !important;
+  box-shadow: var(--lt-shadow-lg) !important;
+}
+
+.seko-light-tech-layout .seko-photo-cell {
+  border-radius: 12px !important;
+  border: 1px solid rgba(255, 255, 255, 0.8) !important;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06) !important;
+  overflow: hidden;
+  transition: transform 0.35s ease, box-shadow 0.35s ease !important;
+}
+
+.seko-light-tech-layout .seko-photo-cell:hover {
+  transform: translateY(-4px) scale(1.01) !important;
+  box-shadow: 0 16px 40px rgba(79, 70, 229, 0.15), 0 0 0 1px rgba(6, 182, 212, 0.12) !important;
+}
+
+.seko-light-tech-layout .seko-photo-cell img {
+  transition: transform 0.4s ease !important;
+}
+
+.seko-light-tech-layout .seko-photo-cell:hover img {
+  transform: scale(1.04) !important;
+}
+
+/* ── 移动端菜单 ── */
+.seko-light-tech-layout .mobile-menu {
+  background: rgba(255, 255, 255, 0.96) !important;
+  border: 1px solid var(--lt-border) !important;
+  color: var(--lt-text) !important;
+}
+
+.seko-light-tech-layout .mobile-menu-item {
+  color: var(--lt-text-secondary) !important;
+}
+
+.seko-light-tech-layout .mobile-menu-cta {
+  background: linear-gradient(135deg, var(--lt-indigo), var(--lt-cyan-bright)) !important;
+}
+
+/* ── 响应式 ── */
+@media (max-width: 768px) {
+  .seko-light-tech-layout .seko-hero {
+    min-height: auto !important;
+    padding-top: 96px !important;
+  }
+
+  .seko-light-tech-layout .seko-ai-output-rail {
+    opacity: 0.4;
+  }
+
+  .seko-ai-live-strip {
+    gap: 6px;
+  }
+
+  .seko-ai-live-pill {
+    padding: 6px 10px;
+    font-size: 10px;
+  }
+
+  .seko-light-tech-layout .seko-intel-capabilities {
+    gap: 6px;
+  }
+
+  .seko-light-tech-layout .seko-intel-cap {
+    font-size: 11px;
+    padding: 6px 11px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .seko-light-tech-layout .seko-intel-orb,
+  .seko-light-tech-layout .seko-intel-scan-line,
+  .seko-light-tech-layout .seko-intel-data-rain,
+  .seko-light-tech-layout .seko-hero-bg,
+  .seko-light-tech-layout .seko-ai-output-card,
+  .seko-light-tech-layout .seko-ai-node {
+    animation: none !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   默认首页视觉美化：更高级的浅色科技玻璃质感
+   ═══════════════════════════════════════════════════════════════ */
+.seko-light-tech-layout.seko-style-landing {
+  --lt-bg: #eef4ff;
+  --lt-bg-soft: #f8fbff;
+  --lt-surface: rgba(255, 255, 255, 0.76);
+  --lt-surface-strong: rgba(255, 255, 255, 0.9);
+  --lt-border: rgba(79, 70, 229, 0.14);
+  --lt-border-active: rgba(8, 145, 178, 0.42);
+  --lt-shadow: 0 14px 42px rgba(15, 23, 42, 0.08);
+  --lt-shadow-lg: 0 28px 76px rgba(79, 70, 229, 0.16);
+  background:
+    radial-gradient(circle at 50% -10%, rgba(99, 102, 241, 0.14), transparent 34rem),
+    radial-gradient(circle at 85% 18%, rgba(6, 182, 212, 0.12), transparent 28rem),
+    linear-gradient(180deg, #f8fbff 0%, #edf4ff 52%, #f8fbff 100%);
+}
+
+.seko-light-tech-layout .seko-main {
+  position: relative;
+  isolation: isolate;
+}
+
+.seko-light-tech-layout .seko-main::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(rgba(79, 70, 229, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(79, 70, 229, 0.045) 1px, transparent 1px),
+    radial-gradient(circle at 48% 28%, rgba(255, 255, 255, 0.92), transparent 21rem);
+  background-size: 72px 72px, 72px 72px, auto;
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.88), rgba(0, 0, 0, 0.24) 62%, transparent 100%);
+}
+
+.seko-light-tech-layout .seko-top-bar {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.84), rgba(255, 255, 255, 0.62)) !important;
+  border-bottom: 1px solid rgba(79, 70, 229, 0.1) !important;
+  box-shadow: 0 10px 36px rgba(15, 23, 42, 0.055) !important;
+}
+
+.seko-light-tech-layout .seko-top-bar-inner {
+  max-width: 1240px;
+  margin: 0 auto;
+}
+
+.seko-light-tech-layout .seko-logo img {
+  box-shadow:
+    0 10px 24px rgba(79, 70, 229, 0.16),
+    0 0 0 1px rgba(255, 255, 255, 0.9) inset;
+}
+
+.seko-light-tech-layout .seko-hero {
+  min-height: calc(100vh - 64px) !important;
+  padding-top: clamp(82px, 11vh, 118px) !important;
+}
+
+.seko-light-tech-layout .seko-hero-content {
+  max-width: 1040px;
+  gap: 20px !important;
+}
+
+.seko-light-tech-layout .seko-intel-badge {
+  border-color: rgba(6, 182, 212, 0.28) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(238, 249, 255, 0.82)),
+    linear-gradient(90deg, rgba(6, 182, 212, 0.08), rgba(99, 102, 241, 0.06)) !important;
+  box-shadow:
+    0 10px 26px rgba(6, 182, 212, 0.11),
+    inset 0 1px 0 rgba(255, 255, 255, 1) !important;
+}
+
+.seko-light-tech-layout .seko-hero-slogan h1 {
+  font-size: clamp(34px, 5.8vw, 68px) !important;
+  line-height: 1.05 !important;
+  font-weight: 760 !important;
+  letter-spacing: -0.055em !important;
+  text-wrap: balance;
+}
+
+.seko-light-tech-layout .seko-hero-slogan h1::after {
+  width: min(420px, 54vw) !important;
+  height: 2px !important;
+  margin-top: 20px !important;
+  filter: blur(0.2px);
+}
+
+.seko-light-gradient-text {
+  background:
+    linear-gradient(90deg, #4f46e5 0%, #0891b2 45%, #7c3aed 100%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.2), transparent) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+}
+
+.seko-light-tech-layout .seko-intel-subtitle {
+  margin-top: 16px !important;
+  font-size: clamp(14px, 1.45vw, 17px) !important;
+  color: #52627a !important;
+}
+
+.seko-light-tech-layout .seko-intel-capabilities {
+  margin-top: 18px !important;
+}
+
+.seko-light-tech-layout .seko-intel-cap {
+  min-height: 34px;
+  border-color: rgba(79, 70, 229, 0.12) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(245, 249, 255, 0.72)) !important;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.045);
+}
+
+.seko-light-tech-layout .seko-ai-live-strip {
+  margin-top: 18px;
+}
+
+.seko-light-tech-layout .seko-ai-live-pill {
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.74);
+  box-shadow:
+    0 10px 28px rgba(15, 23, 42, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.92);
+}
+
+.seko-light-tech-layout .seko-hero-input-bar {
+  width: min(780px, calc(100vw - 40px)) !important;
+  border: 1px solid rgba(79, 70, 229, 0.16) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(248, 251, 255, 0.82)) !important;
+  box-shadow:
+    0 24px 70px rgba(79, 70, 229, 0.14),
+    0 10px 34px rgba(6, 182, 212, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 1),
+    inset 0 -1px 0 rgba(79, 70, 229, 0.06) !important;
+}
+
+.seko-light-tech-layout .seko-hero-input-bar.collapsed {
+  min-height: 64px !important;
+  padding: 18px 18px 18px 26px !important;
+}
+
+.seko-light-tech-layout .seko-hero-input-bar.focused,
+.seko-light-tech-layout .seko-hero-input-bar:focus-within {
+  transform: translateY(-2px);
+  box-shadow:
+    0 30px 90px rgba(79, 70, 229, 0.18),
+    0 0 0 4px rgba(6, 182, 212, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 1) !important;
+}
+
+.seko-light-tech-layout .seko-hero-input-placeholder span {
+  font-size: 15px !important;
+  color: #64748b !important;
+}
+
+.seko-light-tech-layout .seko-hero-send-icon {
+  width: 42px !important;
+  height: 42px !important;
+  background: linear-gradient(135deg, #4f46e5 0%, #0891b2 100%) !important;
+  box-shadow:
+    0 12px 26px rgba(79, 70, 229, 0.28),
+    0 0 0 1px rgba(255, 255, 255, 0.42) inset !important;
+}
+
+.seko-light-tech-layout .seko-tool-bar {
+  gap: 10px !important;
+  justify-content: center;
+}
+
+.seko-light-tech-layout .seko-tool-btn {
+  border-radius: 999px !important;
+  background: rgba(255, 255, 255, 0.7) !important;
+  backdrop-filter: blur(14px);
+}
+
+.seko-light-tech-layout .seko-ai-output-card {
+  border-radius: 22px !important;
+  opacity: 0.94 !important;
+  transform-style: preserve-3d;
+}
+
+.seko-light-tech-layout .seko-ai-output-card-left {
+  animation: lt-card-float-a 8s ease-in-out infinite;
+}
+
+.seko-light-tech-layout .seko-ai-output-card-right {
+  animation: lt-card-float-b 9s ease-in-out infinite;
+}
+
+.seko-light-tech-layout .seko-ai-output-card-bottom {
+  animation: lt-card-float-c 10s ease-in-out infinite;
+}
+
+@keyframes lt-card-float-a {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(-6deg); }
+  50% { transform: translate3d(0, -12px, 0) rotate(-4deg); }
+}
+
+@keyframes lt-card-float-b {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(7deg); }
+  50% { transform: translate3d(0, 10px, 0) rotate(5deg); }
+}
+
+@keyframes lt-card-float-c {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(2deg); }
+  50% { transform: translate3d(0, -8px, 0) rotate(0deg); }
+}
+
+.seko-light-tech-layout .seko-showcase-inline {
+  border-radius: 32px;
+  padding: 34px 0 0 !important;
+}
+
+.seko-light-tech-layout .seko-showcase-header--explore {
+  padding: 0 4px;
+}
+
+.seko-light-tech-layout .seko-photo-cell {
+  border-radius: 18px !important;
+  background: rgba(255, 255, 255, 0.7) !important;
+}
+
+@media (max-width: 900px) {
+  .seko-light-tech-layout .seko-hero-slogan h1 {
+    font-size: clamp(32px, 9vw, 52px) !important;
+  }
+
+  .seko-light-tech-layout .seko-ai-output-rail {
+    opacity: 0.3;
+  }
+}
+
+@media (max-width: 768px) {
+  .seko-light-tech-layout .seko-hero {
+    padding-top: 92px !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  .seko-light-tech-layout .seko-intel-badge,
+  .seko-light-tech-layout .seko-ai-live-strip {
+    display: none !important;
+  }
+
+  .seko-light-tech-layout .seko-hero-input-bar {
+    width: min(100%, calc(100vw - 28px)) !important;
+  }
+
+  .seko-light-tech-layout .seko-hero-input-bar.collapsed {
+    min-height: 58px !important;
+    padding: 14px 14px 14px 18px !important;
+  }
+
+  .seko-light-tech-layout .seko-tool-bar {
+    overflow-x: auto;
+    justify-content: flex-start;
+    padding-bottom: 4px;
+  }
+}

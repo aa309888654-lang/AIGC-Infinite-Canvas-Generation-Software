@@ -1,0 +1,222 @@
+/* Adobe风格样式定义 */
+.adobe-style {
+  /* 主要颜色 */
+  --adobe-primary: #6B7280;
+  --adobe-secondary: #1E293B;
+  --adobe-background: #FFFFFF;
+  --adobe-surface: #F8FAFC;
+  --adobe-border: #E2E8F0;
+  --adobe-text-primary: #1E293B;
+  --adobe-text-secondary: #64748B;
+  --adobe-text-tertiary: #94A3B8;
+  
+  /* 状态颜色 */
+  --adobe-success: #10B981;
+  --adobe-error: #EF4444;
+  --adobe-warning: #F59E0B;
+  --adobe-info: #06B6D4;
+  
+  /* 中性色 */
+  --adobe-gray-100: #F8FAFC;
+  --adobe-gray-200: #E2E8F0;
+  --adobe-gray-300: #CBD5E1;
+  --adobe-gray-400: #94A3B8;
+  --adobe-gray-500: #64748B;
+  --adobe-gray-600: #1E293B;
+}
+
+/* Adobe风格按钮 */
+.adobe-button {
+  background: var(--adobe-primary);
+  color: #FFFFFF;
+  border: 1px solid var(--adobe-primary);
+  border-radius: 2px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: none;
+}
+
+.adobe-button:hover {
+  background: var(--adobe-primary-dark, #4B5563);
+  border-color: var(--adobe-primary-dark, #4B5563);
+}
+
+.adobe-button:disabled {
+  background: var(--adobe-gray-300);
+  border-color: var(--adobe-gray-300);
+  color: var(--adobe-gray-500);
+  cursor: not-allowed;
+}
+
+.adobe-button-secondary {
+  background: var(--adobe-background);
+  color: var(--adobe-text-primary);
+  border: 1px solid var(--adobe-border);
+  border-radius: 2px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: none;
+}
+
+.adobe-button-secondary:hover {
+  background: var(--adobe-gray-100);
+  border-color: var(--adobe-gray-300);
+}
+
+/* Adobe风格输入框 */
+.adobe-input {
+  background: var(--adobe-background);
+  border: 1px solid var(--adobe-border);
+  border-radius: 2px;
+  padding: 6px 8px;
+  font-size: 12px;
+  color: var(--adobe-text-primary);
+  transition: none;
+}
+
+.adobe-input:focus {
+  outline: none;
+  border-color: var(--adobe-primary);
+  box-shadow: 0 0 0 1px var(--adobe-primary);
+}
+
+.adobe-input:disabled {
+  background: var(--adobe-gray-100);
+  color: var(--adobe-gray-400);
+  cursor: not-allowed;
+}
+
+/* Adobe风格卡片 */
+.adobe-card {
+  background: var(--adobe-background);
+  border: 1px solid var(--adobe-border);
+  border-radius: 4px;
+  padding: 16px;
+}
+
+.adobe-card-header {
+  background: #F5F5F5;
+  border-bottom: 1px solid #E5E5E5;
+  padding: 12px 16px;
+  border-radius: 4px 4px 0 0;
+}
+
+/* Adobe风格标签 */
+.adobe-tag {
+  background: #F5F5F5;
+  border: 1px solid #E5E5E5;
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 11px;
+  color: #2C2C2C;
+}
+
+.adobe-tag-success {
+  background: #D4EDDA;
+  border-color: #28A745;
+  color: #155724;
+}
+
+.adobe-tag-error {
+  background: #F8D7DA;
+  border-color: #DC3545;
+  color: #721C24;
+}
+
+.adobe-tag-warning {
+  background: #FFF3CD;
+  border-color: #FFC107;
+  color: #856404;
+}
+
+.adobe-tag-info {
+  background: #CCE5FF;
+  border-color: #17A2B8;
+  color: #004085;
+}
+
+/* Adobe风格选择器 */
+.adobe-select {
+  background: var(--bg-surface, #121214);
+  border: 1px solid var(--border-default, rgba(255, 255, 255, 0.12));
+  border-radius: 2px;
+  padding: 6px 8px;
+  font-size: 12px;
+  color: var(--text-primary, #F0F0F0);
+  cursor: pointer;
+  transition: none;
+}
+
+.adobe-select:focus {
+  outline: none;
+  border-color: #1473E6;
+  box-shadow: 0 0 0 1px #1473E6;
+}
+
+/* Adobe风格提示框 */
+.adobe-alert {
+  border-radius: 4px;
+  padding: 12px;
+  font-size: 12px;
+}
+
+.adobe-alert-info {
+  background: #F0F9FF;
+  border: 1px solid #B3E5FC;
+  color: #004085;
+}
+
+.adobe-alert-success {
+  background: #D4EDDA;
+  border: 1px solid #28A745;
+  color: #155724;
+}
+
+.adobe-alert-error {
+  background: #F8D7DA;
+  border: 1px solid #DC3545;
+  color: #721C24;
+}
+
+.adobe-alert-warning {
+  background: #FFF3CD;
+  border: 1px solid #FFC107;
+  color: #856404;
+}
+
+/* 移除过渡动画 */
+.adobe-no-transition {
+  transition: none !important;
+}
+
+/* 扁平化设计 */
+.adobe-flat {
+  box-shadow: none;
+  border-radius: 2px;
+}
+
+/* 文本样式 */
+.adobe-text-primary {
+  color: #2C2C2C;
+}
+
+.adobe-text-secondary {
+  color: #666666;
+}
+
+.adobe-text-tertiary {
+  color: #999999;
+}
+
+/* 边框样式 */
+.adobe-border {
+  border: 1px solid #E5E5E5;
+}
+
+.adobe-border-light {
+  border: 1px solid #F5F5F5;
+}

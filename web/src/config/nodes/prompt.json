@@ -1,0 +1,15 @@
+{
+  "id": "prompt",
+  "name": "提示词",
+  "category": "input",
+  "description": "输入文本提示词",
+  "icon": "📝",
+  "color": "#6610F2",
+  "ports": {
+    "inputs": [],
+    "outputs": [{ "id": "promptOutput", "name": "提示词", "type": "prompt" }]
+  },
+  "ui": { "shell": "glass", "promptPanel": true, "resultRenderer": "text", "toolbar": "minimal" },
+  "execution": { "executable": false },
+  "models": { "mediaType": "none" }
+}

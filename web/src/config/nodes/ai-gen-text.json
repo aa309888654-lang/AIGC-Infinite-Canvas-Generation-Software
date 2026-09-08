@@ -1,0 +1,59 @@
+{
+  "id": "aiGenText",
+  "name": "文本节点",
+  "category": "input",
+  "description": "AI 生成文本 / 剧本解析分镜",
+  "icon": "✨",
+  "color": "#7c3aed",
+  "ports": {
+    "inputs": [
+      { "id": "promptInput", "name": "提示词输入", "type": "prompt", "optional": true },
+      { "id": "input", "name": "剧本文本输入", "type": "string", "optional": true }
+    ],
+    "outputs": [
+      { "id": "textOutput", "name": "文本输出", "type": "string" },
+      { "id": "scenes", "name": "分镜输出", "type": "string" },
+      { "id": "script", "name": "剧本输出", "type": "string" }
+    ]
+  },
+  "ui": {
+    "shell": "glass",
+    "promptPanel": true,
+    "resultRenderer": "text",
+    "toolbar": "default"
+  },
+  "execution": {
+    "executable": true,
+    "handler": "ai-gen-text",
+    "mode": "async",
+    "maxRetries": 1,
+    "timeout": 60000,
+    "requiredParams": [
+      { "key": "prompt", "type": "string", "required": true, "minLength": 1, "label": "提示词" },
+      { "key": "modelId", "type": "string", "required": true, "label": "模型" },
+      { "key": "modelProvider", "type": "string", "required": true, "label": "提供商" }
+    ]
+  },
+  "models": {
+    "mediaType": "text",
+    "allowedProviders": ["sensenova", "stepfun", "apipaths", "deepseek", "zhipu", "nvidia"],
+    "defaultModelId": "sensenova-6.7-flash-lite",
+    "useTextModelGroups": true,
+    "fallbackModels": [
+      { "modelId": "sensenova-6.7-flash-lite", "provider": "sensenova" },
+      { "modelId": "deepseek-v4-flash", "provider": "sensenova" },
+      { "modelId": "step-3.7-flash", "provider": "stepfun" },
+      { "modelId": "step-3.5-flash", "provider": "stepfun" },
+      { "modelId": "step-1o-turbo-vision", "provider": "stepfun" },
+      { "modelId": "apipaths", "provider": "apipaths" },
+      { "modelId": "apipaths-gpt-5.5", "provider": "apipaths" },
+      { "modelId": "deepseek-v4-pro", "provider": "deepseek" },
+      { "modelId": "nvidia-deepseek-v4-pro", "provider": "nvidia" },
+      { "modelId": "gemini-3.5-flash", "provider": "apipaths" },
+      { "modelId": "gemini-3.1-pro-high", "provider": "apipaths" },
+      { "modelId": "gemini-3.1-pro-low", "provider": "apipaths" },
+      { "modelId": "gemini-3.1-pro-preview", "provider": "apipaths" },
+      { "modelId": "gemini-3-flash", "provider": "apipaths" }
+    ]
+  }
+}

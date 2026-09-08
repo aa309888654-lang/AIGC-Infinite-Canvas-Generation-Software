@@ -1,0 +1,153 @@
+/* ============================================
+   Seko风格输入框展开效果 - 补充样式
+   仅在 .seko-hero-input-bar.expanded 下生效
+   主样式定义在 LandingPage-compact.css
+   ============================================ */
+
+.seko-mode-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.seko-mode-label {
+  color: #00d4aa;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.seko-input-content {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.seko-placeholder-hint {
+  position: absolute;
+  top: 50%;
+  left: 16px;
+  transform: translateY(-50%);
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 14px;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* ===== 展开状态专属覆盖 ===== */
+
+.seko-hero-input-bar.expanded .seko-input-content {
+  min-height: 36px;
+}
+
+.seko-hero-input-bar.expanded .seko-placeholder-hint {
+  display: none;
+}
+
+.seko-hero-input-bar.expanded .seko-chat-display {
+  padding: 0 0 8px;
+}
+
+.seko-hero-input-bar.expanded .seko-input-toolbar {
+  padding: 4px 0 0;
+}
+
+.seko-hero-input-bar.expanded .seko-toolbar-left {
+  gap: 6px;
+}
+
+.seko-hero-input-bar.expanded .seko-toolbar-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+}
+
+.seko-hero-input-bar.expanded .seko-toggle-label {
+  font-size: 13px;
+}
+
+.seko-hero-input-bar.expanded .seko-toggle-switch {
+  width: 28px;
+  height: 16px;
+  border-radius: 8px;
+  border: none;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.seko-hero-input-bar.expanded .seko-toggle-switch::after {
+  width: 12px;
+  height: 12px;
+  top: 2px;
+  left: 2px;
+}
+
+.seko-hero-input-bar.expanded .seko-toggle-switch.active {
+  background: #00d4aa;
+}
+
+.seko-hero-input-bar.expanded .seko-toggle-switch.active::after {
+  left: 14px;
+}
+
+.seko-hero-input-bar.expanded .seko-send-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  color: #1a1a2e;
+  padding: 0;
+}
+
+.seko-hero-input-bar.expanded .seko-send-btn:hover {
+  background: white;
+  transform: scale(1.05);
+  box-shadow: none;
+}
+
+.seko-hero-input-bar.expanded .seko-send-btn:active {
+  transform: scale(0.95);
+}
+
+/* ===== 非作用域通用组件样式 ===== */
+
+.seko-model-tag {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  margin-left: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.seko-model-tag:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.seko-model-name {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 400;
+}
+
+.seko-new-badge {
+  font-size: 9px;
+  color: #00d4aa;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  font-style: italic;
+}
+
+.seko-at-icon {
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.5);
+}

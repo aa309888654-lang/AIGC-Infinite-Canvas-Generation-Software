@@ -1,0 +1,787 @@
+/* ═══════════════════════════════════════════════════════════════
+   LandingPage 暗色高级感视觉重构 V2
+   Premium Dark · Neon Cyberpunk · 强饱和度 · 高对比辉光
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ═════════════ 设计令牌 ═══════════════ */
+.seko-launch-dark-layout {
+  /* 颜色系统 - 深空黑 + 高饱和霓虹 */
+  --pre-bg: #020204;
+  --pre-bg-elevated: #0a0a0f;
+  --pre-bg-card: rgba(12, 12, 18, 0.85);
+  --pre-bg-card-hover: rgba(18, 18, 28, 0.92);
+
+  --pre-neon-cyan: #22d3ee;
+  --pre-neon-blue: #38bdf8;
+  --pre-neon-teal: #2dd4bf;
+  --pre-neon-purple: #a78bfa;
+  --pre-neon-amber: #fbbf24;
+  --pre-neon-pink: #f472b6;
+
+  --pre-text-primary: #f4f4f8;
+  --pre-text-secondary: rgba(229, 231, 235, 0.82);
+  --pre-text-muted: rgba(156, 163, 175, 0.68);
+
+  --pre-border-subtle: rgba(255, 255, 255, 0.1);
+  --pre-border-default: rgba(255, 255, 255, 0.16);
+  --pre-border-hover: rgba(34, 211, 238, 0.5);
+
+  --pre-glow-cyan: rgba(34, 211, 238, 0.25);
+  --pre-glow-purple: rgba(167, 139, 250, 0.2);
+
+  /* 间距系统 - 8px 基准 */
+  --pre-space-2xs: 4px;
+  --pre-space-xs: 8px;
+  --pre-space-sm: 12px;
+  --pre-space-md: 16px;
+  --pre-space-lg: 24px;
+  --pre-space-xl: 32px;
+  --pre-space-2xl: 48px;
+  --pre-space-3xl: 64px;
+  --pre-space-4xl: 96px;
+  --pre-space-5xl: 128px;
+
+  /* 圆角 */
+  --pre-radius-sm: 8px;
+  --pre-radius-md: 12px;
+  --pre-radius-lg: 16px;
+  --pre-radius-xl: 24px;
+  --pre-radius-full: 999px;
+
+  /* 排版 */
+  --pre-font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --pre-font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+/* ═══════════════ 全局背景 ═══════════════ */
+.seko-launch-dark-layout {
+  background: var(--pre-bg) !important;
+  color: var(--pre-text-primary);
+  font-family: var(--pre-font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ═══════════════ 顶部导航栏 ═══════════════ */
+.seko-launch-dark-layout .seko-top-bar {
+  width: min(1200px, calc(100vw - 48px)) !important;
+  height: 60px !important;
+  margin-top: 16px !important;
+  border-radius: var(--pre-radius-xl) !important;
+  border: 1px solid rgba(34, 211, 238, 0.18) !important;
+  background:
+    linear-gradient(180deg, rgba(12, 12, 18, 0.88), rgba(4, 4, 8, 0.72)) !important;
+  box-shadow:
+    0 24px 80px rgba(0, 0, 0, 0.56),
+    0 0 0 1px rgba(34, 211, 238, 0.1) inset,
+    0 1px 0 rgba(255, 255, 255, 0.08) inset,
+    0 0 40px rgba(34, 211, 238, 0.06) !important;
+  backdrop-filter: blur(28px) saturate(1.4) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(1.4) !important;
+}
+
+.seko-launch-dark-layout .seko-top-bar-inner {
+  min-height: 60px;
+  padding-inline: clamp(16px, 2.4vw, 28px) !important;
+}
+
+.seko-launch-dark-layout .seko-logo {
+  gap: 10px !important;
+  padding-inline: 10px 16px !important;
+  border-radius: var(--pre-radius-md) !important;
+  border: 1px solid transparent !important;
+  transition: all 0.2s ease !important;
+}
+
+.seko-launch-dark-layout .seko-logo:hover {
+  border-color: rgba(34, 211, 238, 0.4) !important;
+  background: rgba(34, 211, 238, 0.12) !important;
+  transform: translateY(-1px);
+}
+
+.seko-launch-dark-layout .seko-logo img {
+  box-shadow: 0 0 24px rgba(34, 211, 238, 0.35);
+}
+
+.seko-launch-dark-layout .seko-logo-text {
+  letter-spacing: 0.1em;
+  color: var(--pre-text-primary) !important;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.seko-launch-dark-layout .seko-top-action-btn {
+  min-height: 38px;
+  border-radius: var(--pre-radius-md) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  background: transparent !important;
+  color: var(--pre-text-secondary) !important;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition: all 0.2s ease !important;
+}
+
+.seko-launch-dark-layout .seko-top-action-btn:hover {
+  border-color: rgba(34, 211, 238, 0.45) !important;
+  color: #ffffff !important;
+  background: rgba(34, 211, 238, 0.12) !important;
+  transform: translateY(-1px);
+}
+
+.seko-launch-dark-layout .seko-top-action-btn-primary {
+  border-color: rgba(34, 211, 238, 0.4) !important;
+  background:
+    linear-gradient(135deg, rgba(34, 211, 238, 0.25), rgba(167, 139, 250, 0.22)) !important;
+  color: #ffffff !important;
+  box-shadow:
+    0 0 24px rgba(34, 211, 238, 0.2),
+    0 0 48px rgba(34, 211, 238, 0.08) !important;
+}
+
+.seko-launch-dark-layout .seko-top-action-btn-primary:hover {
+  box-shadow:
+    0 0 32px rgba(34, 211, 238, 0.35),
+    0 0 64px rgba(34, 211, 238, 0.12) !important;
+}
+
+/* ═══════════════ Hero 区域 ═══════════════ */
+.seko-launch-dark-layout .seko-hero {
+  min-height: max(860px, calc(100vh - 12px)) !important;
+  padding-top: clamp(108px, 11vh, 140px) !important;
+  padding-bottom: clamp(64px, 8vh, 96px) !important;
+  overflow: hidden !important;
+}
+
+/* Hero 背景层 - 强化辉光 */
+.seko-launch-dark-layout .seko-hero-bg {
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 8%, rgba(34, 211, 238, 0.18), transparent),
+    radial-gradient(ellipse 50% 50% at 20% 30%, rgba(167, 139, 250, 0.14), transparent),
+    radial-gradient(ellipse 50% 50% at 80% 40%, rgba(45, 212, 191, 0.12), transparent),
+    radial-gradient(ellipse 30% 30% at 60% 20%, rgba(251, 191, 36, 0.06), transparent),
+    linear-gradient(180deg, rgba(2, 2, 4, 0.1), rgba(2, 2, 4, 0.92)),
+    var(--pre-bg) !important;
+}
+
+/* ═══════════════ Hero 内容区 ═══════════════ */
+.seko-launch-dark-layout .seko-hero-content {
+  position: relative;
+  z-index: 6;
+  max-width: 960px !important;
+  margin-inline: auto;
+}
+
+.seko-launch-dark-layout .seko-hero-slogan {
+  max-width: 880px !important;
+  margin-inline: auto;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--pre-space-lg);
+}
+
+/* Badge - 顶部标签 */
+.seko-launch-dark-layout .seko-launch-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 20px;
+  border-radius: var(--pre-radius-full);
+  border: 1px solid rgba(34, 211, 238, 0.35) !important;
+  background:
+    linear-gradient(135deg, rgba(34, 211, 238, 0.15), rgba(167, 139, 250, 0.1)),
+    rgba(4, 4, 8, 0.6) !important;
+  color: var(--pre-neon-cyan) !important;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  box-shadow:
+    0 0 20px rgba(34, 211, 238, 0.15),
+    inset 0 0 12px rgba(34, 211, 238, 0.05) !important;
+}
+
+/* H1 - 主标题 */
+.seko-launch-dark-layout .seko-hero-slogan h1 {
+  max-width: 860px !important;
+  margin-inline: auto !important;
+  margin-top: var(--pre-space-lg) !important;
+  color: transparent !important;
+  background: linear-gradient(180deg, #ffffff 0%, #e0e7ff 40%, #c4b5fd 100%) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  font-size: clamp(44px, 6.2vw, 72px) !important;
+  font-weight: 800 !important;
+  line-height: 1.08 !important;
+  letter-spacing: -0.035em !important;
+  text-wrap: balance;
+  filter:
+    drop-shadow(0 24px 48px rgba(0, 0, 0, 0.8))
+    drop-shadow(0 0 40px rgba(34, 211, 238, 0.12))
+    drop-shadow(0 0 80px rgba(167, 139, 250, 0.08)) !important;
+}
+
+/* 渐变高亮文字 - 强化霓虹辉光 */
+.seko-launch-dark-layout .seko-light-gradient-text {
+  display: inline-block;
+  color: #ffffff !important;
+  background: linear-gradient(135deg, #22d3ee 0%, #2dd4bf 35%, #a78bfa 70%, #f472b6 100%) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  filter:
+    drop-shadow(0 0 20px rgba(34, 211, 238, 0.5))
+    drop-shadow(0 0 40px rgba(45, 212, 191, 0.3))
+    drop-shadow(0 0 60px rgba(167, 139, 250, 0.2)) !important;
+}
+
+/* 副标题 */
+.seko-launch-dark-layout .seko-launch-subtitle {
+  max-width: 680px !important;
+  margin-inline: auto !important;
+  margin-top: var(--pre-space-lg) !important;
+  color: var(--pre-text-secondary) !important;
+  font-size: clamp(15px, 1.4vw, 17px) !important;
+  font-weight: 500 !important;
+  line-height: 1.8 !important;
+  letter-spacing: 0 !important;
+  text-wrap: pretty;
+}
+
+/* ═══════════════ Stats 统计条 ═══════════════ */
+.seko-launch-dark-layout .seko-launch-hero-stats {
+  width: min(640px, 100%) !important;
+  margin-top: var(--pre-space-xl) !important;
+  padding: 5px !important;
+  gap: 5px !important;
+  border-radius: var(--pre-radius-lg) !important;
+  border: 1px solid rgba(34, 211, 238, 0.15) !important;
+  background: rgba(4, 4, 8, 0.5) !important;
+  box-shadow:
+    0 16px 48px rgba(0, 0, 0, 0.24),
+    0 0 24px rgba(34, 211, 238, 0.04) !important;
+}
+
+.seko-launch-dark-layout .seko-launch-hero-stats span {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60px;
+  padding: 12px 16px !important;
+  border-radius: var(--pre-radius-md) !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+  border: 1px solid transparent !important;
+  transition: all 0.25s ease !important;
+}
+
+.seko-launch-dark-layout .seko-launch-hero-stats span:hover {
+  background: rgba(34, 211, 238, 0.12) !important;
+  border-color: rgba(34, 211, 238, 0.25) !important;
+  box-shadow: 0 0 16px rgba(34, 211, 238, 0.1) !important;
+}
+
+.seko-launch-dark-layout .seko-launch-hero-stats strong {
+  color: #ffffff !important;
+  font-size: 22px !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  letter-spacing: -0.02em;
+  text-shadow: 0 0 12px rgba(34, 211, 238, 0.3);
+}
+
+.seko-launch-dark-layout .seko-launch-hero-stats em {
+  margin-top: 6px !important;
+  color: rgba(34, 211, 238, 0.7) !important;
+  font-size: 11px !important;
+  font-style: normal !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* ═══════════════ 能力标签 ═══════════════ */
+.seko-launch-dark-layout .seko-intel-capabilities {
+  margin-top: var(--pre-space-lg) !important;
+  gap: 8px !important;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.seko-launch-dark-layout .seko-intel-cap {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 14px;
+  border-radius: var(--pre-radius-full);
+  border: 1px solid rgba(34, 211, 238, 0.2) !important;
+  background: rgba(34, 211, 238, 0.06) !important;
+  color: var(--pre-text-secondary) !important;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  transition: all 0.25s ease !important;
+  cursor: default;
+}
+
+.seko-launch-dark-layout .seko-intel-cap:hover {
+  border-color: rgba(34, 211, 238, 0.5) !important;
+  background: rgba(34, 211, 238, 0.15) !important;
+  color: #ffffff !important;
+  transform: translateY(-1px);
+  box-shadow: 0 0 16px rgba(34, 211, 238, 0.15) !important;
+}
+
+.seko-launch-dark-layout .seko-intel-cap-icon {
+  color: var(--pre-neon-cyan) !important;
+  opacity: 1;
+  filter: drop-shadow(0 0 4px rgba(34, 211, 238, 0.5));
+}
+
+/* ═══════════════ AI Live Strip ═══════════════ */
+.seko-launch-dark-layout .seko-ai-live-strip {
+  margin-top: var(--pre-space-md) !important;
+  gap: 8px !important;
+  justify-content: center;
+}
+
+.seko-launch-dark-layout .seko-ai-live-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: var(--pre-radius-full);
+  border: 1px solid rgba(34, 211, 238, 0.18) !important;
+  background: rgba(34, 211, 238, 0.05) !important;
+  color: var(--pre-text-secondary) !important;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.seko-launch-dark-layout .seko-ai-live-pill-value {
+  color: var(--pre-neon-cyan) !important;
+  font-weight: 800;
+  text-shadow: 0 0 8px rgba(34, 211, 238, 0.5);
+}
+
+.seko-launch-dark-layout .seko-ai-live-pulse {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--pre-neon-teal);
+  box-shadow: 0 0 10px rgba(45, 212, 191, 0.7), 0 0 20px rgba(45, 212, 191, 0.3);
+  animation: pre-pulse 2s ease-in-out infinite;
+}
+
+@keyframes pre-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+/* ═══════════════ 输入框 - 核心交互 ═══════════════ */
+.seko-launch-dark-layout .seko-hero-input-bar.collapsed {
+  width: min(720px, calc(100vw - 48px)) !important;
+  min-height: 64px !important;
+  margin-top: var(--pre-space-xl) !important;
+  border-radius: var(--pre-radius-lg) !important;
+  border: 1px solid rgba(34, 211, 238, 0.2) !important;
+  background:
+    linear-gradient(180deg, rgba(10, 10, 16, 0.96), rgba(4, 4, 8, 0.94)),
+    var(--pre-bg) !important;
+  box-shadow:
+    0 24px 72px rgba(0, 0, 0, 0.56),
+    0 0 0 1px rgba(34, 211, 238, 0.1) inset,
+    0 1px 0 rgba(255, 255, 255, 0.08) inset,
+    0 0 48px rgba(34, 211, 238, 0.06) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.seko-launch-dark-layout .seko-hero-input-bar.collapsed:hover {
+  border-color: rgba(34, 211, 238, 0.4) !important;
+  box-shadow:
+    0 28px 80px rgba(0, 0, 0, 0.6),
+    0 0 56px rgba(34, 211, 238, 0.12),
+    0 0 0 1px rgba(34, 211, 238, 0.12) inset !important;
+  transform: translateY(-2px);
+}
+
+.seko-launch-dark-layout .seko-hero-input-bar.expanded {
+  width: min(800px, calc(100vw - 56px)) !important;
+  border-radius: var(--pre-radius-lg) !important;
+  border-color: rgba(34, 211, 238, 0.35) !important;
+}
+
+.seko-launch-dark-layout .seko-hero-input,
+.seko-launch-dark-layout .seko-hero-textarea-full {
+  color: var(--pre-text-primary) !important;
+  caret-color: var(--pre-neon-cyan);
+  font-size: 15px !important;
+  font-weight: 500 !important;
+}
+
+.seko-launch-dark-layout .seko-hero-input::placeholder,
+.seko-launch-dark-layout .seko-hero-textarea-full::placeholder {
+  color: var(--pre-text-muted) !important;
+  font-weight: 400 !important;
+}
+
+.seko-launch-dark-layout .seko-hero-input-placeholder,
+.seko-launch-dark-layout .seko-hero-input-placeholder span {
+  color: var(--pre-text-muted) !important;
+  font-size: 15px !important;
+  font-weight: 500 !important;
+}
+
+/* 发送按钮 - 强化发光 */
+.seko-launch-dark-layout .seko-hero-send-icon,
+.seko-launch-dark-layout .seko-send-btn {
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  background:
+    linear-gradient(135deg, rgba(34, 211, 238, 0.9), rgba(56, 189, 248, 0.85)) !important;
+  color: var(--pre-bg) !important;
+  box-shadow:
+    0 12px 28px rgba(0, 0, 0, 0.4),
+    0 0 24px rgba(34, 211, 238, 0.3),
+    0 0 48px rgba(34, 211, 238, 0.1) !important;
+  transition: all 0.2s ease !important;
+}
+
+.seko-launch-dark-layout .seko-send-btn:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 16px 36px rgba(0, 0, 0, 0.48),
+    0 0 32px rgba(34, 211, 238, 0.45),
+    0 0 64px rgba(34, 211, 238, 0.15) !important;
+}
+
+/* ═══════════════ 工具栏 ═══════════════ */
+.seko-launch-dark-layout .seko-tool-bar {
+  margin-top: 10px !important;
+  padding: 6px !important;
+  border-radius: var(--pre-radius-lg) !important;
+  border: 1px solid rgba(34, 211, 238, 0.12) !important;
+  background: rgba(4, 4, 8, 0.6) !important;
+}
+
+.seko-launch-dark-layout .seko-tool-btn {
+  height: 40px !important;
+  min-width: 108px !important;
+  border-radius: var(--pre-radius-sm) !important;
+  border: 1px solid transparent !important;
+  background: transparent !important;
+  color: var(--pre-text-secondary) !important;
+  font-size: 13px !important;
+  font-weight: 650 !important;
+  letter-spacing: 0 !important;
+  transition: all 0.2s ease !important;
+}
+
+.seko-launch-dark-layout .seko-tool-btn:hover {
+  border-color: rgba(34, 211, 238, 0.4) !important;
+  background: rgba(34, 211, 238, 0.12) !important;
+  color: #ffffff !important;
+  transform: translateY(-1px);
+  box-shadow: 0 0 12px rgba(34, 211, 238, 0.12) !important;
+}
+
+.seko-launch-dark-layout .seko-tool-btn svg {
+  color: var(--pre-neon-cyan) !important;
+  opacity: 1;
+  filter: drop-shadow(0 0 3px rgba(34, 211, 238, 0.4));
+}
+
+.seko-launch-dark-layout .seko-tool-btn:hover svg {
+  filter: drop-shadow(0 0 6px rgba(34, 211, 238, 0.6));
+}
+
+/* ═══════════════ OmniFlow 节点 ═══════════════ */
+.seko-launch-dark-layout .seko-omni-flow-board {
+  opacity: 0.82;
+}
+
+.seko-launch-dark-layout .seko-omni-node {
+  width: 176px;
+  min-height: 96px;
+  padding: 12px 14px 12px 56px;
+  border-radius: var(--pre-radius-sm) !important;
+  border: 1px solid rgba(34, 211, 238, 0.2) !important;
+  background:
+    linear-gradient(180deg, rgba(34, 211, 238, 0.06), rgba(167, 139, 250, 0.03)),
+    rgba(6, 6, 10, 0.82) !important;
+  box-shadow:
+    0 16px 44px rgba(0, 0, 0, 0.36),
+    0 0 20px rgba(34, 211, 238, 0.06),
+    0 0 0 1px rgba(34, 211, 238, 0.06) inset !important;
+  backdrop-filter: blur(18px) saturate(1.2) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(1.2) !important;
+  transition: all 0.3s ease !important;
+}
+
+.seko-launch-dark-layout .seko-omni-node:hover {
+  border-color: rgba(34, 211, 238, 0.45) !important;
+  box-shadow:
+    0 20px 56px rgba(0, 0, 0, 0.44),
+    0 0 32px rgba(34, 211, 238, 0.15),
+    0 0 0 1px rgba(34, 211, 238, 0.1) inset !important;
+}
+
+.seko-launch-dark-layout .seko-omni-node-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--pre-radius-sm) !important;
+  border: 1px solid rgba(34, 211, 238, 0.3) !important;
+  background:
+    linear-gradient(180deg, rgba(34, 211, 238, 0.15), rgba(34, 211, 238, 0.05)),
+    rgba(6, 6, 10, 0.7) !important;
+  box-shadow:
+    0 8px 20px rgba(0, 0, 0, 0.3),
+    0 0 18px color-mix(in srgb, currentColor 35%, transparent) !important;
+}
+
+.seko-launch-dark-layout .seko-omni-node-meta {
+  color: rgba(34, 211, 238, 0.9) !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.04em;
+  text-shadow: 0 0 6px rgba(34, 211, 238, 0.3);
+}
+
+.seko-launch-dark-layout .seko-omni-node strong {
+  margin-top: 8px;
+  color: #ffffff;
+  font-size: 15px !important;
+  font-weight: 750 !important;
+  line-height: 1.2 !important;
+}
+
+.seko-launch-dark-layout .seko-omni-node small {
+  margin-top: 5px;
+  color: var(--pre-text-secondary) !important;
+  font-size: 11px !important;
+  font-weight: 550 !important;
+  line-height: 1.4 !important;
+}
+
+/* ═══════════════ AI 输出卡片 ═══════════════ */
+.seko-launch-dark-layout .seko-ai-output-card {
+  border-radius: var(--pre-radius-sm) !important;
+  border: 1px solid rgba(34, 211, 238, 0.15) !important;
+  background: rgba(6, 6, 10, 0.6) !important;
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(34, 211, 238, 0.08) inset,
+    0 0 20px rgba(34, 211, 238, 0.04) !important;
+}
+
+/* ═══════════════ 聊天显示区 ═══════════════ */
+.seko-launch-dark-layout .seko-chat-display-content {
+  color: rgba(248, 250, 252, 0.92);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.seko-launch-dark-layout .seko-chat-display::-webkit-scrollbar {
+  width: 6px;
+}
+
+.seko-launch-dark-layout .seko-chat-display::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: rgba(34, 211, 238, 0.35);
+  background-clip: content-box;
+}
+
+/* ═══════════════ Future Showcase ═══════════════ */
+.seko-launch-dark-layout .seko-future-showcase {
+  width: min(1160px, calc(100vw - 48px)) !important;
+  margin-top: clamp(64px, 8vh, 96px) !important;
+  padding: clamp(20px, 2.8vw, 36px) !important;
+  border-radius: 28px !important;
+  border: 1px solid rgba(34, 211, 238, 0.15) !important;
+  background:
+    linear-gradient(180deg, rgba(8, 8, 14, 0.52), rgba(2, 2, 4, 0.18)),
+    radial-gradient(circle at 10% 0%, rgba(34, 211, 238, 0.15), transparent 32%),
+    radial-gradient(circle at 90% 6%, rgba(167, 139, 250, 0.12), transparent 28%) !important;
+  box-shadow:
+    0 36px 100px rgba(0, 0, 0, 0.32),
+    0 0 48px rgba(34, 211, 238, 0.04),
+    0 0 0 1px rgba(34, 211, 238, 0.08) inset !important;
+}
+
+.seko-launch-dark-layout .seko-future-section-head {
+  align-items: flex-end;
+  gap: var(--pre-space-xl);
+  margin-bottom: clamp(20px, 2.8vw, 36px) !important;
+}
+
+.seko-launch-dark-layout .seko-homepage-section-copy p {
+  color: var(--pre-text-secondary) !important;
+  line-height: 1.78;
+  font-size: 14px;
+}
+
+.seko-launch-dark-layout .seko-homepage-action-row button {
+  min-height: 36px;
+  border-radius: var(--pre-radius-full);
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  padding: 0 16px;
+  background: rgba(8, 8, 14, 0.5) !important;
+  color: var(--pre-text-secondary) !important;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  transition: all 0.2s ease !important;
+}
+
+.seko-launch-dark-layout .seko-homepage-action-row button:first-child {
+  border-color: rgba(34, 211, 238, 0.4) !important;
+  background:
+    linear-gradient(135deg, rgba(34, 211, 238, 0.25), rgba(167, 139, 250, 0.2)) !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 16px rgba(34, 211, 238, 0.12) !important;
+}
+
+.seko-launch-dark-layout .seko-homepage-action-row button:hover {
+  border-color: rgba(34, 211, 238, 0.5) !important;
+  transform: translateY(-1px);
+}
+
+/* ═══════════════ 页脚 ═══════════════ */
+.seko-launch-dark-layout .site-footer,
+.seko-launch-dark-layout footer {
+  background: rgba(2, 2, 4, 0.8) !important;
+  border-top: 1px solid rgba(34, 211, 238, 0.1) !important;
+}
+
+/* ═══════════════ 滚动条 ═══════════════ */
+.seko-launch-dark-layout ::-webkit-scrollbar {
+  width: 6px;
+}
+
+.seko-launch-dark-layout ::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.seko-launch-dark-layout ::-webkit-scrollbar-thumb {
+  background: rgba(34, 211, 238, 0.18);
+  border-radius: 999px;
+}
+
+.seko-launch-dark-layout ::-webkit-scrollbar-thumb:hover {
+  background: rgba(34, 211, 238, 0.35);
+}
+
+/* ═══════════════ 选择文本 ═══════════════ */
+.seko-launch-dark-layout ::selection {
+  background: rgba(34, 211, 238, 0.4);
+  color: #ffffff;
+}
+
+/* ═══════════════ Focus 可见态 ═══════════════ */
+.seko-launch-dark-layout .seko-logo:focus-visible,
+.seko-launch-dark-layout .seko-top-action-btn:focus-visible,
+.seko-launch-dark-layout .seko-hero-input-bar:focus-within,
+.seko-launch-dark-layout .seko-tool-btn:focus-visible,
+.seko-launch-dark-layout .seko-send-btn:focus-visible {
+  box-shadow:
+    0 0 0 2px var(--pre-bg),
+    0 0 0 4px rgba(34, 211, 238, 0.5) !important;
+}
+
+/* ═══════════════ 响应式 ═══════════════ */
+@media (min-width: 901px) and (max-width: 1180px) {
+  .seko-launch-dark-layout .seko-top-bar {
+    width: calc(100vw - 28px) !important;
+  }
+
+  .seko-launch-dark-layout .seko-hero-slogan h1 {
+    font-size: clamp(38px, 5.8vw, 56px) !important;
+  }
+
+  .seko-launch-dark-layout .seko-launch-hero-stats {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    width: min(600px, 100%) !important;
+  }
+
+  .seko-launch-dark-layout .seko-omni-flow-board {
+    opacity: 0.66;
+    transform: scale(0.88);
+    transform-origin: top center;
+  }
+
+  .seko-launch-dark-layout .seko-future-showcase {
+    width: calc(100vw - 32px) !important;
+    padding: 18px !important;
+  }
+
+  .seko-launch-dark-layout .seko-future-section-head,
+  .seko-launch-dark-layout .seko-future-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .seko-launch-dark-layout .seko-hero {
+    min-height: auto !important;
+    padding-top: 88px !important;
+    padding-bottom: 48px !important;
+  }
+
+  .seko-launch-dark-layout .seko-hero-slogan h1 {
+    font-size: clamp(28px, 7vw, 40px) !important;
+    letter-spacing: -0.025em !important;
+  }
+
+  .seko-launch-dark-layout .seko-launch-subtitle {
+    font-size: 14px !important;
+  }
+
+  .seko-launch-dark-layout .seko-hero-input-bar.collapsed {
+    width: calc(100vw - 32px) !important;
+    min-height: 56px !important;
+  }
+
+  .seko-launch-dark-layout .seko-omni-flow-board {
+    display: none;
+  }
+
+  .seko-launch-dark-layout .seko-ai-output-rail {
+    opacity: 0.3 !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .seko-launch-dark-layout .seko-hero-slogan h1 {
+    font-size: 26px !important;
+  }
+
+  .seko-launch-dark-layout .seko-launch-hero-stats {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  .seko-launch-dark-layout .seko-intel-capabilities {
+    gap: 6px !important;
+  }
+
+  .seko-launch-dark-layout .seko-intel-cap {
+    height: 30px;
+    padding: 0 10px;
+    font-size: 12px;
+  }
+}
+
+/* ═══════════════ 减少动画 ═══════════════ */
+@media (prefers-reduced-motion: reduce) {
+  .seko-launch-dark-layout *,
+  .seko-launch-dark-layout *::before,
+  .seko-launch-dark-layout *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "id": "batchProcess",
+  "name": "批量处理",
+  "category": "video",
+  "description": "批量执行工作流，支持并行/串行",
+  "icon": "⚡",
+  "color": "#6366F1",
+  "ports": {
+    "inputs": [{ "id": "input", "name": "输入数据", "type": "string", "optional": true }],
+    "outputs": [{ "id": "results", "name": "结果集", "type": "string" }]
+  },
+  "ui": { "shell": "glass", "promptPanel": false, "resultRenderer": "text", "toolbar": "default" },
+  "execution": {
+    "executable": false
+  },
+  "models": {
+    "mediaType": "none"
+  }
+}

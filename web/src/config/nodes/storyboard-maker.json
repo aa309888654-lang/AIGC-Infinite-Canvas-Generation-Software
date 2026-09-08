@@ -1,0 +1,55 @@
+{
+  "id": "storyboardMaker",
+  "name": "制作故事版",
+  "category": "video",
+  "description": "从一句话创意、脚本、角色或参考素材生成可执行故事版，输出分镜表、镜头提示词和视频生成蓝图",
+  "icon": "🎬",
+  "color": "#F97316",
+  "ports": {
+    "inputs": [
+      { "id": "input", "name": "创意/脚本输入", "type": "string", "optional": true, "multiple": true },
+      { "id": "scriptInput", "name": "剧本输入", "type": "string", "optional": true, "multiple": true },
+      { "id": "imageInput", "name": "视觉参考", "type": "image", "optional": true, "multiple": true },
+      { "id": "videoReference", "name": "视频参考", "type": "video", "optional": true, "multiple": true },
+      { "id": "characterReference", "name": "角色参考", "type": "image", "optional": true, "multiple": true }
+    ],
+    "outputs": [
+      { "id": "scenes", "name": "故事版分镜", "type": "string" },
+      { "id": "script", "name": "故事脚本", "type": "string" },
+      { "id": "prompt", "name": "视频提示词", "type": "prompt" }
+    ]
+  },
+  "defaultParams": {
+    "script": "",
+    "scenes": [],
+    "style": "电影感写实",
+    "model": "deepseek-v4-pro",
+    "scriptType": "story",
+    "tone": "suspense",
+    "scriptSourceMode": "text",
+    "storyboardMode": "beat_to_storyboard",
+    "aspectRatio": "9:16",
+    "targetDuration": 30
+  },
+  "ui": { "shell": "glass", "promptPanel": true, "resultRenderer": "text", "toolbar": "default" },
+  "execution": {
+    "executable": true,
+    "handler": "ai-gen-text",
+    "mode": "async",
+    "maxRetries": 1,
+    "timeout": 90000,
+    "requiredParams": [{ "key": "prompt", "type": "string", "required": true, "minLength": 1, "label": "故事创意" }]
+  },
+  "models": {
+    "mediaType": "text",
+    "useTextModelGroups": true,
+    "defaultModelId": "deepseek-v4-pro",
+    "fallbackModels": [
+      { "modelId": "deepseek-v4-pro", "provider": "deepseek" },
+      { "modelId": "apipaths-gpt-5.5", "provider": "apipaths" },
+      { "modelId": "apipaths", "provider": "apipaths" },
+      { "modelId": "deepseek-v4-flash", "provider": "sensenova" },
+      { "modelId": "sensenova-6.7-flash-lite", "provider": "sensenova" }
+    ]
+  }
+}

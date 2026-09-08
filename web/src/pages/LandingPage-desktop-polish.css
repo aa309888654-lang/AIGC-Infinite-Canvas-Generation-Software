@@ -1,0 +1,559 @@
+@media (min-width: 901px) {
+  .seko-style-landing.seko-launch-dark-layout,
+  .seko-light-tech-layout.seko-style-landing {
+    min-height: 100vh;
+    overflow-x: clip;
+    background:
+      radial-gradient(circle at 50% -12%, rgba(34, 211, 238, 0.16), transparent 34vw),
+      radial-gradient(circle at 8% 18%, rgba(124, 58, 237, 0.18), transparent 28vw),
+      radial-gradient(circle at 92% 12%, rgba(16, 185, 129, 0.1), transparent 24vw),
+      #020617;
+  }
+
+  .seko-style-landing.seko-launch-dark-layout::selection,
+  .seko-light-tech-layout.seko-style-landing::selection {
+    background: rgba(34, 211, 238, 0.32);
+    color: #ffffff;
+  }
+
+  .seko-launch-dark-layout .skip-to-content,
+  .seko-light-tech-layout .skip-to-content {
+    position: fixed;
+    left: 24px;
+    top: 18px;
+    z-index: 120;
+    transform: translateY(-140%);
+    border-radius: 999px;
+    padding: 10px 16px;
+    background: rgba(255, 255, 255, 0.96);
+    color: #020617;
+    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.32);
+    transition: transform 0.2s ease;
+  }
+
+  .seko-launch-dark-layout .skip-to-content:focus,
+  .seko-light-tech-layout .skip-to-content:focus {
+    transform: translateY(0);
+  }
+
+  .seko-launch-dark-layout .seko-top-bar,
+  .seko-light-tech-layout .seko-top-bar {
+    z-index: 90;
+  }
+
+  .seko-launch-dark-layout .seko-top-bar {
+    width: min(1180px, calc(100vw - 48px)) !important;
+    height: 64px !important;
+    border-radius: 24px !important;
+    border: 1px solid rgba(255, 255, 255, 0.13) !important;
+    background:
+      linear-gradient(180deg, rgba(15, 23, 42, 0.8), rgba(2, 6, 23, 0.58)),
+      linear-gradient(90deg, rgba(34, 211, 238, 0.1), transparent 34%, rgba(124, 58, 237, 0.12)) !important;
+    box-shadow:
+      0 28px 90px rgba(0, 0, 0, 0.48),
+      0 0 0 1px rgba(125, 211, 252, 0.06) inset,
+      0 1px 0 rgba(255, 255, 255, 0.1) inset !important;
+    backdrop-filter: blur(26px) saturate(1.32) !important;
+    -webkit-backdrop-filter: blur(26px) saturate(1.32) !important;
+  }
+
+  .seko-launch-dark-layout .seko-top-bar-inner,
+  .seko-light-tech-layout .seko-top-bar-inner {
+    min-height: 64px;
+    padding-inline: clamp(16px, 2.2vw, 24px) !important;
+  }
+
+  .seko-launch-dark-layout .seko-logo {
+    gap: 10px !important;
+    padding-inline: 8px 14px !important;
+    border-radius: 16px !important;
+  }
+
+  .seko-launch-dark-layout .seko-logo img {
+    box-shadow: 0 0 22px rgba(34, 211, 238, 0.2);
+  }
+
+  .seko-launch-dark-layout .seko-logo-text {
+    letter-spacing: 0.08em;
+    color: rgba(248, 250, 252, 0.94) !important;
+  }
+
+  .seko-launch-dark-layout .seko-top-bar-right,
+  .seko-light-tech-layout .seko-top-bar-right {
+    gap: 10px;
+  }
+
+  .seko-launch-dark-layout .seko-logo,
+  .seko-launch-dark-layout .seko-top-action-btn,
+  .seko-light-tech-layout .seko-logo,
+  .seko-light-tech-layout .seko-top-action-btn {
+    min-height: 40px;
+    outline: none;
+    transition:
+      transform 0.18s ease,
+      border-color 0.18s ease,
+      background 0.18s ease,
+      box-shadow 0.18s ease;
+  }
+
+  .seko-launch-dark-layout .seko-logo:hover,
+  .seko-launch-dark-layout .seko-top-action-btn:hover {
+    transform: translateY(-1px);
+    border-color: rgba(125, 211, 252, 0.24) !important;
+    background-color: rgba(15, 23, 42, 0.72) !important;
+  }
+
+  .seko-launch-dark-layout .seko-top-action-btn-primary {
+    border-color: rgba(125, 211, 252, 0.34) !important;
+    background:
+      linear-gradient(135deg, rgba(34, 211, 238, 0.22), rgba(124, 58, 237, 0.24)),
+      rgba(15, 23, 42, 0.7) !important;
+    color: #ffffff !important;
+    box-shadow:
+      0 0 28px rgba(34, 211, 238, 0.16),
+      0 1px 0 rgba(255, 255, 255, 0.1) inset !important;
+  }
+
+  .seko-launch-dark-layout .seko-logo:focus-visible,
+  .seko-launch-dark-layout .seko-top-action-btn:focus-visible,
+  .seko-launch-dark-layout .seko-hero-input-bar:focus-within,
+  .seko-launch-dark-layout .seko-toolbar-btn:focus-visible,
+  .seko-launch-dark-layout .seko-tool-btn:focus-visible,
+  .seko-launch-dark-layout .seko-send-btn:focus-visible,
+  .seko-light-tech-layout .seko-logo:focus-visible,
+  .seko-light-tech-layout .seko-top-action-btn:focus-visible,
+  .seko-light-tech-layout .seko-hero-input-bar:focus-within,
+  .seko-light-tech-layout .seko-tool-btn:focus-visible,
+  .seko-light-tech-layout .seko-send-btn:focus-visible,
+  .seko-light-tech-layout .seko-toggle-group:focus-visible {
+    box-shadow:
+      0 0 0 3px rgba(255, 255, 255, 0.18),
+      0 0 0 6px rgba(34, 211, 238, 0.2) !important;
+  }
+
+  .seko-launch-dark-layout .seko-main {
+    overflow-x: clip !important;
+    overflow-y: auto !important;
+  }
+
+  .seko-launch-dark-layout .seko-hero,
+  .seko-light-tech-layout .seko-hero {
+    isolation: isolate;
+    min-height: max(800px, calc(100vh - 20px)) !important;
+    padding-top: clamp(112px, 11vh, 138px) !important;
+    padding-bottom: clamp(64px, 8vh, 92px) !important;
+  }
+
+  .seko-launch-dark-layout .seko-hero-content,
+  .seko-light-tech-layout .seko-hero-content {
+    position: relative;
+    z-index: 6;
+    max-width: 1080px !important;
+  }
+
+  .seko-launch-dark-layout .seko-hero-slogan,
+  .seko-light-tech-layout .seko-hero-slogan {
+    max-width: 940px !important;
+  }
+
+  .seko-launch-dark-layout .seko-hero-slogan h1 {
+    max-width: 980px !important;
+    margin-inline: auto !important;
+    letter-spacing: -0.055em;
+    line-height: 0.94 !important;
+    text-wrap: balance;
+    text-shadow: 0 22px 70px rgba(15, 23, 42, 0.55);
+  }
+
+  .seko-launch-dark-layout .seko-launch-subtitle,
+  .seko-light-tech-layout .seko-intel-subtitle {
+    max-width: 780px !important;
+    margin-inline: auto !important;
+    line-height: 1.72 !important;
+    color: rgba(226, 232, 240, 0.78) !important;
+    text-wrap: pretty;
+  }
+
+  .seko-launch-dark-layout .seko-launch-hero-stats,
+  .seko-light-tech-layout .seko-launch-hero-stats {
+    width: min(760px, 100%) !important;
+    gap: 12px !important;
+    padding: 6px !important;
+    border-radius: 24px !important;
+    background: rgba(2, 6, 23, 0.28) !important;
+    border: 1px solid rgba(148, 163, 184, 0.12) !important;
+    box-shadow: 0 22px 70px rgba(0, 0, 0, 0.22) !important;
+  }
+
+  .seko-launch-dark-layout .seko-launch-hero-stats span {
+    min-width: 0;
+    padding: 14px 16px !important;
+    border-radius: 18px !important;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.025)),
+      rgba(15, 23, 42, 0.28) !important;
+  }
+
+  .seko-launch-dark-layout .seko-intel-capabilities,
+  .seko-light-tech-layout .seko-intel-capabilities,
+  .seko-light-tech-layout .seko-ai-live-strip {
+    justify-content: center;
+  }
+
+  .seko-launch-dark-layout .seko-intel-cap,
+  .seko-light-tech-layout .seko-intel-cap,
+  .seko-launch-dark-layout .seko-ai-live-pill,
+  .seko-light-tech-layout .seko-ai-live-pill {
+    border-color: rgba(148, 163, 184, 0.16) !important;
+    background: rgba(15, 23, 42, 0.42) !important;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.18) !important;
+    backdrop-filter: blur(18px) saturate(1.2);
+    -webkit-backdrop-filter: blur(18px) saturate(1.2);
+  }
+
+  .seko-launch-dark-layout .seko-ai-output-rail,
+  .seko-light-tech-layout .seko-ai-output-rail {
+    z-index: 2;
+    pointer-events: none;
+    opacity: 0.76;
+    filter: saturate(1.08) contrast(1.04);
+  }
+
+  .seko-launch-dark-layout .seko-ai-output-card,
+  .seko-light-tech-layout .seko-ai-output-card {
+    overflow: hidden;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+    background: rgba(15, 23, 42, 0.36) !important;
+    box-shadow:
+      0 34px 90px rgba(0, 0, 0, 0.38),
+      0 0 0 1px rgba(125, 211, 252, 0.06) inset !important;
+  }
+
+  .seko-launch-dark-layout .seko-ai-output-card img,
+  .seko-light-tech-layout .seko-ai-output-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .seko-launch-dark-layout .seko-hero-input-bar,
+  .seko-light-tech-layout .seko-hero-input-bar {
+    position: relative;
+    z-index: 20;
+  }
+
+  .seko-launch-dark-layout .seko-hero-input-bar.collapsed {
+    width: min(860px, calc(100vw - 64px)) !important;
+    height: 72px !important;
+    min-height: 72px !important;
+    margin-top: 32px !important;
+    border-color: rgba(125, 211, 252, 0.2) !important;
+    box-shadow:
+      0 28px 90px rgba(0, 0, 0, 0.34),
+      0 0 46px rgba(34, 211, 238, 0.09),
+      0 1px 0 rgba(255, 255, 255, 0.12) inset !important;
+  }
+
+  .seko-launch-dark-layout .seko-hero-input-bar.collapsed:hover {
+    transform: translateY(-2px);
+    border-color: rgba(103, 232, 249, 0.36) !important;
+    box-shadow:
+      0 32px 100px rgba(0, 0, 0, 0.38),
+      0 0 58px rgba(34, 211, 238, 0.14),
+      0 1px 0 rgba(255, 255, 255, 0.14) inset !important;
+  }
+
+  .seko-launch-dark-layout .seko-hero-input-bar.expanded,
+  .seko-light-tech-layout .seko-hero-input-bar.expanded {
+    width: min(920px, calc(100vw - 80px)) !important;
+    max-height: calc(100vh - 132px);
+    border-color: rgba(125, 211, 252, 0.22) !important;
+    box-shadow:
+      0 36px 120px rgba(0, 0, 0, 0.48),
+      0 0 0 1px rgba(125, 211, 252, 0.08) inset !important;
+  }
+
+  .seko-launch-dark-layout .seko-hero-input,
+  .seko-launch-dark-layout .seko-hero-textarea-full {
+    color: #f8fafc !important;
+    caret-color: #67e8f9;
+  }
+
+  .seko-launch-dark-layout .seko-hero-input::placeholder,
+  .seko-launch-dark-layout .seko-hero-textarea-full::placeholder {
+    color: rgba(203, 213, 225, 0.62) !important;
+  }
+
+  .seko-light-tech-layout .seko-hero-input,
+  .seko-light-tech-layout .seko-hero-textarea-full {
+    color: #172033 !important;
+    caret-color: #0891b2;
+  }
+
+  .seko-light-tech-layout .seko-hero-input::placeholder,
+  .seko-light-tech-layout .seko-hero-textarea-full::placeholder {
+    color: #718096 !important;
+  }
+
+  .seko-launch-dark-layout .seko-tool-bar,
+  .seko-light-tech-layout .seko-tool-bar {
+    flex-wrap: wrap;
+    max-width: 900px;
+    margin-inline: auto;
+  }
+
+  .seko-launch-dark-layout .seko-tool-btn,
+  .seko-launch-dark-layout .seko-toggle-group,
+  .seko-launch-dark-layout .seko-send-btn,
+  .seko-light-tech-layout .seko-tool-btn,
+  .seko-light-tech-layout .seko-toggle-group,
+  .seko-light-tech-layout .seko-send-btn {
+    min-height: 40px;
+    transition:
+      transform 0.18s ease,
+      border-color 0.18s ease,
+      background 0.18s ease,
+      box-shadow 0.18s ease;
+  }
+
+  .seko-launch-dark-layout .seko-tool-btn:hover,
+  .seko-launch-dark-layout .seko-send-btn:hover {
+    transform: translateY(-1px);
+  }
+
+  .seko-launch-dark-layout .seko-toolbar-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 12px;
+  }
+
+  .seko-launch-dark-layout .toolbar-model-dropdown,
+  .seko-launch-dark-layout .toolbar-mode-dropdown {
+    z-index: 110;
+    border: 1px solid rgba(125, 211, 252, 0.18);
+    background: rgba(13, 13, 13, 1);
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.48);
+    backdrop-filter: blur(22px);
+    -webkit-backdrop-filter: blur(22px);
+  }
+
+  .seko-launch-dark-layout .seko-chat-display,
+  .seko-light-tech-layout .seko-chat-display {
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+  }
+
+  .seko-launch-dark-layout .seko-chat-display::-webkit-scrollbar,
+  .seko-light-tech-layout .seko-chat-display::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  .seko-launch-dark-layout .seko-chat-display::-webkit-scrollbar-thumb,
+  .seko-light-tech-layout .seko-chat-display::-webkit-scrollbar-thumb {
+    border: 3px solid transparent;
+    border-radius: 999px;
+    background: rgba(125, 211, 252, 0.28);
+    background-clip: content-box;
+  }
+
+  .seko-launch-dark-layout .seko-chat-display-content {
+    color: rgba(248, 250, 252, 0.9);
+  }
+
+  .seko-light-tech-layout .seko-chat-display-content,
+  .seko-light-tech-layout .seko-poster-form,
+  .seko-light-tech-layout .seko-music-form,
+  .seko-light-tech-layout .seko-music-style-card,
+  .seko-light-tech-layout .seko-poster-type-card {
+    color: #1f2937;
+  }
+
+  .seko-launch-dark-layout .seko-future-showcase {
+    width: min(1220px, calc(100vw - 56px)) !important;
+    margin-top: clamp(78px, 10vh, 112px) !important;
+    padding: clamp(24px, 3vw, 38px) !important;
+    border-radius: 34px !important;
+    border: 1px solid rgba(148, 163, 184, 0.14) !important;
+    background:
+      linear-gradient(180deg, rgba(15, 23, 42, 0.56), rgba(2, 6, 23, 0.22)),
+      radial-gradient(circle at 12% 0%, rgba(34, 211, 238, 0.14), transparent 34%),
+      radial-gradient(circle at 88% 8%, rgba(168, 85, 247, 0.13), transparent 30%) !important;
+    box-shadow:
+      0 40px 120px rgba(0, 0, 0, 0.34),
+      0 0 0 1px rgba(125, 211, 252, 0.05) inset !important;
+  }
+
+  .seko-launch-dark-layout .seko-future-showcase::after {
+    content: '';
+    position: absolute;
+    inset: 18px;
+    z-index: -1;
+    border-radius: 28px;
+    background:
+      linear-gradient(90deg, rgba(34, 211, 238, 0.08) 1px, transparent 1px),
+      linear-gradient(rgba(124, 58, 237, 0.08) 1px, transparent 1px);
+    background-size: 46px 46px;
+    mask-image: radial-gradient(circle at 50% 20%, #000 0%, transparent 68%);
+    opacity: 0.58;
+  }
+
+  .seko-launch-dark-layout .seko-future-section-head {
+    align-items: flex-end;
+    gap: 36px;
+    margin-bottom: clamp(24px, 3vw, 38px) !important;
+  }
+
+  .seko-launch-dark-layout .seko-homepage-section-copy {
+    display: grid;
+    gap: 16px;
+    justify-items: end;
+    max-width: 460px;
+  }
+
+  .seko-launch-dark-layout .seko-homepage-section-copy p {
+    margin: 0;
+    color: rgba(203, 213, 225, 0.88) !important;
+    line-height: 1.72;
+    text-wrap: pretty;
+  }
+
+  .seko-launch-dark-layout .seko-homepage-action-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+
+  .seko-launch-dark-layout .seko-homepage-action-row button {
+    min-height: 38px;
+    border-radius: 999px;
+    border: 1px solid rgba(125, 211, 252, 0.2);
+    padding: 0 16px;
+    background: rgba(15, 23, 42, 0.48);
+    color: rgba(248, 250, 252, 0.9);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    transition:
+      transform 0.18s ease,
+      border-color 0.18s ease,
+      background 0.18s ease,
+      box-shadow 0.18s ease;
+  }
+
+  .seko-launch-dark-layout .seko-homepage-action-row button:first-child {
+    border-color: rgba(34, 211, 238, 0.38);
+    background: linear-gradient(135deg, rgba(34, 211, 238, 0.22), rgba(124, 58, 237, 0.24));
+    color: #ffffff;
+    box-shadow: 0 16px 34px rgba(34, 211, 238, 0.12);
+  }
+
+  .seko-launch-dark-layout .seko-homepage-action-row button:hover {
+    transform: translateY(-1px);
+    border-color: rgba(103, 232, 249, 0.42);
+    background: rgba(15, 23, 42, 0.68);
+    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.24);
+  }
+
+  .seko-launch-dark-layout .seko-homepage-action-row button:focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 3px rgba(255, 255, 255, 0.18),
+      0 0 0 6px rgba(34, 211, 238, 0.2) !important;
+  }
+
+  .seko-launch-dark-layout .seko-holo-stage {
+    min-height: clamp(520px, 50vw, 620px) !important;
+  }
+
+  .seko-launch-dark-layout .seko-ai-card,
+  .seko-launch-dark-layout .seko-holo-canvas-panel {
+    border-color: rgba(148, 163, 184, 0.14) !important;
+    box-shadow:
+      0 0 90px rgba(34, 211, 238, 0.1),
+      0 34px 90px rgba(0, 0, 0, 0.42),
+      0 1px 0 rgba(255, 255, 255, 0.08) inset !important;
+  }
+
+  .seko-launch-dark-layout .seko-ai-card,
+  .seko-launch-dark-layout .seko-holo-canvas-panel,
+  .seko-launch-dark-layout .seko-tool-btn,
+  .seko-launch-dark-layout .seko-top-action-btn {
+    will-change: transform;
+  }
+}
+
+@media (min-width: 1200px) {
+  .seko-launch-dark-layout .seko-ai-output-card-left,
+  .seko-light-tech-layout .seko-ai-output-card-left {
+    left: max(32px, calc(50% - 690px));
+  }
+
+  .seko-launch-dark-layout .seko-ai-output-card-right,
+  .seko-light-tech-layout .seko-ai-output-card-right {
+    right: max(32px, calc(50% - 700px));
+  }
+}
+
+@media (min-width: 901px) and (max-width: 1180px) {
+  .seko-launch-dark-layout .seko-top-bar {
+    top: 14px !important;
+    width: calc(100vw - 28px) !important;
+  }
+
+  .seko-launch-dark-layout .seko-hero,
+  .seko-light-tech-layout .seko-hero {
+    min-height: max(760px, calc(100vh - 16px)) !important;
+    padding-top: clamp(104px, 10vh, 122px) !important;
+  }
+
+  .seko-launch-dark-layout .seko-hero-slogan h1 {
+    font-size: clamp(42px, 6.4vw, 68px) !important;
+  }
+
+  .seko-launch-dark-layout .seko-launch-hero-stats {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    width: min(720px, 100%) !important;
+  }
+
+  .seko-launch-dark-layout .seko-ai-output-rail,
+  .seko-light-tech-layout .seko-ai-output-rail {
+    opacity: 0.42;
+  }
+
+  .seko-launch-dark-layout .seko-future-showcase {
+    width: calc(100vw - 32px) !important;
+    padding: 20px !important;
+  }
+
+  .seko-launch-dark-layout .seko-future-section-head,
+  .seko-launch-dark-layout .seko-future-grid,
+  .seko-launch-dark-layout .seko-future-grid-bottom,
+  .seko-launch-dark-layout .seko-insight-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  .seko-launch-dark-layout .seko-homepage-section-copy {
+    justify-items: start;
+    max-width: 760px;
+  }
+
+  .seko-launch-dark-layout .seko-homepage-action-row {
+    justify-content: flex-start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .seko-launch-dark-layout *,
+  .seko-launch-dark-layout *::before,
+  .seko-launch-dark-layout *::after,
+  .seko-light-tech-layout *,
+  .seko-light-tech-layout *::before,
+  .seko-light-tech-layout *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

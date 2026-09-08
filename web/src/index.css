@@ -1,0 +1,2778 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .animate-spin-slow {
+    animation: spin 8s linear infinite;
+  }
+  .animate-reverse-spin {
+    animation: spin-reverse 12s linear infinite;
+  }
+
+  @keyframes ai-video-progress-shimmer {
+    from {
+      background-position: -46px 0;
+    }
+    to {
+      background-position: 46px 0;
+    }
+  }
+
+  @keyframes spin-reverse {
+    from {
+      transform: rotate(360deg);
+    }
+    to {
+      transform: rotate(0deg);
+    }
+  }
+}
+
+/* ============================================
+   小天AICG - 极简暗黑科技奢华风配色系统 v3.0
+   深邃 | 克制 | 精致 | 呼吸感 | 高端感
+   ============================================ */
+
+:root {
+  /* === 背景色 === */
+  --color-bg-primary: #000000;
+  --color-surface: #0a0a0a;
+  --color-card: #111111;
+  --color-elevated: #1a1a1a;
+  --color-hover: #222222;
+  --color-active: #333333;
+
+  /* === 边框色系 === */
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-default: rgba(255, 255, 255, 0.08);
+  --border-hover: rgba(255, 255, 255, 0.15);
+  --border-active: rgba(255, 255, 255, 0.25);
+
+  /* === 强调色 - 奢华亮蓝 === */
+  --color-accent-primary: #3b82f6;
+  --color-accent-primary-hover: #60a5fa;
+  --color-accent-primary-active: #2563eb;
+  --color-accent-secondary: #6366f1;
+  --color-accent-cyan: #1d4ed8;
+  --color-accent-cyan-light: #3b82f6;
+  --color-accent-success: #4ade80;
+  --color-accent-warning: #fbbf24;
+  --color-accent-error: #f87171;
+
+  /* === 文本色系 === */
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #a0a0a0;
+  --color-text-tertiary: #666666;
+  --color-text-disabled: #444444;
+
+  /* === 阴影系统 - 深邃柔和 === */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+  --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --shadow-glow: 0 0 20px rgba(0, 212, 255, 0.2), 0 0 40px rgba(29, 78, 216, 0.1);
+  --shadow-glow-hover: 0 4px 24px rgba(0, 212, 255, 0.3), 0 0 48px rgba(29, 78, 216, 0.15);
+
+  /* === 兼容旧变量名 === */
+  --bg-base: var(--color-bg-primary);
+  --bg-primary: var(--color-bg-primary);
+  --bg-surface: var(--color-surface);
+  --bg-card: var(--color-card);
+  --bg-elevated: var(--color-elevated);
+  --bg-hover: var(--color-hover);
+  --bg-active: var(--color-active);
+  --accent-primary: var(--color-accent-primary);
+  --accent-success: var(--color-accent-success);
+  --accent-error: var(--color-accent-error);
+  --text-primary: var(--color-text-primary);
+  --text-secondary: var(--color-text-secondary);
+  --text-tertiary: var(--color-text-tertiary);
+}
+
+@layer base {
+  body {
+    @apply antialiased;
+    background-color: #050505;
+    color: var(--color-text-primary);
+    font-family:
+      'Inter',
+      'Noto Sans SC',
+      system-ui,
+      -apple-system,
+      sans-serif;
+    font-weight: 400;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: -9999;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.15'/%3E%3C/svg%3E");
+    opacity: 1;
+  }
+
+  :focus-visible {
+    @apply outline-none;
+  }
+}
+
+@layer components {
+  /* ============================================
+     极简奢华按钮系统
+     ============================================ */
+
+  /* 主按钮 - 奢华亮蓝渐变 */
+  .btn-luxury-primary {
+    @apply rounded-xl px-8 py-3.5 font-medium active:scale-[0.98] transition-all duration-300;
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: #ffffff;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.25);
+    letter-spacing: 0.02em;
+  }
+
+  .btn-luxury-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 24px rgba(0, 212, 255, 0.4);
+    filter: brightness(1.1);
+  }
+
+  .btn-luxury-primary:active {
+    transform: translateY(0);
+    box-shadow: 0 0 12px rgba(0, 212, 255, 0.3);
+  }
+
+  /* 次要按钮 - 透明边框 */
+  .btn-luxury-secondary {
+    @apply rounded-xl px-8 py-3.5 font-medium active:scale-[0.98] transition-all duration-300;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+    letter-spacing: 0.02em;
+  }
+
+  .btn-luxury-secondary:hover {
+    border-color: rgba(0, 212, 255, 0.5);
+    background: rgba(0, 212, 255, 0.08);
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.1);
+    transform: translateY(-1px);
+  }
+
+  /* 幽灵按钮 */
+  .btn-luxury-ghost {
+    @apply bg-transparent rounded-lg px-6 py-2.5 font-normal active:scale-[0.98] transition-all duration-200;
+    color: var(--color-text-secondary);
+  }
+
+  .btn-luxury-ghost:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  /* ============================================
+     极简奢华卡片系统
+     ============================================ */
+  .card-luxury {
+    @apply rounded-2xl;
+    background: var(--color-card);
+    border: 1px solid var(--border-subtle);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .card-luxury:hover {
+    border-color: rgba(0, 212, 255, 0.2);
+    transform: translateY(-4px);
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.4),
+      0 0 0 1px rgba(0, 212, 255, 0.1);
+  }
+
+  /* ============================================
+     极简奢华输入框
+     ============================================ */
+  .input-luxury {
+    @apply rounded-xl px-4 py-3 transition-all duration-300 outline-none w-full;
+    background: var(--color-elevated);
+    border: 1px solid var(--border-default);
+    color: var(--color-text-primary);
+    font-size: 14px;
+  }
+
+  .input-luxury::placeholder {
+    color: var(--color-text-tertiary);
+  }
+
+  .input-luxury:focus {
+    border-color: rgba(0, 212, 255, 0.4);
+    box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.08);
+  }
+
+  /* ============================================
+     统一输入框样式 - 深色主题适配
+     ============================================ */
+  textarea,
+  input[type='text'],
+  input[type='email'],
+  input[type='password'],
+  input[type='number'],
+  input[type='search'],
+  input[type='url'],
+  input[type='tel'],
+  input[type='date'],
+  input[type='time'],
+  input[type='datetime-local'],
+  input[type='month'],
+  input[type='week'],
+  input:not([type]),
+  select,
+  .jimeng-textarea,
+  .prompt-textarea,
+  .ai-input,
+  .search-input,
+  .form-input {
+    background-color: #1a1a1a !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+    color: #ffffff !important;
+  }
+
+  /* 白色弹窗内的输入框保持浅色 */
+  .light-modal input,
+  .light-modal select,
+  .light-modal textarea {
+    background-color: #ffffff !important;
+    border-color: #e5e7eb !important;
+    color: #111827 !important;
+  }
+
+  .light-modal input::placeholder,
+  .light-modal textarea::placeholder {
+    color: #d1d5db !important;
+  }
+
+  /* Canvas节点内input/select覆盖 - 深色主题 */
+  .react-flow__node input,
+  .react-flow__node select,
+  .react-flow__node select option {
+    background-color: #151515 !important;
+    border-color: rgba(255, 255, 255, 0.22) !important;
+    color: #ffffff !important;
+  }
+
+  .react-flow__node textarea {
+    background-color: #2a2a2a !important;
+    color: #ffffff !important;
+    caret-color: #ffffff !important;
+  }
+
+  .react-flow__node select option:checked,
+  .react-flow__node select option:hover {
+    background-color: #1e1e2e !important;
+    color: #ffffff !important;
+  }
+
+  /* 深色面板内select覆盖 */
+  [class*='bg-black'] select,
+  [class*='bg-black'] select option,
+  [class*='bg-[#0'] select,
+  [class*='bg-[#0'] select option,
+  [class*='bg-[#1'] select,
+  [class*='bg-[#1'] select option {
+    background-color: #151515 !important;
+    border-color: rgba(255, 255, 255, 0.22) !important;
+    color: #ffffff !important;
+  }
+
+  textarea:focus,
+  input[type='text']:focus,
+  input[type='email']:focus,
+  input[type='password']:focus,
+  input[type='number']:focus,
+  input[type='search']:focus,
+  input[type='url']:focus,
+  input[type='tel']:focus,
+  input[type='date']:focus,
+  input[type='time']:focus,
+  input[type='datetime-local']:focus,
+  input[type='month']:focus,
+  input[type='week']:focus,
+  input:not([type]):focus,
+  select:focus,
+  .jimeng-textarea:focus,
+  .prompt-textarea:focus,
+  .ai-input:focus,
+  .search-input:focus,
+  .form-input:focus {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.15) !important;
+    outline: none !important;
+  }
+
+  textarea::placeholder,
+  input::placeholder,
+  .jimeng-textarea::placeholder,
+  .prompt-textarea::placeholder,
+  .ai-input::placeholder {
+    color: #666666 !important;
+  }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* No Scrollbar Utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* React Flow Overrides */
+
+/* 画布交互性能：平移/拖拽时减少重绘与过渡动画 */
+.canvas-interacting .react-flow__viewport {
+  will-change: transform;
+}
+.canvas-interacting .react-flow__node {
+  will-change: transform;
+  pointer-events: none;
+}
+.canvas-interacting .react-flow__node * {
+  transition: none !important;
+}
+.canvas-interacting .react-flow__edge-path {
+  transition: none !important;
+}
+.canvas-interacting .react-flow__controls-button,
+.canvas-interacting .react-flow__panel {
+  pointer-events: none;
+}
+
+/* 节点拖拽/画布平移优先：仅暂停 MIMOMI 装饰动画，控制和状态逻辑继续运行。 */
+html[data-canvas-interacting] [data-mimomi-overlay] *,
+html[data-canvas-interacting] [data-mimomi-overlay] *::before,
+html[data-canvas-interacting] [data-mimomi-overlay] *::after {
+  animation-play-state: paused !important;
+  transition-duration: 0s !important;
+}
+.react-flow__viewport {
+  transform: translateZ(0);
+}
+.react-flow__node {
+  @apply !bg-transparent !border-none !shadow-none;
+  overflow: visible !important;
+}
+.react-flow__node * {
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.react-flow__node-output,
+.react-flow__node-input,
+.react-flow__node-default {
+  @apply !bg-transparent !border-none !p-0 !w-auto !text-left !shadow-none;
+}
+.react-flow__panel {
+  background: rgba(17, 17, 17, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+}
+.react-flow__controls {
+  background: rgba(17, 17, 17, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  bottom: 48px !important;
+}
+.react-flow__controls-button {
+  @apply !bg-transparent !border-b !p-2 !w-8 !h-8;
+  border-color: var(--border-subtle);
+  color: var(--color-text-secondary);
+  transition: all 0.2s;
+}
+.react-flow__controls-button:hover {
+  background: var(--color-hover);
+  color: var(--color-text-primary);
+}
+.react-flow__controls-button:last-child {
+  @apply !border-none;
+}
+.react-flow__handle {
+  @apply !border-none;
+  width: 8px !important;
+  height: 8px !important;
+  min-width: 8px !important;
+  min-height: 8px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.react-flow__handle.aicg-port-handle {
+  width: 34px !important;
+  height: 34px !important;
+  min-width: 34px !important;
+  min-height: 34px !important;
+  background-color: var(--aicg-port-color, #8b8b95) !important;
+  border: 2px solid var(--aicg-port-color, #8b8b95) !important;
+  box-shadow: none !important;
+  opacity: 1 !important;
+  pointer-events: all !important;
+  z-index: 100 !important;
+}
+.react-flow__handle-left.aicg-port-handle {
+  left: 0 !important;
+  transform: translate(calc(-100% - 8px), -50%) !important;
+}
+.react-flow__handle-right.aicg-port-handle {
+  right: 0 !important;
+  transform: translate(calc(100% + 8px), -50%) !important;
+}
+.aicg-io-handle-in {
+  --aicg-port-color: #4a90d9 !important;
+}
+.aicg-io-handle-out {
+  --aicg-port-color: #f97316 !important;
+}
+.react-flow__node-aiGenText,
+.react-flow__node-textInput,
+.react-flow__node-audioGen,
+.react-flow__node-audioInput,
+.react-flow__node-imageCollage,
+.react-flow__node-director3D,
+.react-flow__node-panorama360,
+.react-flow__node-gridSplitter {
+  overflow: visible !important;
+}
+
+/* AICG 统一节点外壳 — 玻璃质感 */
+.aicg-node-wrapper .aicg-node-card,
+.aicg-node-wrapper .aicg-glass-preview,
+.aicg-node-wrapper .aicg-glass-control {
+  font-family: inherit;
+}
+.aicg-node-wrapper .aicg-node-card,
+.aicg-node-wrapper .aicg-glass-preview,
+.aicg-node-wrapper .aicg-glass-control,
+.aicg-node-wrapper [class*='rounded-'][class*='bg-[#242424]'],
+.aicg-node-wrapper [class*='rounded-'][class*='bg-[#121212]'],
+.aicg-node-wrapper [class*='rounded-'][class*='bg-black'] {
+  background-color: #0d0d0d !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+.aicg-node-wrapper .nc-action:focus-visible,
+.aicg-node-wrapper .nc-tab:focus-visible,
+.aicg-node-wrapper .nc-launcher:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.32);
+}
+.aicg-node-wrapper .nc-action:active:not(:disabled) {
+  transform: scale(0.98);
+}
+.aicg-node-wrapper .nc-tab[aria-selected='true'] {
+  color: #fff;
+}
+.aicg-node-wrapper .aicg-node-card,
+.aicg-node-wrapper .aicg-glass-preview,
+.aicg-node-wrapper .aicg-glass-control {
+  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.58) !important;
+}
+.aicg-node-wrapper button[class*='bg-gradient-to-'],
+.aicg-node-wrapper [role='button'][class*='bg-gradient-to-'],
+.aicg-node-wrapper [class*='rounded-'][class*='bg-gradient-to-']:not([class*='absolute']) {
+  background-image: none !important;
+  background-color: #242424 !important;
+  border-color: rgba(255, 255, 255, 0.35) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 4px 12px rgba(0, 0, 0, 0.28) !important;
+}
+.aicg-node-wrapper button[class*='from-'],
+.aicg-node-wrapper button[class*='to-'],
+.aicg-node-wrapper button[class*='via-'],
+.aicg-node-wrapper [role='button'][class*='from-'],
+.aicg-node-wrapper [role='button'][class*='to-'],
+.aicg-node-wrapper [role='button'][class*='via-'],
+.aicg-node-wrapper [class*='rounded-'][class*='from-']:not([class*='absolute']),
+.aicg-node-wrapper [class*='rounded-'][class*='to-']:not([class*='absolute']),
+.aicg-node-wrapper [class*='rounded-'][class*='via-']:not([class*='absolute']) {
+  --tw-gradient-from: #242424 !important;
+  --tw-gradient-to: #242424 !important;
+  --tw-gradient-stops: #242424, #242424 !important;
+}
+.aicg-node-wrapper button,
+.aicg-node-wrapper select,
+.aicg-node-wrapper input,
+.aicg-node-wrapper textarea {
+  border-color: rgba(255, 255, 255, 0.25) !important;
+}
+.aicg-node-wrapper button,
+.aicg-node-wrapper [role='button'] {
+  min-height: 28px;
+  white-space: nowrap;
+}
+.aicg-node-wrapper button span,
+.aicg-node-wrapper [role='button'] span {
+  min-width: 0;
+}
+.aicg-node-wrapper select,
+.aicg-node-wrapper input {
+  min-width: 0;
+  background-color: #151515 !important;
+  border-color: rgba(255, 255, 255, 0.22) !important;
+  color: #fff !important;
+}
+.aicg-node-wrapper select {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color-scheme: dark;
+}
+.aicg-node-wrapper .aicg-compact-tab {
+  display: inline-flex;
+  height: 30px;
+  max-width: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border-radius: 8px;
+  padding: 0 9px;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.72);
+  background: #181818;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+.aicg-node-wrapper .aicg-compact-tab:hover {
+  color: #fff;
+  background: #202020;
+  border-color: rgba(255, 255, 255, 0.34);
+}
+.aicg-node-wrapper .aicg-compact-tab.is-active {
+  color: #fff;
+  background: #1a221e;
+  border-color: rgba(16, 185, 129, 0.32);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 0 0 1px rgba(16, 185, 129, 0.1);
+}
+.aicg-node-wrapper .aicg-compact-tab.is-disabled {
+  cursor: not-allowed;
+  color: rgba(255, 255, 255, 0.35);
+  background: #121212;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+.aicg-node-wrapper .aicg-node-popover {
+  background: #151515 !important;
+  border-color: rgba(255, 255, 255, 0.24) !important;
+}
+.aicg-node-wrapper .drag-handle {
+  user-select: none;
+}
+.react-flow__node .aicg-node-body {
+  overflow: hidden;
+}
+.aicg-glass-preview .nodrag,
+.aicg-glass-control .nodrag,
+.aicg-glass-control textarea,
+.aicg-glass-control input,
+.aicg-glass-control select,
+.aicg-glass-control button {
+  pointer-events: all;
+}
+.aicg-glass-control textarea,
+.aicg-glass-control input {
+  user-select: text;
+}
+.react-flow__node-aiGenText .react-flow__handle,
+.react-flow__node-textInput .react-flow__handle,
+.react-flow__node-audioGen .react-flow__handle,
+.react-flow__node-audioInput .react-flow__handle,
+.react-flow__node-imageCollage .react-flow__handle,
+.react-flow__node-director3D .react-flow__handle,
+.react-flow__node-panorama360 .react-flow__handle,
+.react-flow__node-gridSplitter .react-flow__handle {
+  opacity: 1 !important;
+  pointer-events: all !important;
+}
+.react-flow__edge-path {
+  stroke: rgba(255, 255, 255, 0.2);
+  stroke-width: 1.5px !important;
+}
+.react-flow__edge-path:hover {
+  stroke: rgba(0, 212, 255, 0.5);
+  cursor: pointer;
+}
+.react-flow__edge.selected .react-flow__edge-path {
+  stroke: var(--color-accent-primary);
+}
+.react-flow__connection-path {
+  stroke: rgba(255, 255, 255, 0.32) !important;
+  stroke-width: 1.5px !important;
+}
+.react-flow__connectionline,
+.react-flow__connection {
+  pointer-events: none !important;
+}
+
+/* AICG 端口句柄 — 类型纯色圆点 */
+.aicg-port-handle {
+  opacity: 1 !important;
+  pointer-events: all !important;
+  box-shadow: none !important;
+}
+.aicg-handle-hit-only {
+  opacity: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  pointer-events: none !important;
+}
+.react-flow__handle.aicg-port-handle.aicg-handle-hit-only {
+  opacity: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  pointer-events: none !important;
+}
+.aicg-handle-hit-only::after {
+  display: none !important;
+}
+
+.aicg-port-handle::after {
+  display: none;
+}
+.aicg-handle-connected::after {
+  display: none;
+}
+.aicg-handle-flowing::after {
+  display: none;
+}
+.aicg-handle-flowing {
+  animation: aicg-handle-flow-bright 0.85s ease-in-out infinite;
+}
+.aicg-handle-out.aicg-handle-connected {
+  animation: none;
+}
+
+@keyframes aicg-handle-flow-bright {
+  0%,
+  100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.3);
+  }
+}
+
+/* 连线虚线流动 — 模拟信号传输 */
+@keyframes aicg-edge-signal-flow {
+  from {
+    stroke-dashoffset: 48;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.aicg-edge-signal-flow {
+  animation: aicg-edge-signal-flow 1.1s linear infinite;
+}
+.react-flow__minimap {
+  background: rgba(17, 17, 17, 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-default);
+  border-radius: 12px;
+}
+.react-flow__minimap-mask {
+  fill: rgba(255, 255, 255, 0.15);
+  stroke: var(--color-accent-primary);
+  stroke-width: 1px;
+}
+
+/* Animations */
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInFromTop {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animate-in {
+  animation: fadeIn 0.2s ease-out;
+}
+
+.fade-in {
+  animation: fadeIn 0.2s ease-out;
+}
+
+.slide-in-from-top {
+  animation: slideInFromTop 0.2s ease-out;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 4px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.animate-scaleIn {
+  animation: none !important;
+  transform: none !important;
+}
+
+.animate-enter {
+  animation: fadeIn 0.2s ease-out;
+}
+
+/* Grid Background */
+.dot-grid-bg {
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: modalFadeIn 0.2s ease;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal-content {
+  background: var(--color-card);
+  border: 1px solid var(--border-default);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: auto;
+}
+
+.settings-modal {
+  width: 700px;
+  max-width: 90vw;
+}
+
+.settings-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  background: transparent;
+  border: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.settings-tab:hover {
+  background: var(--color-hover);
+  color: var(--color-text-primary);
+}
+
+.settings-tab.active {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  color: #ffffff;
+}
+
+.settings-content {
+  padding: 16px;
+  min-height: 300px;
+}
+
+.settings-section h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: 12px;
+}
+
+.settings-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.settings-item label {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+
+.settings-item input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--color-accent-primary);
+}
+
+.settings-item input[type='number'],
+.settings-item select {
+  background: var(--color-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  padding: 6px 12px;
+  color: var(--color-text-primary);
+  font-size: 13px;
+}
+
+.settings-item input[type='text'] {
+  background: var(--color-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  padding: 6px 12px;
+  color: var(--color-text-primary);
+  font-size: 13px;
+  width: 100%;
+}
+
+.settings-item input[type='text'].invalid {
+  border-color: var(--color-accent-error);
+}
+
+.settings-item input[type='range'] {
+  flex: 1;
+  margin: 0 12px;
+  accent-color: var(--color-accent-primary);
+}
+
+.path-input-group {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+  max-width: 400px;
+}
+
+.path-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.path-error {
+  color: var(--color-accent-error);
+  font-size: 11px;
+  margin-top: 4px;
+  width: 100%;
+}
+
+.preset-paths {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.preset-path-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.preset-path-item span {
+  color: var(--color-text-secondary);
+  min-width: 70px;
+}
+
+.preset-path-item code {
+  background: var(--color-elevated);
+  padding: 2px 8px;
+  border-radius: 4px;
+  color: var(--color-accent-primary);
+  font-size: 11px;
+}
+
+.ai-features {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.ai-feature-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.ai-feature-item input[type='checkbox'] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--color-accent-primary);
+}
+
+.slider-value {
+  color: var(--color-accent-primary);
+  font-size: 12px;
+  min-width: 30px;
+  text-align: right;
+}
+
+.shortcuts-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.settings-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-default);
+  flex-wrap: wrap;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.modal-header h2 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 16px;
+  border-top: 1px solid var(--border-default);
+}
+
+.shortcuts-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.shortcut-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: var(--color-elevated);
+  border-radius: 8px;
+}
+
+.shortcut-action {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+
+.shortcut-item kbd {
+  background: var(--color-hover);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  color: var(--color-text-primary);
+  font-family: inherit;
+}
+
+/* Canvas节点内的select统一样式 */
+.react-flow__node select {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+  margin: 0 !important;
+  cursor: pointer;
+}
+
+.react-flow__node button[type='button']:has(select) {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  outline: none;
+  cursor: pointer;
+}
+
+.react-flow__node select option {
+  background: #151515 !important;
+  color: #ffffff !important;
+  padding: 4px 8px;
+}
+
+.react-flow__node select option:checked,
+.react-flow__node select option:hover {
+  background: #1e1e2e !important;
+  color: #ffffff !important;
+  font-weight: 600;
+}
+
+.react-flow__node select optgroup {
+  background: var(--color-elevated);
+  color: var(--color-text-secondary);
+  font-style: normal;
+}
+
+.react-flow__node select::-ms-expand {
+  display: none !important;
+}
+
+/* 节点控制器样式 */
+.react-flow__resize-control {
+  display: none !important;
+}
+
+.react-flow__resize-control:hover {
+  display: none !important;
+}
+
+.react-flow__resize-control * {
+  display: none !important;
+}
+
+.react-flow__resize-control *:hover {
+  display: none !important;
+}
+
+.react-flow__node-resizer {
+  display: none !important;
+}
+
+.react-flow__node-resizer:hover {
+  display: none !important;
+}
+
+.react-flow__node-resizer * {
+  display: none !important;
+}
+
+.react-flow__node-resizer *:hover {
+  opacity: 1 !important;
+}
+
+[data-testid='xyflow-node-resizer'] {
+  opacity: 1 !important;
+}
+
+[data-testid='xyflow-node-resizer']:hover {
+  opacity: 1 !important;
+}
+
+[data-testid='xyflow-node-resizer'] * {
+  opacity: 1 !important;
+}
+
+[data-testid='xyflow-node-resizer'] *:hover {
+  opacity: 1 !important;
+}
+
+/* ============================================
+   极简奢华动画
+   ============================================ */
+
+@keyframes glowBreathe {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+@keyframes cs-scan-line {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(200%);
+  }
+}
+
+@keyframes cs-ring-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+
+@keyframes cs-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+/* ============================================
+   无限画布性能优化
+   ============================================ */
+
+.react-flow__node {
+  contain: layout style;
+  backface-visibility: hidden;
+}
+
+.react-flow__edge,
+.react-flow__connection {
+  pointer-events: stroke;
+}
+
+/* ============================================
+   SELECT 强制白色文字
+   ============================================ */
+
+.react-flow__node select,
+.react-flow__node select option,
+[class*='react-flow'] select,
+[class*='react-flow'] select option,
+.trae-browser-inspect-draggable,
+.trae-browser-inspect-draggable option,
+select.text-white {
+  color: #ffffff !important;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+.react-flow__node select option,
+[class*='react-flow'] select option,
+.trae-browser-inspect-draggable option {
+  background-color: #151515 !important;
+}
+
+.react-flow__node select option:checked,
+.react-flow__node select option:hover,
+[class*='react-flow'] select option:checked,
+[class*='react-flow'] select option:hover,
+.trae-browser-inspect-draggable option:checked,
+.trae-browser-inspect-draggable option:hover {
+  background-color: #1e1e2e !important;
+  color: #ffffff !important;
+}
+
+.react-flow__node
+  .aicg-node-wrapper
+  select:not(.aicg-text-model-select):not(.audio-model-select):not(.jimeng-text-model-select),
+.react-flow__node
+  .aicg-node-wrapper
+  select:not(.aicg-text-model-select):not(.audio-model-select):not(.jimeng-text-model-select)
+  option,
+[class*='react-flow']
+  .aicg-node-wrapper
+  select:not(.aicg-text-model-select):not(.audio-model-select):not(.jimeng-text-model-select),
+[class*='react-flow']
+  .aicg-node-wrapper
+  select:not(.aicg-text-model-select):not(.audio-model-select):not(.jimeng-text-model-select)
+  option {
+  background-color: #151515 !important;
+  border-color: rgba(255, 255, 255, 0.22) !important;
+  color: #ffffff !important;
+  color-scheme: dark;
+}
+
+.jimeng-msg-optimized-label {
+  color: #1d1d1f !important;
+}
+
+.jimeng-msg-generating {
+  color: #1d1d1f !important;
+}
+
+.jimeng-msg-generating .seko-spinner {
+  color: #1d1d1f !important;
+  stroke: #1d1d1f !important;
+}
+
+.jimeng-msg.user {
+  background: transparent !important;
+  color: #1d1d1f !important;
+}
+
+.jimeng-text-model-select,
+.jimeng-select,
+.jimeng-select option {
+  background-color: #1a1a1a !important;
+  color: #ffffff !important;
+  border-color: rgba(0, 212, 255, 0.12) !important;
+}
+
+.jimeng-text-model-select {
+  display: inline-flex !important;
+  align-items: center !important;
+  flex-direction: row !important;
+  gap: 6px !important;
+  height: 33px;
+  min-width: 0;
+  max-width: 100%;
+  width: auto;
+  padding: 0 10px;
+  white-space: nowrap;
+}
+
+.jimeng-text-model-select-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1;
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.92);
+  max-width: 200px;
+}
+
+.jimeng-text-model-select-meta {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1;
+  font-size: 6px;
+  color: rgba(255, 255, 255, 0.42);
+  max-width: 200px;
+}
+
+.jimeng-text-model-select-chevron {
+  flex-shrink: 0;
+}
+
+.jimeng-text-model-select:hover,
+.jimeng-select:hover {
+  background-color: #222222 !important;
+  color: #ffffff !important;
+  border-color: rgba(0, 212, 255, 0.3) !important;
+}
+
+.jimeng-select option:checked {
+  background: linear-gradient(135deg, rgba(0, 212, 255, 0.15), rgba(29, 78, 216, 0.1)) !important;
+  color: #3b82f6 !important;
+  font-weight: 640 !important;
+}
+
+.jimeng-select option:hover {
+  background-color: rgba(0, 212, 255, 0.06) !important;
+}
+
+.jimeng-select optgroup {
+  font-weight: 700;
+  color: #3b82f6;
+  background: rgba(0, 212, 255, 0.03);
+}
+
+.jimeng-text-model-dropdown {
+  max-height: 320px !important;
+  overflow-y: auto !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 14px !important;
+  background: rgba(16, 16, 18, 0.98) !important;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55) !important;
+  padding: 6px !important;
+  backdrop-filter: blur(18px) !important;
+  min-width: 280px !important;
+}
+
+.jimeng-text-model-dropdown-group-label {
+  padding: 8px 8px 5px !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  color: rgba(255, 255, 255, 0.38) !important;
+}
+
+.jimeng-text-model-dropdown-option {
+  display: grid !important;
+  grid-template-columns: 28px minmax(0, 1fr) 18px !important;
+  align-items: center !important;
+  column-gap: 10px !important;
+  min-height: 50px !important;
+  cursor: pointer !important;
+  border-radius: 10px !important;
+  padding: 8px 9px 8px 8px !important;
+  color: rgba(255, 255, 255, 0.72) !important;
+}
+
+.jimeng-text-model-dropdown-option:hover,
+.jimeng-text-model-dropdown-option.selected {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #fff !important;
+}
+
+.jimeng-text-model-dropdown-option > span {
+  min-width: 0 !important;
+}
+
+.jimeng-text-model-dropdown-icon {
+  width: 28px !important;
+  height: 28px !important;
+  min-width: 28px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  align-self: center !important;
+  justify-self: center !important;
+}
+
+.jimeng-text-model-dropdown-icon svg {
+  display: block !important;
+  width: 18px !important;
+  height: 18px !important;
+}
+
+.jimeng-text-model-dropdown-copy {
+  display: flex !important;
+  min-width: 0 !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+  justify-content: center !important;
+  text-align: left !important;
+}
+
+.jimeng-text-model-dropdown-title,
+.jimeng-text-model-dropdown-desc {
+  display: block !important;
+  min-width: 0 !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.jimeng-text-model-dropdown-title {
+  color: #fff !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  line-height: 1.25 !important;
+}
+
+.jimeng-text-model-dropdown-desc {
+  color: rgba(255, 255, 255, 0.58) !important;
+  font-size: 10px !important;
+  font-weight: 500 !important;
+  line-height: 1.3 !important;
+}
+
+.jimeng-text-model-dropdown-check {
+  width: 18px !important;
+  height: 18px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  justify-self: center !important;
+}
+
+.jimeng-text-model-dropdown-check svg {
+  display: block !important;
+  width: 14px !important;
+  height: 14px !important;
+}
+
+.jimeng-text-model-dropdown-option.selected .jimeng-text-model-dropdown-title {
+  color: #fff !important;
+}
+
+.jimeng-text-model-dropdown-option.selected .jimeng-text-model-dropdown-desc {
+  color: rgba(255, 255, 255, 0.72) !important;
+}
+
+/* Safari/Chrome 下拉箭头颜色 */
+.react-flow__node select::-webkit-scrollbar-thumb,
+select::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* ============================================
+   字体权重优化 - 减轻厚重感
+   ============================================ */
+.react-flow__node .font-black,
+.react-flow__node .\!font-black,
+[class*='react-flow'] .font-black {
+  font-weight: 600 !important;
+}
+.react-flow__node .font-extrabold,
+.react-flow__node .\!font-extrabold,
+[class*='react-flow'] .font-extrabold {
+  font-weight: 600 !important;
+}
+.react-flow__node .font-bold,
+.react-flow__node .\!font-bold,
+[class*='react-flow'] .font-bold {
+  font-weight: 500 !important;
+}
+
+/* ============================================
+   Global Dark AI Theme Override for Website Pages
+   Converts all .seko-page and .seko-style-landing pages to dark theme
+   ============================================ */
+.seko-page {
+  background: #000000 !important;
+  color: #ffffff !important;
+}
+
+.seko-page :root {
+  --seko-primary: #3b82f6;
+  --seko-primary-dark: #1d4ed8;
+  --seko-primary-light: rgba(0, 212, 255, 0.12);
+  --seko-secondary: #6366f1;
+  --seko-text: #ffffff;
+  --seko-text-light: #a0a0a0;
+  --seko-text-muted: #666666;
+  --seko-border: rgba(255, 255, 255, 0.08);
+  --seko-white: #0a0a0a;
+  --seko-gray: rgba(255, 255, 255, 0.04);
+  --seko-gray-dark: rgba(255, 255, 255, 0.06);
+  --seko-accent-gradient: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 50%, #6366f1 100%);
+}
+
+.seko-page .seko-nav {
+  background: rgba(10, 10, 15, 0.92) !important;
+  backdrop-filter: blur(28px) saturate(1.4) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(1.4) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+.seko-page .seko-nav::after {
+  display: none !important;
+}
+
+.seko-page .seko-nav-container {
+  padding: 16px 24px !important;
+  height: auto !important;
+}
+
+.seko-page .seko-logo img {
+  border-radius: 10px !important;
+}
+
+.seko-page .seko-logo-text,
+.seko-page .seko-logo span {
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  font-size: 18px !important;
+  letter-spacing: -0.01em !important;
+}
+
+.seko-page .seko-nav-links {
+  gap: 8px !important;
+}
+
+.seko-page .seko-nav-link {
+  color: rgba(255, 255, 255, 0.85) !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  padding: 10px 18px !important;
+  border-radius: 10px !important;
+  transition: all 0.2s !important;
+}
+
+.seko-page .seko-nav-link:hover {
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.seko-page .seko-nav-link.active {
+  background: rgba(90, 200, 250, 0.15) !important;
+  color: #5ac8fa !important;
+}
+
+.seko-page .seko-nav-cta {
+  color: #ffffff !important;
+  background: #007aff !important;
+  padding: 10px 20px !important;
+  border-radius: 10px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  margin-left: 8px !important;
+  transition: all 0.2s !important;
+  box-shadow: none !important;
+}
+
+.seko-page .seko-nav-cta:hover {
+  background: #5856d6 !important;
+  transform: translateY(-1px) !important;
+}
+
+.seko-page .seko-hero {
+  background: #050505 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+.seko-page .seko-hero-title {
+  background: linear-gradient(135deg, #ffffff 0%, #3b82f6 50%, #6366f1 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+}
+
+.seko-page .seko-hero-subtitle,
+.seko-page .seko-hero-meta {
+  color: #a0a0a0 !important;
+}
+
+.seko-page .seko-content-card,
+.seko-page .policy-card {
+  background: #0a0a0a !important;
+  border-color: rgba(255, 255, 255, 0.06) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
+}
+
+.seko-page .seko-content-card h2,
+.seko-page .policy-section h2 {
+  color: #ffffff !important;
+  border-bottom-color: rgba(0, 212, 255, 0.2) !important;
+}
+
+.seko-page .seko-content-card h3,
+.seko-page .policy-section h3 {
+  color: #ffffff !important;
+}
+
+.seko-page .seko-content-card p,
+.seko-page .seko-content-card li,
+.seko-page .policy-section p,
+.seko-page .policy-section li {
+  color: #a0a0a0 !important;
+}
+
+.seko-page .seko-content-card strong,
+.seko-page .policy-section li strong {
+  color: #ffffff !important;
+}
+
+.seko-page .seko-content-card a,
+.seko-page .policy-section a {
+  color: #3b82f6 !important;
+}
+
+.seko-page .seko-content-card a:hover,
+.seko-page .policy-section a:hover {
+  color: #60a5fa !important;
+}
+
+.seko-page .seko-update-date {
+  color: #666666 !important;
+}
+
+.seko-page .policy-highlight {
+  background: rgba(0, 212, 255, 0.06) !important;
+  border-color: rgba(0, 212, 255, 0.15) !important;
+  color: #3b82f6 !important;
+}
+
+.seko-page .policy-highlight p {
+  color: #a0a0a0 !important;
+}
+
+/* Mobile menu dark theme override */
+.seko-page .hamburger-btn {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.seko-page .hamburger-btn:hover {
+  background: rgba(255, 255, 255, 0.06) !important;
+}
+
+.seko-page .hamburger-line {
+  background: #ffffff !important;
+}
+
+.seko-page .mobile-menu {
+  background: #0a0a0a !important;
+  border-top: 1px solid rgba(0, 212, 255, 0.2) !important;
+}
+
+.seko-page .mobile-menu-title {
+  color: #ffffff !important;
+}
+
+.seko-page .mobile-menu-close {
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: #a0a0a0 !important;
+}
+
+.seko-page .mobile-menu-header {
+  border-bottom-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+.seko-page .mobile-menu-item {
+  color: #a0a0a0 !important;
+}
+
+.seko-page .mobile-menu-item:hover {
+  background: rgba(0, 212, 255, 0.08) !important;
+  color: #3b82f6 !important;
+}
+
+.seko-page .mobile-menu-divider {
+  background: rgba(255, 255, 255, 0.06) !important;
+}
+
+.seko-page .mobile-menu-cta {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 50%, #6366f1 100%) !important;
+}
+
+/* Override for Products, Download, FAQ, Contact pages */
+.seko-page .products-page,
+.seko-page [class*='pp-'],
+.seko-page .download-page,
+.seko-page .faq-page,
+.seko-page .contact-page,
+.seko-page .changelog-page {
+  background: #000000 !important;
+  color: #ffffff !important;
+}
+
+.seko-page section,
+.seko-page .seko-section-light,
+.seko-page .seko-section-white {
+  border-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+/* Dark theme for ProductsPage */
+.products-page {
+  background: #000000 !important;
+  color: #ffffff !important;
+}
+
+.products-page :root {
+  --seko-primary: #3b82f6;
+  --seko-primary-dark: #1d4ed8;
+  --seko-primary-light: rgba(0, 212, 255, 0.12);
+  --seko-secondary: #6366f1;
+  --seko-text: #ffffff;
+  --seko-text-light: #a0a0a0;
+  --seko-text-muted: #666666;
+  --seko-border: rgba(255, 255, 255, 0.08);
+  --seko-white: #0a0a0a;
+  --seko-gray: rgba(255, 255, 255, 0.04);
+  --seko-gray-dark: rgba(255, 255, 255, 0.06);
+}
+
+/* Dark theme for DownloadPage */
+.seko-style-download {
+  background: #000000 !important;
+  color: #ffffff !important;
+}
+
+.seko-style-download :root {
+  --seko-primary: #3b82f6;
+  --seko-primary-dark: #1d4ed8;
+  --seko-primary-light: rgba(0, 212, 255, 0.12);
+  --seko-secondary: #6366f1;
+  --seko-text: #ffffff;
+  --seko-text-light: #a0a0a0;
+  --seko-text-muted: #666666;
+  --seko-border: rgba(255, 255, 255, 0.08);
+  --seko-white: #0a0a0a;
+  --seko-gray: rgba(255, 255, 255, 0.04);
+  --seko-gray-dark: rgba(255, 255, 255, 0.06);
+  --seko-accent-gradient: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 50%, #6366f1 100%);
+}
+
+.seko-style-download .seko-nav {
+  background: rgba(10, 10, 15, 0.92) !important;
+  backdrop-filter: blur(28px) saturate(1.4) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(1.4) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+  box-shadow:
+    0 1px 0 rgba(0, 212, 255, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03) !important;
+}
+
+.seko-style-download .seko-logo-text,
+.seko-style-download .seko-logo span {
+  color: #ffffff !important;
+}
+
+.seko-style-download .seko-nav-link {
+  color: rgba(255, 255, 255, 0.75) !important;
+  padding: 6px 16px !important;
+  border-radius: 8px !important;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.seko-style-download .seko-nav-link:hover {
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+.seko-style-download .seko-nav-cta {
+  color: #ffffff !important;
+  background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%) !important;
+  padding: 8px 22px !important;
+  border-radius: 10px !important;
+  box-shadow: 0 2px 12px rgba(0, 212, 255, 0.25) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.seko-style-download .seko-nav-cta:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 24px rgba(0, 212, 255, 0.35) !important;
+}
+
+.seko-style-download .hamburger-line {
+  background: #ffffff !important;
+}
+
+.seko-style-download .mobile-menu {
+  background: #0a0a0a !important;
+}
+
+/* Dark theme for ChangelogPage */
+.seko-style-changelog {
+  background: #000000 !important;
+  color: #ffffff !important;
+}
+
+.seko-style-changelog :root {
+  --seko-primary: #3b82f6;
+  --seko-primary-dark: #1d4ed8;
+  --seko-primary-light: rgba(0, 212, 255, 0.12);
+  --seko-secondary: #6366f1;
+  --seko-text: #ffffff;
+  --seko-text-light: #a0a0a0;
+  --seko-text-muted: #666666;
+  --seko-border: rgba(255, 255, 255, 0.08);
+  --seko-white: #0a0a0a;
+  --seko-gray: rgba(255, 255, 255, 0.04);
+  --seko-gray-dark: rgba(255, 255, 255, 0.06);
+  --seko-accent-gradient: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 50%, #6366f1 100%);
+}
+
+.seko-style-changelog .seko-nav {
+  background: rgba(0, 0, 0, 0.85) !important;
+  backdrop-filter: blur(24px) saturate(1.2) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+  box-shadow: none !important;
+}
+
+.seko-style-changelog .seko-logo-text {
+  color: #ffffff !important;
+}
+
+.seko-style-changelog .seko-nav-link {
+  color: #a0a0a0 !important;
+}
+
+.seko-style-changelog .seko-nav-cta {
+  color: #ffffff !important;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 50%, #6366f1 100%) !important;
+}
+
+.seko-style-changelog .hamburger-line {
+  background: #ffffff !important;
+}
+
+.seko-style-changelog .mobile-menu {
+  background: #0a0a0a !important;
+}
+
+/* Dark theme for ContactPage */
+.landing-page {
+  background: #000000 !important;
+  color: #ffffff !important;
+}
+.landing-page .landing-header {
+  background: rgba(0, 0, 0, 0.85) !important;
+  backdrop-filter: blur(24px) saturate(1.2) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+/* ===== LandingPage 科技感覆盖样式 ===== */
+.jimeng-template-library {
+  background: linear-gradient(135deg, rgba(15, 25, 50, 0.7), rgba(10, 18, 35, 0.8)) !important;
+  border: 1px solid rgba(0, 200, 255, 0.1) !important;
+  box-shadow: 0 4px 16px rgba(0, 100, 200, 0.06) !important;
+}
+.jimeng-template-library:hover {
+  box-shadow: 0 8px 24px rgba(0, 100, 200, 0.1) !important;
+  border-color: rgba(0, 200, 255, 0.2) !important;
+}
+.jimeng-library-header {
+  background: rgba(0, 200, 255, 0.04) !important;
+  border: 1px solid rgba(0, 200, 255, 0.08) !important;
+}
+.jimeng-library-header:hover {
+  background: rgba(0, 200, 255, 0.08) !important;
+  border-color: rgba(0, 200, 255, 0.15) !important;
+}
+.jimeng-input-box {
+  background: rgba(20, 22, 28, 0.95) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(255, 255, 255, 0.02) inset !important;
+  border-radius: 16px !important;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+.jimeng-input-box:focus-within {
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  box-shadow:
+    0 12px 48px rgba(0, 0, 0, 0.4),
+    0 0 0 2px rgba(255, 255, 255, 0.05) inset,
+    0 0 30px rgba(0, 200, 255, 0.08) !important;
+  background: rgba(25, 27, 35, 0.98) !important;
+  transform: scale(1.01) !important;
+}
+.jimeng-textarea-wrapper {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 9999px !important;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  min-height: 56px !important;
+  padding: 12px 20px !important;
+  position: relative !important;
+}
+
+.jimeng-textarea-wrapper.expanded {
+  min-height: 180px !important;
+  padding: 16px 24px !important;
+  background: transparent !important;
+  border-radius: 24px !important;
+}
+
+.jimeng-textarea-wrapper:focus-within {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* 占位符提示样式 - Seko风格居中显示 */
+.jimeng-placeholder-hint {
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  color: rgba(255, 255, 255, 0.45) !important;
+  font-size: 15px !important;
+  pointer-events: none !important;
+  white-space: nowrap !important;
+  text-align: center !important;
+  width: 100% !important;
+  padding: 0 60px 0 20px !important; /* 右侧留出按钮空间 */
+}
+
+.jimeng-textarea-wrapper.expanded .jimeng-placeholder-hint {
+  display: none !important;
+}
+.jimeng-text-model-select {
+  border: 1.5px solid rgba(0, 200, 255, 0.2) !important;
+  background: linear-gradient(135deg, rgba(15, 25, 50, 0.9), rgba(20, 30, 55, 0.95)) !important;
+  color: #e0f0ff !important;
+  box-shadow:
+    0 1px 4px rgba(0, 0, 0, 0.2),
+    0 0 8px rgba(0, 200, 255, 0.05) !important;
+}
+.jimeng-mode-tab {
+  color: #c0d0e0 !important;
+}
+.jimeng-mode-tab.active {
+  background: rgba(0, 200, 255, 0.1) !important;
+  border-color: rgba(0, 200, 255, 0.35) !important;
+  color: #00d4ff !important;
+  box-shadow: 0 0 12px rgba(0, 200, 255, 0.1) !important;
+}
+.jimeng-remaining {
+  color: #8ab4d8 !important;
+}
+.jimeng-input-bottom {
+  padding: 10px 16px !important;
+  gap: 16px !important;
+}
+.jimeng-bottom-left {
+  gap: 8px !important;
+}
+.jimeng-btn-group {
+  gap: 12px !important;
+}
+
+/* ===== LandingPage 字体 & 白色文字覆盖 ===== */
+/* 关键展示字体：Exo 2 科幻科技风 */
+.seko-hero-title,
+.seko-hero-kicker,
+.seko-hero-subtitle {
+  font-family: 'Exo 2', 'Noto Sans SC', sans-serif !important;
+  color: #ffffff !important;
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  -webkit-text-fill-color: #ffffff !important;
+  background-clip: unset !important;
+  filter: none !important;
+}
+
+/* Logo 品牌名 */
+.seko-logo span {
+  font-family: 'Exo 2', 'Noto Sans SC', sans-serif !important;
+  color: #ffffff !important;
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  -webkit-text-fill-color: #ffffff !important;
+  background-clip: unset !important;
+}
+
+/* 导航按钮文字 - 白色 */
+.seko-nav-tool-label {
+  color: #ffffff !important;
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  -webkit-text-fill-color: #ffffff !important;
+  background-clip: unset !important;
+}
+.seko-nav-tool-item:hover .seko-nav-tool-label {
+  color: #ffffff !important;
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  -webkit-text-fill-color: #ffffff !important;
+  background-clip: unset !important;
+}
+
+/* 模型选择器文字 */
+.jimeng-text-model-select {
+  color: #ffffff !important;
+}
+
+/* 模式标签文字 */
+.jimeng-mode-tab {
+  color: #d0d8e8 !important;
+}
+.jimeng-mode-tab.active {
+  color: #ffffff !important;
+}
+
+/* 剩余次数 */
+.jimeng-remaining {
+  color: #b0c4de !important;
+}
+
+/* 模板库标题和计数 */
+.jimeng-library-title {
+  color: #ffffff !important;
+}
+.jimeng-library-count {
+  color: #b0c4de !important;
+}
+
+/* 模板库展开按钮 */
+.jimeng-expand-btn {
+  color: #b0c4de !important;
+}
+
+/* Textarea placeholder */
+.jimeng-textarea::placeholder {
+  color: rgba(255, 255, 255, 0.4) !important;
+}
+
+/* 清空按钮保持红色不变 */
+.jimeng-clear-btn-inline {
+  color: #ff453a !important;
+}
+
+/* AI优化按钮文字 */
+.jimeng-optimize-btn-inline {
+  color: #ffffff !important;
+}
+
+/* Agent按钮文字 */
+.jimeng-agent-btn {
+  color: #d0d8e8 !important;
+}
+.jimeng-agent-btn:hover {
+  color: #ffffff !important;
+}
+
+/* 模式标签描述文字 */
+.jimeng-mode-tab-desc {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* ===== 输入框聚焦展开动画（类似 seko.sensetime.com） ===== */
+
+/* 输入框聚焦时平滑过渡 */
+.jimeng-textarea {
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  resize: none !important;
+  background: transparent !important;
+  border: none !important;
+  color: #ffffff !important;
+  font-size: 15px !important;
+  line-height: 1.6 !important;
+  padding: 0 !important;
+  opacity: 0 !important;
+}
+
+.jimeng-textarea.expanded,
+.jimeng-textarea-wrapper.expanded .jimeng-textarea {
+  opacity: 1 !important;
+}
+
+/* 聚焦时 textarea 自动增高 - 覆盖 rows 属性 */
+.jimeng-textarea.focused {
+  min-height: 120px !important;
+  height: 120px !important;
+  max-height: 120px !important;
+}
+
+/* 输入框容器聚焦时也变大 - Seko风格 */
+.jimeng-input-box:focus-within,
+.jimeng-input-box.expanded {
+  min-height: 200px !important;
+  padding: 16px 20px !important;
+  background: rgba(25, 27, 35, 0.98) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  box-shadow:
+    0 16px 48px rgba(0, 0, 0, 0.5),
+    0 0 0 2px rgba(255, 255, 255, 0.05) inset !important;
+  transform: scale(1.01) !important;
+  border-radius: 16px !important;
+}
+
+/* 输入框容器聚焦时微放大 */
+.jimeng-input-box {
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  padding: 16px 20px !important;
+  background: rgba(20, 22, 28, 0.85) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.02) inset !important;
+  border-radius: 9999px !important;
+}
+
+/* Seko风格：模式标签头部 */
+.jimeng-mode-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px !important;
+  padding-bottom: 8px !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.jimeng-mode-label {
+  color: rgba(255, 255, 255, 0.6) !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+}
+
+/* ===== 导航栏金色按钮改为白色 ===== */
+.seko-nav-tool-item:last-child .seko-nav-tool-icon {
+  background: linear-gradient(135deg, #ffffff, #e0e0e0) !important;
+}
+
+.seko-nav-tool-item:last-child .seko-nav-tool-icon svg {
+  color: #333333 !important;
+}
+
+/* ===== 输入框配色优化（灰色系，精简层级） ===== */
+
+/* 输入框容器 - Seko风格：毛玻璃效果 + 大圆角 */
+.jimeng-input-box {
+  background: rgba(20, 22, 28, 0.85) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.02) inset !important;
+  border-radius: 9999px !important; /* 大圆角 pill shape */
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.jimeng-input-box:focus-within {
+  background: rgba(25, 27, 35, 0.95) !important;
+  backdrop-filter: blur(30px) !important;
+  -webkit-backdrop-filter: blur(30px) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  box-shadow:
+    0 16px 48px rgba(0, 0, 0, 0.5),
+    0 0 0 2px rgba(255, 255, 255, 0.05) inset !important;
+  transform: scale(1.02) !important;
+  border-radius: 24px !important;
+}
+
+/* Textarea 包装器 - 透明，不增加层级 */
+.jimeng-textarea-wrapper {
+  background: transparent !important;
+  border: none !important;
+}
+
+.jimeng-textarea-wrapper:focus-within {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Textarea 本身 */
+.jimeng-textarea {
+  color: #ffffff !important;
+}
+
+.jimeng-textarea::placeholder {
+  color: rgba(255, 255, 255, 0.4) !important;
+}
+
+/* ===== 按钮白色系配色 ===== */
+
+/* 清空按钮 - 白色 */
+.jimeng-clear-btn-inline {
+  color: rgba(255, 255, 255, 0.7) !important;
+  background: transparent !important;
+}
+
+.jimeng-clear-btn-inline:hover {
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* AI优化按钮 - 白色 */
+.jimeng-optimize-btn-inline {
+  color: rgba(255, 255, 255, 0.8) !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+
+.jimeng-optimize-btn-inline:hover {
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.15) !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
+}
+
+/* Agent 按钮 - 白色 */
+.jimeng-agent-btn {
+  color: rgba(255, 255, 255, 0.8) !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.jimeng-agent-btn:hover {
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.12) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* 模式标签 - 白色系 */
+.jimeng-mode-tab {
+  color: rgba(255, 255, 255, 0.6) !important;
+  background: transparent !important;
+}
+
+.jimeng-mode-tab:hover {
+  color: rgba(255, 255, 255, 0.8) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+}
+
+.jimeng-mode-tab.active {
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* 模型选择器 - 白色 */
+.jimeng-text-model-select {
+  color: rgba(255, 255, 255, 0.9) !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+}
+
+.jimeng-text-model-select:hover {
+  background: rgba(255, 255, 255, 0.12) !important;
+}
+
+/* 剩余次数 - 白色 */
+.jimeng-remaining {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* 模板库标题 - 白色 */
+.jimeng-library-title {
+  color: #ffffff !important;
+}
+
+.jimeng-library-count {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* 展开按钮 - 白色 */
+.jimeng-expand-btn {
+  color: rgba(255, 255, 255, 0.7) !important;
+  background: transparent !important;
+}
+
+.jimeng-expand-btn:hover {
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* ============================================
+   AI 对话消息动画
+   ============================================ */
+@keyframes ai-message-in {
+  0% {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes ai-message-user-in {
+  0% {
+    opacity: 0;
+    transform: translateY(8px) translateX(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) translateX(0);
+  }
+}
+
+@keyframes msg-fade-in {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ai-msg-enter {
+  animation: none;
+}
+
+.ai-msg-user-enter {
+  animation: none;
+}
+
+/* Hero 区域入场动画 */
+@keyframes hero-fade-in {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.ai-hero-enter {
+  animation: none;
+}
+
+/* AI 思考脉冲 */
+@keyframes ai-thinking-pulse {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+}
+
+.ai-thinking-dot {
+  animation: ai-thinking-pulse 1.2s ease-in-out infinite;
+  background-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.ai-thinking-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.ai-thinking-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+/* AI 界面淡入动画 */
+@keyframes ai-fade-up {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ai-fade-up {
+  animation: none;
+}
+
+.ai-fade-up-delay-1 {
+  animation: none;
+  opacity: 1;
+}
+
+.ai-fade-up-delay-2 {
+  animation: none;
+  opacity: 1;
+}
+
+/* 打字机光标动画 */
+@keyframes ai-typing-cursor {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+.ai-typing-cursor::after {
+  content: '▊';
+  animation: ai-typing-cursor 0.8s ease-in-out infinite;
+  color: rgba(0, 212, 255, 0.8);
+  margin-left: 2px;
+}
+
+
+/* ============================================
+   Design System — Linear-style restrained palette
+   ============================================ */
+
+:root {
+  --ds-bg-app: #0b0b12;
+  --ds-bg-surface: #131320;
+  --ds-bg-raised: #181825;
+  --ds-bg-overlay: #1c1c2a;
+  --ds-accent: #3b82f6;
+  --ds-accent-muted: rgba(16, 163, 127, 0.12);
+  --ds-border: rgba(255, 255, 255, 0.05);
+  --ds-border-strong: rgba(255, 255, 255, 0.08);
+  --ds-text-primary: rgba(255, 255, 255, 0.87);
+  --ds-text-secondary: rgba(255, 255, 255, 0.48);
+  --ds-text-tertiary: rgba(255, 255, 255, 0.25);
+}
+
+.ds-surface {
+  background: var(--ds-bg-surface);
+  border: 1px solid var(--ds-border);
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.ds-surface:hover {
+  border-color: var(--ds-border-strong);
+}
+
+.ds-interactive {
+  transition:
+    opacity 0.12s ease,
+    background 0.12s ease,
+    transform 0.12s ease;
+}
+
+.ds-interactive:hover {
+  opacity: 0.9;
+}
+
+.ds-interactive:active {
+  transform: scale(0.98);
+}
+
+/* ============================================
+   Infinite Canvas Performance Mode
+   清除无线画布内节点、模块、菜单和工具面板阴影，降低编辑时绘制成本
+   ============================================ */
+
+body:has(.react-flow) {
+  --shadow-sm: none;
+  --shadow-md: none;
+  --shadow-lg: none;
+  --shadow-card: none;
+  --shadow-glow: none;
+  --shadow-glow-hover: none;
+  --tw-shadow: 0 0 #0000;
+  --tw-shadow-colored: 0 0 #0000;
+  --tw-drop-shadow: ;
+}
+
+body:has(.react-flow) .react-flow,
+body:has(.react-flow) .react-flow *,
+body:has(.react-flow) .aicg-node-wrapper,
+body:has(.react-flow) .aicg-node-wrapper *,
+body:has(.react-flow) .aicg-node-card,
+body:has(.react-flow) .aicg-glass-preview,
+body:has(.react-flow) .aicg-glass-control,
+body:has(.react-flow) [class*='shadow-'],
+body:has(.react-flow) [class*='shadow-['],
+body:has(.react-flow) [class*='drop-shadow'],
+body:has(.react-flow) [style*='box-shadow'],
+body:has(.react-flow) [style*='text-shadow'],
+body:has(.react-flow) [style*='drop-shadow'] {
+  box-shadow: none !important;
+  text-shadow: none !important;
+  --tw-shadow: 0 0 #0000 !important;
+  --tw-shadow-colored: 0 0 #0000 !important;
+  --tw-drop-shadow:  !important;
+}
+
+body:has(.react-flow) .react-flow [class*='drop-shadow'],
+body:has(.react-flow) .react-flow [style*='drop-shadow'],
+body:has(.react-flow) .aicg-node-wrapper [class*='drop-shadow'],
+body:has(.react-flow) .aicg-node-wrapper [style*='drop-shadow'] {
+  filter: none !important;
+}
+
+/* ============================================
+   Sonner Toast 弹窗美化 - 暗黑奢华风格
+   ============================================ */
+[data-sonner-toaster] {
+  top: 20px !important;
+}
+
+[data-sonner-toast] {
+  @apply rounded-2xl !important;
+  background: rgba(13, 13, 13, 1) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(255, 255, 255, 0.03) inset !important;
+  padding: 16px 20px !important;
+  min-width: 280px !important;
+  max-width: 400px !important;
+}
+
+[data-sonner-toast][data-type='success'] {
+  border-color: rgba(74, 222, 128, 0.2) !important;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.6),
+    0 0 20px rgba(74, 222, 128, 0.08),
+    0 0 0 1px rgba(74, 222, 128, 0.1) inset !important;
+}
+
+[data-sonner-toast][data-type='error'] {
+  border-color: rgba(248, 113, 113, 0.2) !important;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.6),
+    0 0 20px rgba(248, 113, 113, 0.08),
+    0 0 0 1px rgba(248, 113, 113, 0.1) inset !important;
+}
+
+[data-sonner-toast][data-type='warning'] {
+  border-color: rgba(251, 191, 36, 0.2) !important;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.6),
+    0 0 20px rgba(251, 191, 36, 0.08),
+    0 0 0 1px rgba(251, 191, 36, 0.1) inset !important;
+}
+
+[data-sonner-toast][data-type='info'] {
+  border-color: rgba(96, 165, 250, 0.2) !important;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.6),
+    0 0 20px rgba(96, 165, 250, 0.08),
+    0 0 0 1px rgba(96, 165, 250, 0.1) inset !important;
+}
+
+[data-sonner-toast] > div:first-child {
+  gap: 12px !important;
+}
+
+[data-sonner-toast] svg {
+  width: 20px !important;
+  height: 20px !important;
+  flex-shrink: 0;
+}
+
+[data-sonner-toast][data-type='success'] svg {
+  color: #4ade80 !important;
+}
+
+[data-sonner-toast][data-type='error'] svg {
+  color: #f87171 !important;
+}
+
+[data-sonner-toast][data-type='warning'] svg {
+  color: #fbbf24 !important;
+}
+
+[data-sonner-toast][data-type='info'] svg {
+  color: #60a5fa !important;
+}
+
+[data-sonner-toast] *,
+[data-sonner-toast] span,
+[data-sonner-toast] p,
+[data-sonner-toast] strong,
+[data-sonner-toast] h4,
+[data-sonner-toast] div,
+[data-sonner-toast] div[data-sonner-title],
+[data-sonner-toast] div[data-sonner-description] {
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: rgba(255, 255, 255, 0.95) !important;
+  line-height: 1.5 !important;
+}
+
+[data-sonner-toast] [data-sonner-close-button] {
+  position: absolute !important;
+  top: 8px !important;
+  right: 8px !important;
+  width: 24px !important;
+  height: 24px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+  border: none !important;
+  color: rgba(255, 255, 255, 0.3) !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+[data-sonner-toast] [data-sonner-close-button]:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+[data-sonner-toast] [data-sonner-close-button] svg {
+  width: 14px !important;
+  height: 14px !important;
+}
+
+@keyframes toast-slide-in-right {
+  from {
+    transform: translateX(120%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes toast-slide-out-right {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(120%);
+    opacity: 0;
+  }
+}
+
+[data-sonner-toast][data-sonner-enter] {
+  animation: toast-slide-in-right 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+[data-sonner-toast][data-sonner-exit] {
+  animation: toast-slide-out-right 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+/* Opaque authentication surface shared by desktop and mobile entry points. */
+.aicg-auth-backdrop {
+  background: rgba(15, 23, 42, 0.62) !important;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+.aicg-auth-backdrop .aicg-auth-modal {
+  color: #0f172a !important;
+  background: #fff !important;
+  border: 1px solid #d9e6f5 !important;
+  border-radius: 24px !important;
+  box-shadow: 0 24px 70px rgba(30, 64, 175, 0.24) !important;
+  opacity: 1 !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+}
+.aicg-auth-header {
+  color: #fff !important;
+  background: linear-gradient(125deg, #248de7 0%, #4b7ef0 54%, #7559eb 100%) !important;
+}
+.aicg-auth-header h2,
+.aicg-auth-header p {
+  color: #fff !important;
+}
+.aicg-auth-body {
+  color: #172033 !important;
+  background: #fff !important;
+  opacity: 1 !important;
+  border-radius: 0 0 24px 24px;
+}
+.aicg-auth-body label,
+.aicg-auth-body p {
+  color: #475569;
+}
+.aicg-auth-body input:not([type='checkbox']) {
+  color: #172033 !important;
+  background: #f8fbff !important;
+  border-color: #cfdaea !important;
+  opacity: 1 !important;
+}
+.aicg-auth-body input:not([type='checkbox'])::placeholder {
+  color: #8290a5 !important;
+}
+.aicg-auth-body input:not([type='checkbox']):focus {
+  border-color: #2d83ee !important;
+  box-shadow: 0 0 0 3px rgba(45, 131, 238, 0.14) !important;
+}
+.aicg-auth-body input[type='checkbox'].aicg-auth-checkbox {
+  appearance: checkbox !important;
+  -webkit-appearance: checkbox !important;
+  width: 16px;
+  min-width: 16px !important;
+  height: 16px !important;
+  min-height: 16px !important;
+  flex: 0 0 16px;
+  margin: 0;
+  border-radius: 2px !important;
+  accent-color: #3b82f6;
+  box-shadow: none !important;
+  transition: box-shadow 150ms ease;
+}
+.aicg-auth-body input[type='checkbox'].aicg-auth-checkbox:focus-visible {
+  outline: 2px solid rgba(45, 131, 238, 0.35);
+  outline-offset: 2px;
+}
+.aicg-auth-body button[class*='from-emerald-500'] {
+  color: #145fbb !important;
+  background: #eef6ff !important;
+  border: 1px solid #bed9fb !important;
+  box-shadow: none !important;
+}
+@media (max-width: 640px) {
+  .aicg-auth-backdrop {
+    padding: 14px !important;
+  }
+  .aicg-auth-modal {
+    max-height: calc(100dvh - 28px) !important;
+    border-radius: 22px !important;
+  }
+  .aicg-auth-header {
+    padding: 24px 20px !important;
+  }
+  .aicg-auth-header h2 {
+    font-size: 26px !important;
+  }
+  .aicg-auth-body {
+    padding: 22px 20px !important;
+  }
+}

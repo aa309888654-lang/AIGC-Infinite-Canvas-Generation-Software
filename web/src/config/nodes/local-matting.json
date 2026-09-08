@@ -1,0 +1,31 @@
+{
+  "id": "localMatting",
+  "name": "智能抠图",
+  "category": "image",
+  "description": "使用本地 ONNX 模型进行抠图，不依赖网络",
+  "icon": "✂️",
+  "color": "#10B981",
+  "ports": {
+    "inputs": [{ "id": "image", "name": "图片输入", "type": "image" }],
+    "outputs": [{ "id": "output", "name": "图片输出", "type": "image" }]
+  },
+  "ui": { "shell": "glass", "promptPanel": false, "resultRenderer": "image", "toolbar": "default" },
+  "execution": {
+    "executable": true,
+    "handler": "local-matting",
+    "mode": "sync",
+    "maxRetries": 0,
+    "timeout": 60000,
+    "requiredParams": [
+      { "key": "image", "type": "string", "required": true, "label": "图片" }
+    ]
+  },
+  "models": {
+    "mediaType": "none"
+  },
+  "pricing": {
+    "mode": "points",
+    "points": 10,
+    "label": "10积分/次"
+  }
+}

@@ -1,0 +1,111 @@
+appId: com.aicg.studio
+productName: AICG Studio
+copyright: Copyright © 2024 AICG Studio
+
+directories:
+  output: ../exe-output
+  buildResources: build
+
+files:
+  - dist/**/*
+  - electron-main.cjs
+  - electron-preload.js
+  - package.json
+
+extraMetadata:
+  main: electron-main.cjs
+
+asar: true
+asarUnpack:
+  - "**/*.node"
+
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+    - target: portable
+      arch:
+        - x64
+  artifactName: ${productName}-${version}-Setup-${arch}.${ext}
+  icon: build/icon.ico
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  deleteAppDataOnUninstall: false
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: AICG Studio
+  installerLanguages:
+    - zh-CN
+    - en-US
+  language: "2052"
+  include: build/installer.nsh
+
+portable:
+  artifactName: ${productName}-${version}-Portable.${ext}
+
+mac:
+  target:
+    - target: dmg
+      arch:
+        - x64
+        - arm64
+    - target: zip
+      arch:
+        - x64
+        - arm64
+  category: public.app-category.productivity
+  artifactName: ${productName}-${version}-${arch}.${ext}
+  icon: build/icon.icns
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.plist
+
+dmg:
+  title: "${productName} ${version}"
+  contents:
+    - x: 130
+      y: 220
+    - x: 410
+      y: 220
+      type: link
+      path: /Applications
+
+linux:
+  target:
+    - target: AppImage
+      arch:
+        - x64
+    - target: deb
+      arch:
+        - x64
+    - target: tar.gz
+      arch:
+        - x64
+  category: Utility
+  artifactName: ${productName}-${version}-${arch}.${ext}
+  icon: build/icon.png
+  desktop:
+    Name: AICG Studio
+    Comment: AI驱动的专业视频剪辑工作室
+    Categories: Utility;Graphics;Video;
+    StartupWMClass: aicg-studio
+
+appImage:
+  artifactName: ${productName}-${version}-${arch}.AppImage
+
+deb:
+  depends:
+    - libnotify4
+    - libxtst6
+    - libnss3
+
+publish:
+  provider: generic
+  url: https://aicg-studio.oss-cn-hangzhou.aliyuncs.com/releases/
+  channel: latest
+  useMultipleRangeRequest: false

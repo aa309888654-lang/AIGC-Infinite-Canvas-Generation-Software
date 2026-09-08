@@ -1,0 +1,45 @@
+{
+  "id": "script",
+  "name": "脚本节点",
+  "category": "input",
+  "description": "专门脚本能力，支持剧本、视频参考、角色参考生成分镜脚本",
+  "icon": "📜",
+  "color": "#10B981",
+  "ports": {
+    "inputs": [
+      { "id": "input", "name": "剧本文本输入", "type": "string", "optional": true },
+      { "id": "videoReference", "name": "视频参考", "type": "video", "optional": true },
+      { "id": "characterReference", "name": "角色参考", "type": "image", "optional": true }
+    ],
+    "outputs": [
+      { "id": "scenes", "name": "分镜输出", "type": "string" },
+      { "id": "script", "name": "剧本输出", "type": "string" }
+    ]
+  },
+  "ui": { "shell": "glass", "promptPanel": true, "resultRenderer": "text", "toolbar": "default" },
+  "execution": {
+    "executable": true,
+    "handler": "ai-gen-text",
+    "mode": "async",
+    "maxRetries": 1,
+    "timeout": 60000,
+    "requiredParams": [{ "key": "prompt", "type": "string", "required": true, "minLength": 1, "label": "剧本" }]
+  },
+  "models": {
+    "mediaType": "text",
+    "useTextModelGroups": true,
+    "defaultModelId": "deepseek-v4-pro",
+    "fallbackModels": [
+      { "modelId": "deepseek-v4-pro", "provider": "deepseek" },
+      { "modelId": "apipaths-gpt-5.5", "provider": "apipaths" },
+      { "modelId": "apipaths", "provider": "apipaths" },
+      { "modelId": "deepseek-v4-flash", "provider": "sensenova" },
+      { "modelId": "sensenova-6.7-flash-lite", "provider": "sensenova" },
+      { "modelId": "gemini-3.5-flash", "provider": "apipaths" },
+      { "modelId": "gemini-3.1-pro-high", "provider": "apipaths" },
+      { "modelId": "gemini-3.1-pro-low", "provider": "apipaths" },
+      { "modelId": "gemini-3.1-pro-preview", "provider": "apipaths" },
+      { "modelId": "gemini-3-flash", "provider": "apipaths" }
+    ]
+  }
+}

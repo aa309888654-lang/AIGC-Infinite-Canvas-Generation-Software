@@ -1,0 +1,20 @@
+{
+  "id": "propLibrary",
+  "name": "道具库",
+  "category": "video",
+  "description": "从道具资产中心选择道具，并输出道具参考图与道具 payload",
+  "icon": "🗡️",
+  "color": "#F97316",
+  "ports": {
+    "inputs": [],
+    "outputs": [
+      { "id": "propRef", "name": "道具参考图", "type": "image" },
+      { "id": "payload", "name": "道具 payload", "type": "string" }
+    ]
+  },
+  "ui": { "shell": "glass", "promptPanel": false, "resultRenderer": "image", "toolbar": "default" },
+  "execution": { "executable": false },
+  "models": {
+    "mediaType": "none"
+  }
+}

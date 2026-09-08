@@ -1,0 +1,3281 @@
+/* ============================================
+   NEXUS - 紧凑布局优化样式
+   主题: Tech Innovation - 科技蓝调
+   ============================================ */
+
+/* ===== 变量定义 ===== */
+:root {
+  /* Tech Innovation 主题色 */
+  --ti-electric-blue: #0066ff;
+  --ti-neon-cyan: #00ffff;
+  --ti-dark-gray: #1e1e1e;
+  --ti-pure-white: #ffffff;
+
+  /* 扩展配色 */
+  --ti-bg-primary: #0c0c0d;
+  --ti-bg-secondary: #141416;
+  --ti-bg-card: rgba(20, 20, 22, 0.85);
+  --ti-border-subtle: rgba(0, 200, 255, 0.1);
+  --ti-border-active: rgba(0, 200, 255, 0.3);
+  --ti-text-primary: #ffffff;
+  --ti-text-secondary: rgba(255, 255, 255, 0.7);
+  --ti-text-muted: rgba(255, 255, 255, 0.5);
+  --ti-accent-glow: rgba(0, 200, 255, 0.15);
+
+  /* 紧凑间距系统 */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 20px;
+  --space-2xl: 24px;
+
+  /* 圆角 */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+}
+
+/* ===== Hero 区域 - 输入框为核心 ===== */
+.seko-hero {
+  min-height: 100vh !important;
+  padding: 118px clamp(16px, 4vw, 48px) 56px !important;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  position: relative;
+  background: #05070b !important;
+  isolation: isolate;
+}
+
+.seko-style-landing .seko-hero-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(5, 7, 11, 0.96) 0%, rgba(5, 7, 11, 0.78) 42%, rgba(5, 7, 11, 0.46) 100%),
+    linear-gradient(180deg, rgba(5, 7, 11, 0) 0%, rgba(5, 7, 11, 0.2) 58%, rgba(5, 7, 11, 0.98) 100%),
+    url('/hero-bg-ai.webp') center center / cover no-repeat !important;
+  opacity: 1;
+  overflow: hidden;
+  pointer-events: none;
+  transform: scale(1.015);
+  animation: seko-ai-bg-breathe 36s ease-in-out infinite;
+}
+
+.seko-style-landing .seko-hero-bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(rgba(102, 232, 255, 0.075) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(102, 232, 255, 0.055) 1px, transparent 1px),
+    repeating-linear-gradient(116deg, transparent 0 118px, rgba(139, 124, 255, 0.07) 119px 120px);
+  background-size: 128px 128px, 128px 128px, 260px 260px;
+  mask-image: linear-gradient(90deg, transparent 0%, #000 22%, #000 92%, transparent 100%);
+  opacity: 0.36;
+  mix-blend-mode: screen;
+  pointer-events: none;
+  animation: seko-ai-grid-drift 30s linear infinite;
+}
+
+.seko-style-landing .seko-hero-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(5, 7, 11, 0.08) 0%, rgba(5, 7, 11, 0.12) 34%, rgba(5, 7, 11, 0.95) 100%),
+    linear-gradient(118deg, rgba(102, 232, 255, 0) 0%, rgba(102, 232, 255, 0.12) 42%, rgba(240, 198, 122, 0.08) 56%, rgba(102, 232, 255, 0) 74%);
+  pointer-events: none;
+}
+
+.seko-ai-field,
+.seko-ai-output-rail {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.seko-ai-field::before,
+.seko-ai-field::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  width: min(720px, 68vw);
+  height: min(300px, 34vw);
+  border: 1px solid rgba(102, 232, 255, 0.11);
+  border-radius: 999px;
+  transform: translate(-50%, -50%) rotate(-7deg);
+  opacity: 0.58;
+}
+
+.seko-ai-field::after {
+  width: min(940px, 82vw);
+  height: min(380px, 40vw);
+  border-color: rgba(240, 198, 122, 0.1);
+  transform: translate(-50%, -50%) rotate(8deg);
+  opacity: 0.32;
+}
+
+.seko-ai-node {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border: 1px solid rgba(102, 232, 255, 0.68);
+  background: rgba(5, 7, 11, 0.78);
+  box-shadow: 0 0 18px rgba(102, 232, 255, 0.28);
+  transform: rotate(45deg);
+  animation: seko-ai-node-pulse 4.8s ease-in-out infinite;
+}
+
+.seko-ai-node-a { left: 28%; top: 28%; }
+.seko-ai-node-b { right: 24%; top: 35%; animation-delay: 0.8s; }
+.seko-ai-node-c { left: 36%; top: 62%; animation-delay: 1.6s; }
+.seko-ai-node-d { right: 34%; top: 67%; animation-delay: 2.4s; }
+
+.seko-ai-output-card {
+  position: absolute;
+  width: clamp(132px, 15vw, 220px);
+  aspect-ratio: 16 / 10;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(8, 11, 18, 0.72);
+  box-shadow:
+    0 18px 60px rgba(0, 0, 0, 0.42),
+    0 0 0 1px rgba(102, 232, 255, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  opacity: 0.56;
+  transform: perspective(900px) rotateY(var(--card-tilt, 0deg)) rotateZ(var(--card-rotate, 0deg));
+}
+
+.seko-ai-output-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), transparent 32%),
+    linear-gradient(90deg, rgba(102, 232, 255, 0.16), transparent 38%);
+  pointer-events: none;
+}
+
+.seko-ai-output-card img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.seko-ai-output-card-left {
+  left: max(28px, 5vw);
+  top: 30%;
+  --card-tilt: 10deg;
+  --card-rotate: -2deg;
+}
+
+.seko-ai-output-card-right {
+  right: max(32px, 6vw);
+  top: 23%;
+  --card-tilt: -12deg;
+  --card-rotate: 2deg;
+}
+
+.seko-ai-output-card-bottom {
+  right: max(96px, 12vw);
+  top: 58%;
+  width: clamp(118px, 12vw, 180px);
+  opacity: 0.38;
+  --card-tilt: -8deg;
+  --card-rotate: -4deg;
+}
+
+@keyframes seko-ai-bg-breathe {
+  0%, 100% { transform: scale(1.015); }
+  50% { transform: scale(1.035); }
+}
+
+@keyframes seko-ai-grid-drift {
+  from { background-position: 0 0, 0 0, 0 0; }
+  to { background-position: 128px 128px, 128px 128px, 260px 0; }
+}
+
+@keyframes seko-ai-node-pulse {
+  0%, 100% {
+    opacity: 0.34;
+    box-shadow: 0 0 12px rgba(102, 232, 255, 0.18);
+  }
+  50% {
+    opacity: 0.9;
+    box-shadow: 0 0 26px rgba(102, 232, 255, 0.42);
+  }
+}
+
+.seko-hero-content {
+  width: 100%;
+  max-width: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  position: relative;
+  z-index: 2;
+}
+
+/* 标题区域 - 简化 */
+.seko-hero-title {
+  font-size: clamp(34px, 5vw, 64px) !important;
+  font-weight: 800;
+  color: #ffffff;
+  text-align: center;
+  margin: 0 !important;
+  line-height: 1.08;
+  letter-spacing: 0;
+  font-family: 'Inter', 'Noto Sans SC', system-ui, sans-serif;
+}
+
+.seko-hero-subtitle {
+  font-size: 16px !important;
+  color: rgba(222, 239, 255, 0.68);
+  text-align: center;
+  margin: 0 !important;
+  line-height: 1.5;
+  max-width: 520px;
+}
+
+
+
+/* ===== 输入框基础样式 ===== */
+.seko-hero-input-bar {
+  width: min(960px, calc(100vw - 400px));
+  max-width: 960px;
+  min-width: unset;
+  align-self: center;
+  margin-left: auto;
+  margin-right: auto;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  border-radius: 26px;
+  background:
+    linear-gradient(180deg, rgba(18, 24, 34, 0.9) 0%, rgba(8, 11, 18, 0.88) 100%),
+    linear-gradient(90deg, rgba(102, 232, 255, 0.12), rgba(139, 124, 255, 0.1), rgba(240, 198, 122, 0.08));
+  border: 1px solid rgba(186, 221, 255, 0.14);
+  box-shadow:
+    0 28px 80px rgba(0, 0, 0, 0.46),
+    0 0 0 1px rgba(102, 232, 255, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    inset 0 -1px 0 rgba(102, 232, 255, 0.08);
+  backdrop-filter: blur(22px) saturate(150%);
+  -webkit-backdrop-filter: blur(22px) saturate(150%);
+  transition: background 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              backdrop-filter 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  overflow: visible;
+  position: relative;
+}
+
+.seko-hero-input-bar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(90deg, transparent 0%, rgba(102, 232, 255, 0.2) 16%, transparent 30%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 22%);
+  mask-image: linear-gradient(90deg, transparent 0%, #000 20%, #000 80%, transparent 100%);
+  opacity: 0.34;
+  pointer-events: none;
+  transform: translateX(-36%);
+  animation: seko-command-scan 8s ease-in-out infinite;
+}
+
+@keyframes seko-command-scan {
+  0%, 62%, 100% { transform: translateX(-40%); opacity: 0; }
+  72% { opacity: 0.34; }
+  88% { transform: translateX(40%); opacity: 0; }
+}
+
+/* 聚焦时的精密边框发光 */
+.seko-hero-input-bar:focus-within,
+.seko-hero-input-bar.focused {
+  background:
+    linear-gradient(180deg, rgba(22, 30, 42, 0.94) 0%, rgba(9, 12, 20, 0.92) 100%),
+    linear-gradient(90deg, rgba(102, 232, 255, 0.18), rgba(139, 124, 255, 0.16), rgba(240, 198, 122, 0.1));
+  border-color: rgba(102, 232, 255, 0.34);
+  box-shadow:
+    0 32px 90px rgba(0, 0, 0, 0.52),
+    0 0 0 1px rgba(102, 232, 255, 0.2),
+    0 0 46px rgba(102, 232, 255, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    inset 0 -1px 0 rgba(102, 232, 255, 0.16);
+  overflow: visible;
+}
+
+/* 收起状态 - 胶囊形状 */
+.seko-hero-input-bar.collapsed {
+  padding: 14px 22px;
+  min-height: 60px;
+  border-radius: 28px;
+  background:
+    linear-gradient(180deg, rgba(18, 24, 34, 0.82) 0%, rgba(8, 11, 18, 0.78) 100%),
+    linear-gradient(90deg, rgba(102, 232, 255, 0.1), rgba(139, 124, 255, 0.08));
+}
+
+.seko-hero-input-bar.expanded {
+  position: relative;
+  padding: 22px 24px;
+  min-height: 200px;
+  border-radius: 24px;
+  cursor: text;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 16px;
+  background:
+    linear-gradient(180deg, rgba(16, 22, 32, 0.96) 0%, rgba(7, 10, 16, 0.95) 100%),
+    linear-gradient(120deg, rgba(102, 232, 255, 0.14), rgba(139, 124, 255, 0.12), rgba(240, 198, 122, 0.08));
+  border: 1px solid rgba(186, 221, 255, 0.18);
+  box-shadow:
+    0 30px 96px rgba(0, 0, 0, 0.54),
+    0 0 0 1px rgba(102, 232, 255, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+}
+
+.seko-hero-input {
+  width: 100%;
+  min-width: 0;
+  font-size: 15px;
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  color: rgba(255, 255, 255, 0.95) !important;
+  padding: 0;
+  outline: none;
+  resize: none !important;
+  font-family: inherit;
+  line-height: 1.6;
+}
+
+.seko-hero-input::placeholder {
+  color: rgba(255, 255, 255, 0.45) !important;
+}
+
+.seko-hero-mention-panel {
+  position: absolute;
+  z-index: 50;
+  bottom: 100%;
+  left: 0;
+  right: 0;
+  margin-bottom: 4px;
+  background: rgba(15, 21, 53, 0.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  max-height: 200px;
+  overflow-y: auto;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+.seko-mention-section {
+  padding: 4px 12px 2px;
+  font-size: 9px;
+  color: #555;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+.seko-mention-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 12px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  transition: background 0.1s;
+  text-align: left;
+  color: #ccc;
+}
+.seko-mention-item:hover { background: rgba(255, 255, 255, 0.06); }
+.seko-mention-thumb {
+  width: 28px;
+  height: 28px;
+  object-fit: cover;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+.seko-mention-thumb-icon {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+.seko-mention-emoji { font-size: 12px; flex-shrink: 0; }
+.seko-mention-name {
+  font-size: 11px;
+  color: #999;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.seko-mention-loading, .seko-mention-empty {
+  padding: 12px;
+  font-size: 10px;
+  color: #666;
+  text-align: center;
+}
+
+.seko-hero-textarea-full {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 130px;
+  max-height: calc(100vh - 120px);
+  padding: 0;
+  margin: 0;
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  outline: none;
+  resize: none !important;
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.95) !important;
+  font-family: inherit;
+  line-height: 1.6;
+  box-sizing: border-box;
+  overflow-y: auto;
+  overflow-x: hidden;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+}
+
+.seko-hero-textarea-full.has-mode-label {
+  padding-top: 34px;
+  min-height: 80px;
+}
+
+.seko-hero-textarea-full.has-chat-history {
+  min-height: 80px;
+  max-height: 200px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.seko-hero-textarea-full::placeholder {
+  color: rgba(255, 255, 255, 0.45) !important;
+}
+
+.seko-hero-input-bar.has-chat {
+  width: min(1100px, 85vw);
+  max-width: 1100px;
+  align-self: center;
+  margin-left: auto;
+  margin-right: auto;
+  min-height: 400px;
+  overflow: visible;
+}
+
+.seko-hero-input-bar.has-chat .seko-hero-textarea-full {
+  min-height: 80px;
+}
+
+.seko-chat-display {
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 16px 20px 8px;
+  scroll-behavior: smooth;
+  animation: sekoFadeIn 0.3s ease;
+  position: relative;
+  min-height: 80px;
+}
+
+.seko-scroll-to-bottom {
+  position: sticky;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(8px);
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  margin: 4px auto 0;
+  transition: background 0.2s, color 0.2s, transform 0.2s;
+  z-index: 10;
+}
+
+.seko-scroll-to-bottom:hover {
+  background: rgba(255, 255, 255, 0.22);
+  color: rgba(255, 255, 255, 0.95);
+  transform: translateX(-50%) scale(1.1);
+}
+
+.seko-chat-resize-handle {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  width: 24px;
+  height: 24px;
+  cursor: ns-resize;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.35;
+  transition: opacity 0.2s, background 0.2s;
+  z-index: 10;
+  border-radius: 6px;
+  background: transparent;
+}
+
+.seko-chat-resize-handle:hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.seko-chat-resize-handle:active {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.seko-chat-display::-webkit-scrollbar {
+  width: 4px;
+}
+
+.seko-chat-display::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.seko-chat-display::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+}
+
+.seko-chat-display-msg {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+  animation: sekoFadeIn 0.3s ease;
+}
+
+.seko-chat-display-msg.user {
+  flex-direction: row-reverse;
+}
+
+.seko-chat-display-label {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.seko-chat-display-msg.user .seko-chat-display-label {
+  background: rgba(0, 200, 255, 0.12);
+  color: #00c8ff;
+}
+
+.seko-chat-display-msg.ai .seko-chat-display-label {
+  background: rgba(0, 212, 170, 0.12);
+  color: #00d4aa;
+}
+
+.seko-chat-display-content {
+  max-width: 80%;
+  padding: 8px 14px;
+  border-radius: 12px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.85);
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+.seko-chat-display-msg.user .seko-chat-display-content {
+  background: transparent;
+  border: none;
+  border-top-right-radius: 4px;
+}
+
+.seko-chat-display-msg.ai .seko-chat-display-content {
+  background: transparent;
+  border: none;
+  border-top-left-radius: 4px;
+}
+
+.seko-chat-display-typing {
+  color: rgba(255, 255, 255, 0.5);
+  font-style: italic;
+}
+
+.seko-generating-animation {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 0;
+}
+
+.seko-generating-dots {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.seko-generating-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(0, 153, 255, 0.8);
+  animation: seko-dot-pulse 1.4s ease-in-out infinite;
+}
+
+.seko-generating-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.seko-generating-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes seko-dot-pulse {
+  0%, 80%, 100% {
+    transform: scale(0.6);
+    opacity: 0.4;
+  }
+  40% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+}
+
+.seko-generating-text {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 0.5px;
+}
+
+.seko-generating-progress-ring {
+  position: relative;
+  width: 56px;
+  height: 56px;
+}
+
+.seko-generating-progress-ring svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.seko-progress-bg {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.08);
+  stroke-width: 3;
+}
+
+.seko-progress-fill {
+  fill: none;
+  stroke: rgba(0, 153, 255, 0.9);
+  stroke-width: 3;
+  stroke-linecap: round;
+  transition: stroke-dasharray 0.5s ease;
+  filter: drop-shadow(0 0 4px rgba(0, 153, 255, 0.4));
+}
+
+.seko-progress-percent {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.85);
+  letter-spacing: 0;
+}
+
+.seko-chat-display-error {
+  color: #ff6b6b;
+}
+
+.seko-chat-display-thumb {
+  max-width: 200px;
+  max-height: 150px;
+  border-radius: 8px;
+  margin-top: 8px;
+  display: block;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.seko-chat-image-wrapper .seko-chat-display-thumb {
+  max-width: 280px;
+  max-height: 200px;
+}
+
+.seko-chat-display-thumb:hover {
+  transform: scale(1.03);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.seko-chat-image-wrapper {
+  position: relative;
+  display: inline-block;
+  margin-top: 8px;
+}
+
+.seko-chat-image-actions {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.seko-chat-image-wrapper:hover .seko-chat-image-actions {
+  opacity: 1;
+}
+
+.seko-chat-image-action-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: none;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  backdrop-filter: blur(4px);
+}
+
+.seko-chat-image-action-btn:hover {
+  background: rgba(0, 0, 0, 0.85);
+}
+
+.seko-poster-type-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  padding: 6px 0;
+  width: 100%;
+}
+
+.seko-poster-type-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 8px 4px;
+  border-radius: 8px;
+  border: 1px solid rgba(100, 180, 255, 0.12);
+  background: rgba(10, 20, 40, 0.6);
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  color: #fff;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.seko-poster-type-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 180, 255, 0.06);
+  transition: left 0.35s ease;
+  pointer-events: none;
+}
+
+.seko-poster-type-card:hover::before {
+  left: 0;
+}
+
+.seko-poster-type-card:hover {
+  background: rgba(15, 30, 60, 0.8);
+  border-color: rgba(0, 180, 255, 0.35);
+  transform: translateY(-1px);
+  box-shadow: 0 0 20px rgba(0, 180, 255, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.seko-poster-type-card:active {
+  transform: translateY(0) scale(0.97);
+}
+
+.seko-poster-type-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: rgba(0, 180, 255, 0.08);
+  border: 1px solid rgba(0, 180, 255, 0.15);
+  color: rgba(100, 200, 255, 0.85);
+  margin-bottom: 1px;
+  transition: all 0.25s ease;
+}
+
+.seko-poster-type-card:hover .seko-poster-type-icon {
+  background: rgba(0, 180, 255, 0.15);
+  border-color: rgba(0, 180, 255, 0.3);
+  color: rgba(120, 220, 255, 1);
+  box-shadow: 0 0 12px rgba(0, 180, 255, 0.2);
+}
+
+.seko-poster-type-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.seko-poster-type-name {
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.85);
+  letter-spacing: 0.3px;
+}
+
+.seko-poster-type-desc {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.35);
+  line-height: 1.2;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.seko-poster-form {
+  padding: 12px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.seko-poster-form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.seko-poster-form-row label {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+}
+
+.seko-poster-form-required {
+  color: #ff6b6b;
+}
+
+.seko-poster-form-row input[type="text"],
+.seko-poster-form-row textarea {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 200, 255, 0.15);
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.2s ease, background 0.2s ease;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.seko-poster-form-row input[type="text"]:focus,
+.seko-poster-form-row textarea:focus {
+  border-color: rgba(0, 200, 255, 0.5);
+  background: rgba(0, 200, 255, 0.08);
+}
+
+.seko-poster-form-row input[type="text"]::placeholder,
+.seko-poster-form-row textarea::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.seko-poster-form-row textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+.seko-poster-upload-area {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.seko-poster-upload-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px dashed rgba(0, 200, 255, 0.3);
+  background: rgba(0, 200, 255, 0.05);
+  color: rgba(0, 200, 255, 0.8);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.seko-poster-upload-btn:hover {
+  background: rgba(0, 200, 255, 0.12);
+  border-color: rgba(0, 200, 255, 0.5);
+}
+
+.seko-poster-upload-preview {
+  position: relative;
+  display: inline-flex;
+}
+
+.seko-poster-upload-preview img {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 200, 255, 0.2);
+}
+
+.seko-poster-upload-remove {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(255, 80, 80, 0.9);
+  color: #fff;
+  border: none;
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.seko-poster-upload-remove:hover {
+  background: rgba(255, 50, 50, 1);
+}
+
+.seko-poster-form-submit {
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(135deg, #0066ff, #00ccff);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 4px;
+}
+
+.seko-poster-form-submit:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(0, 102, 255, 0.4);
+}
+
+.seko-poster-form-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.seko-poster-form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.seko-poster-back-btn {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.seko-poster-back-btn:hover {
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.seko-poster-reset-btn {
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 4px 10px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.seko-poster-reset-btn:hover {
+  color: rgba(255, 100, 100, 0.9);
+  border-color: rgba(255, 100, 100, 0.4);
+  background: rgba(255, 100, 100, 0.08);
+}
+
+.seko-poster-regenerate-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 8px;
+  margin-top: 6px;
+  transition: all 0.2s ease;
+}
+
+.seko-poster-regenerate-btn:hover {
+  color: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* 多轮对话确认生成按钮 */
+.seko-chat-confirm-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.seko-chat-confirm-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, rgba(0, 200, 255, 0.18), rgba(99, 102, 241, 0.18));
+  border: 1px solid rgba(0, 204, 255, 0.45);
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 7px 16px;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 204, 255, 0.15);
+}
+
+.seko-chat-confirm-btn:hover {
+  background: linear-gradient(135deg, rgba(0, 200, 255, 0.28), rgba(99, 102, 241, 0.28));
+  border-color: rgba(0, 204, 255, 0.7);
+  color: rgba(255, 255, 255, 1);
+  box-shadow: 0 4px 14px rgba(0, 204, 255, 0.28);
+  transform: translateY(-1px);
+}
+
+.seko-chat-confirm-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(0, 204, 255, 0.18);
+}
+
+.seko-poster-smart-fill-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  width: 100%;
+}
+
+.seko-poster-smart-fill-btn {
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 200, 255, 0.3);
+  background: linear-gradient(135deg, rgba(0, 102, 255, 0.15), rgba(0, 204, 255, 0.15));
+  color: #00ccff;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.seko-poster-smart-fill-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, rgba(0, 102, 255, 0.3), rgba(0, 204, 255, 0.3));
+  border-color: rgba(0, 200, 255, 0.5);
+  box-shadow: 0 2px 8px rgba(0, 204, 255, 0.2);
+}
+
+.seko-poster-smart-fill-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.seko-poster-smart-fill-hint {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.seko-chat-display-audio {
+  width: 200px;
+  height: 36px;
+  margin-top: 8px;
+  display: block;
+}
+
+.seko-music-style-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 8px 0;
+  width: 100%;
+}
+
+.seko-music-style-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 8px;
+  border-radius: 10px;
+  border: 1px solid rgba(168, 85, 247, 0.15);
+  background: rgba(168, 85, 247, 0.05);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #fff;
+  text-align: center;
+}
+
+.seko-music-style-card:hover {
+  background: rgba(168, 85, 247, 0.15);
+  border-color: rgba(168, 85, 247, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.15);
+}
+
+.seko-music-style-icon {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.seko-music-style-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.seko-music-style-desc {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.5);
+  line-height: 1.3;
+}
+
+.seko-music-form {
+  padding: 12px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.seko-music-form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.seko-music-form-row label {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+}
+
+.seko-music-form-row input[type="text"],
+.seko-music-form-row textarea {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(168, 85, 247, 0.15);
+  background: rgba(255, 255, 255, 0.05) !important;
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  color: rgba(255, 255, 255, 0.95) !important;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.2s ease, background 0.2s ease;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.seko-music-form-row input[type="text"]:focus,
+.seko-music-form-row textarea:focus {
+  border-color: rgba(168, 85, 247, 0.5);
+  background: rgba(168, 85, 247, 0.08) !important;
+  background-color: rgba(168, 85, 247, 0.08) !important;
+}
+
+.seko-music-form-row input[type="text"]::placeholder,
+.seko-music-form-row textarea::placeholder {
+  color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.seko-music-form-row textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+.seko-music-duration-group {
+  display: flex;
+  gap: 8px;
+}
+
+.seko-music-duration-btn {
+  padding: 6px 16px;
+  border-radius: 8px;
+  border: 1px solid rgba(168, 85, 247, 0.2);
+  background: rgba(168, 85, 247, 0.05);
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.seko-music-duration-btn:hover {
+  background: rgba(168, 85, 247, 0.12);
+  border-color: rgba(168, 85, 247, 0.4);
+}
+
+.seko-music-duration-btn.active {
+  background: rgba(168, 85, 247, 0.2);
+  border-color: rgba(168, 85, 247, 0.6);
+  color: #c084fc;
+  font-weight: 600;
+}
+
+.seko-music-form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.seko-music-form-back {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.seko-music-form-back:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.seko-music-form-submit {
+  flex: 1;
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(135deg, #7c3aed, #a855f7);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.seko-music-form-submit:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(168, 85, 247, 0.4);
+}
+
+.seko-music-form-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.seko-music-result-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 12px;
+  background: rgba(168, 85, 247, 0.08);
+  border: 1px solid rgba(168, 85, 247, 0.15);
+}
+
+.seko-music-result-cover {
+  width: 100%;
+  max-width: 200px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.seko-music-result-cover img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.seko-music-result-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.seko-music-result-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #c084fc;
+}
+
+.seko-music-lyrics-card {
+  padding: 10px;
+  border-radius: 10px;
+  background: rgba(168, 85, 247, 0.06);
+  border: 1px solid rgba(168, 85, 247, 0.1);
+}
+
+.seko-music-lyrics-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #c084fc;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.seko-music-lyrics-text {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.75);
+  line-height: 1.8;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  margin: 0;
+  font-family: inherit;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.seko-music-cover-card {
+  padding: 10px;
+  border-radius: 10px;
+  background: rgba(168, 85, 247, 0.06);
+  border: 1px solid rgba(168, 85, 247, 0.1);
+}
+
+.seko-music-cover-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #c084fc;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.seko-music-cover-img {
+  width: 100%;
+  max-width: 240px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.seko-music-cover-img:hover {
+  transform: scale(1.02);
+}
+
+/* 收起状态的占位符 */
+.seko-hero-input-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 100%;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 15px;
+  animation: sekoFadeIn 0.3s ease;
+}
+
+.seko-hero-input-placeholder span {
+  flex: 1;
+}
+
+/* 收起状态的发送图标 */
+.seko-hero-send-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: rgba(255, 255, 255, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.seko-hero-send-icon:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: rgba(255, 255, 255, 0.9);
+  transform: scale(1.05);
+}
+
+/* 模式标签 - 青色 */
+.seko-mode-label-float {
+  position: absolute;
+  top: 12px;
+  left: 25px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #00d4aa;
+  letter-spacing: 0.02em;
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* 输入内容区域 */
+.seko-input-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 工具栏 */
+.seko-input-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  flex-shrink: 0;
+  animation: fadeInUp 0.3s ease;
+  position: relative;
+  z-index: 1000;
+}
+
+@keyframes sekoFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes sekoTextGradient {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes sekoLogoShimmer {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.seko-toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+}
+
+.seko-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* 透明背景工具按钮 */
+.seko-toolbar-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.seko-toolbar-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.seko-toolbar-btn.seko-mode-btn.active {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.18);
+  box-shadow: 0 0 8px rgba(100, 180, 255, 0.25);
+}
+
+.seko-at-icon {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.toolbar-model-dropdown {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  min-width: 280px;
+  max-height: 280px;
+  overflow-y: auto;
+  background: rgba(13, 13, 13, 1);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 6px;
+  z-index: 1000;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(16px);
+}
+
+.toolbar-model-group {
+  margin-bottom: 2px;
+}
+
+.toolbar-model-group-label {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+  padding: 6px 10px 4px;
+  font-weight: 500;
+}
+
+.toolbar-model-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+  transition: all 0.15s ease;
+}
+
+.toolbar-model-option:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.toolbar-model-option.selected {
+  color: #007AFF;
+  background: rgba(0, 122, 255, 0.08);
+}
+
+.toolbar-model-option > span {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.toolbar-model-option svg {
+  flex-shrink: 0;
+}
+
+.toolbar-model-option > svg:first-child {
+  margin-top: 2px;
+}
+
+.toolbar-model-option > svg:last-child:not(:first-child) {
+  align-self: center;
+  margin-left: auto;
+}
+
+.toolbar-model-option-text {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.toolbar-model-option-name {
+  color: #fff !important;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.toolbar-model-option-desc {
+  color: rgba(255, 255, 255, 0.55) !important;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.toolbar-model-option.selected .toolbar-model-option-desc {
+  color: rgba(255, 255, 255, 0.72) !important;
+}
+
+.toolbar-model-dropdown--text {
+  min-width: 320px;
+}
+
+.toolbar-model-option--text {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr) 18px;
+  align-items: center;
+  gap: 0;
+  column-gap: 10px;
+  min-height: 48px;
+  padding: 8px 9px 8px 8px;
+}
+
+.toolbar-model-option--text > span {
+  flex: initial;
+  min-width: 0;
+}
+
+.toolbar-model-option-icon {
+  display: inline-flex;
+  width: 26px;
+  height: 26px;
+  align-items: center;
+  justify-content: center;
+  justify-self: center;
+  overflow: visible;
+}
+
+.toolbar-model-option-icon svg {
+  display: block;
+  width: 16px;
+  height: 16px;
+}
+
+.toolbar-model-option-check {
+  display: inline-flex;
+  width: 18px;
+  height: 18px;
+  align-items: center;
+  justify-content: center;
+  justify-self: center;
+}
+
+.toolbar-model-option-check svg {
+  display: block;
+  width: 14px;
+  height: 14px;
+}
+
+.toolbar-mode-dropdown {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  min-width: 220px;
+  background: rgba(13, 13, 13, 1);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 6px;
+  z-index: 1000;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(16px);
+}
+
+.toolbar-mode-option-text {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.toolbar-mode-option-text span:first-child {
+  font-size: 12px;
+  font-weight: 500;
+  color: inherit;
+}
+
+.toolbar-mode-option-desc {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.35);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.toolbar-model-option.selected .toolbar-mode-option-desc {
+  color: rgba(0, 122, 255, 0.5);
+}
+
+.seko-mode-label {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.7);
+  margin-left: 2px;
+}
+
+.seko-mode-btn.active .seko-mode-label {
+  color: #007AFF;
+}
+
+/* 多剧集切换 */
+.seko-toggle-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  outline: none;
+}
+
+.seko-toggle-group:focus-visible {
+  outline: 2px solid rgba(0, 102, 255, 0.5);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.seko-toggle-label {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.seko-toggle-switch {
+  width: 36px;
+  height: 20px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  position: relative;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.seko-toggle-switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.6);
+  transition: all 0.2s ease;
+}
+
+.seko-toggle-switch:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.seko-toggle-switch.active {
+  background: rgba(0, 102, 255, 0.4);
+  border-color: rgba(0, 102, 255, 0.6);
+}
+
+.seko-toggle-switch.active::after {
+  left: 18px;
+  background: #fff;
+}
+
+/* 发送按钮 */
+.seko-send-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #0066ff, #0052cc);
+  border: none;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.seko-send-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 16px rgba(0, 102, 255, 0.4);
+}
+
+.seko-send-btn:active {
+  transform: scale(0.98);
+}
+
+.seko-intent-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: rgba(0, 102, 255, 0.06);
+  border-top: 1px solid rgba(0, 102, 255, 0.1);
+}
+
+.seko-intent-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  background: rgba(0, 102, 255, 0.1);
+  border: 1px solid rgba(0, 102, 255, 0.2);
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 12px;
+  color: #fff;
+  transition: all 0.2s;
+}
+
+.seko-intent-tag:hover {
+  background: rgba(0, 102, 255, 0.2);
+  border-color: rgba(0, 102, 255, 0.4);
+}
+
+.seko-intent-icon {
+  font-size: 13px;
+}
+
+.seko-intent-label {
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.seko-intent-confidence {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.08);
+  padding: 1px 5px;
+  border-radius: 8px;
+}
+
+.seko-intent-action {
+  font-size: 10px;
+  color: rgba(0, 150, 255, 0.8);
+}
+
+.seko-intent-loading {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+  animation: pulse-opacity 1.2s ease-in-out infinite;
+}
+
+.seko-intent-enhanced {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex: 1;
+  min-width: 0;
+}
+
+.seko-intent-enhanced:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.seko-intent-enhanced-label {
+  font-size: 11px;
+  white-space: nowrap;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.seko-intent-enhanced-text {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.9);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.seko-intent-apply {
+  font-size: 10px;
+  color: rgba(0, 150, 255, 0.8);
+  white-space: nowrap;
+  padding: 1px 6px;
+  background: rgba(0, 102, 255, 0.15);
+  border-radius: 8px;
+}
+
+.seko-enhance-bar {
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.seko-enhanced-prompt {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  background: rgba(0, 255, 136, 0.06);
+  border: 1px solid rgba(0, 255, 136, 0.12);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 6px;
+}
+
+.seko-enhanced-prompt:hover {
+  background: rgba(0, 255, 136, 0.12);
+}
+
+.seko-enhanced-label {
+  font-size: 11px;
+  white-space: nowrap;
+  color: rgba(0, 255, 136, 0.8);
+}
+
+.seko-enhanced-text {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.85);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.seko-enhanced-apply {
+  font-size: 10px;
+  color: rgba(0, 255, 136, 0.9);
+  white-space: nowrap;
+  padding: 2px 8px;
+  background: rgba(0, 255, 136, 0.12);
+  border-radius: 8px;
+}
+
+.seko-suggestions-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.seko-suggestion-chip {
+  padding: 3px 10px;
+  font-size: 11px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.seko-suggestion-chip:hover {
+  background: rgba(0, 102, 255, 0.15);
+  border-color: rgba(0, 102, 255, 0.3);
+  color: #fff;
+}
+
+.seko-creation-chat {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.2);
+  max-height: 200px;
+  display: flex;
+  flex-direction: column;
+}
+
+.seko-creation-chat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 12px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.7);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.seko-creation-chat-close {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 2px 4px;
+}
+
+.seko-creation-chat-close:hover {
+  color: #fff;
+}
+
+.seko-creation-chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 6px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 120px;
+}
+
+.seko-creation-msg {
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  max-width: 85%;
+  line-height: 1.4;
+}
+
+.seko-creation-msg.user {
+  align-self: flex-end;
+  background: rgba(0, 102, 255, 0.15);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.seko-creation-msg.assistant {
+  align-self: flex-start;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.seko-creation-typing {
+  color: rgba(255, 255, 255, 0.4);
+  font-style: italic;
+}
+
+.seko-creation-chat-input {
+  display: flex;
+  gap: 6px;
+  padding: 5px 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.seko-creation-chat-input input {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-size: 11px;
+  color: #fff;
+  outline: none;
+}
+
+.seko-creation-chat-input input:focus {
+  border-color: rgba(0, 102, 255, 0.4);
+}
+
+.seko-creation-chat-input input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.seko-creation-chat-input button {
+  padding: 4px 12px;
+  background: rgba(0, 102, 255, 0.3);
+  border: 1px solid rgba(0, 102, 255, 0.4);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.seko-creation-chat-input button:hover {
+  background: rgba(0, 102, 255, 0.5);
+}
+
+.seko-creation-chat-input button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+@keyframes pulse-opacity {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* ===== 操作栏 - 横向紧凑排列 ===== */
+.seko-hero-action-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding-left: var(--space-sm);
+  border-left: 1px solid var(--ti-border-subtle);
+}
+
+.seko-hero-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--ti-text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.seko-hero-action-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--ti-text-primary);
+}
+
+.seko-hero-action-primary {
+  background: rgba(0, 200, 255, 0.1);
+  border-color: rgba(0, 200, 255, 0.2);
+  color: #00d4ff;
+}
+
+.seko-hero-action-primary:hover {
+  background: rgba(0, 200, 255, 0.15);
+  border-color: rgba(0, 200, 255, 0.3);
+  box-shadow: 0 0 12px rgba(0, 200, 255, 0.1);
+}
+
+.seko-hero-action-collab {
+  background: rgba(139, 92, 246, 0.1);
+  border-color: rgba(139, 92, 246, 0.2);
+  color: #a78bfa;
+}
+
+.seko-hero-action-collab:hover,
+.seko-hero-action-collab.active {
+  background: rgba(139, 92, 246, 0.15);
+  border-color: rgba(139, 92, 246, 0.3);
+  box-shadow: 0 0 12px rgba(139, 92, 246, 0.1);
+}
+
+/* 加载动画 */
+.seko-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ===== 输入框容器 - 紧凑模式 ===== */
+.jimeng-input-box {
+  background: var(--ti-bg-card) !important;
+  border: 1px solid var(--ti-border-subtle) !important;
+  border-radius: var(--radius-lg) !important;
+  padding: var(--space-md) !important;
+  margin: var(--space-sm) 0 !important;
+}
+
+.jimeng-input-box:focus-within {
+  border-color: var(--ti-border-active) !important;
+  box-shadow: 0 0 0 3px var(--ti-accent-glow) !important;
+}
+
+/* Textarea 紧凑 */
+.jimeng-textarea-wrapper {
+  background: rgba(0, 0, 0, 0.2) !important;
+  border: 1px solid var(--ti-border-subtle) !important;
+  border-radius: var(--radius-md) !important;
+  min-height: 80px !important;
+}
+
+/* ===== 模板库 - 紧凑网格 ===== */
+.jimeng-template-library {
+  background: var(--ti-bg-card) !important;
+  border: 1px solid var(--ti-border-subtle) !important;
+  border-radius: var(--radius-lg) !important;
+  margin-top: var(--space-md) !important;
+}
+
+.jimeng-library-header {
+  background: rgba(0, 200, 255, 0.03) !important;
+  border-bottom: 1px solid var(--ti-border-subtle) !important;
+  padding: var(--space-sm) var(--space-md) !important;
+}
+
+/* ===== 历史记录 - 紧凑列表 ===== */
+.jimeng-history-section {
+  margin-bottom: var(--space-md) !important;
+}
+
+.jimeng-history-header {
+  padding: var(--space-sm) var(--space-md) !important;
+  background: rgba(0, 0, 0, 0.2) !important;
+  border-radius: var(--radius-md) !important;
+}
+
+.jimeng-history-item {
+  padding: var(--space-sm) var(--space-md) !important;
+  border-bottom: 1px solid var(--ti-border-subtle) !important;
+}
+
+/* ===== 模式标签 - 紧凑 pill ===== */
+.jimeng-mode-tab {
+  padding: 4px 10px !important;
+  font-size: 12px !important;
+  border-radius: var(--radius-sm) !important;
+  color: var(--ti-text-secondary) !important;
+}
+
+.jimeng-mode-tab.active {
+  background: rgba(0, 200, 255, 0.1) !important;
+  border-color: rgba(0, 200, 255, 0.25) !important;
+  color: #00d4ff !important;
+}
+
+/* ===== 底部栏 - 紧凑布局 ===== */
+.jimeng-input-bottom {
+  padding: var(--space-sm) var(--space-md) !important;
+  gap: var(--space-md) !important;
+}
+
+.jimeng-bottom-left {
+  gap: var(--space-xs) !important;
+}
+
+.jimeng-btn-group {
+  gap: var(--space-sm) !important;
+}
+
+/* ===== 模型选择器 - 紧凑 ===== */
+.jimeng-text-model-select {
+  height: 32px !important;
+  padding: 0 10px !important;
+  font-size: 12px !important;
+  border-radius: var(--radius-sm) !important;
+  background: rgba(0, 0, 0, 0.3) !important;
+  border: 1px solid var(--ti-border-subtle) !important;
+  color: var(--ti-text-secondary) !important;
+}
+
+/* ===== 响应式优化 ===== */
+@media (max-width: 768px) {
+  .seko-hero {
+    padding: 100px 12px 12px !important;
+  }
+
+  .seko-hero-title {
+    font-size: 24px !important;
+  }
+
+  .seko-hero-subtitle {
+    font-size: 12px !important;
+  }
+
+  .seko-hero-send-btn {
+    position: absolute;
+    right: var(--space-sm);
+    top: 50%;
+    transform: translateY(-50%);
+  }
+}
+
+/* ===== 滚动条美化 ===== */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* ===== 焦点状态优化 ===== */
+*:focus-visible {
+  outline: 2px solid var(--ti-electric-blue);
+  outline-offset: 2px;
+}
+
+/* ===== 提示词面板 - 紧凑 ===== */
+.seko-prompt-panel {
+  max-width: 1200px !important;
+  max-height: 85vh !important;
+  border-radius: var(--radius-lg) !important;
+  background: var(--ti-bg-secondary) !important;
+  border: 1px solid var(--ti-border-subtle) !important;
+}
+
+.seko-prompt-panel-header {
+  padding: var(--space-md) var(--space-lg) !important;
+  border-bottom: 1px solid var(--ti-border-subtle) !important;
+}
+
+.seko-workspace-inline {
+  padding: var(--space-md) !important;
+}
+
+/* ===== 剩余次数指示器 ===== */
+.jimeng-remaining {
+  font-size: 11px !important;
+  color: var(--ti-text-muted) !important;
+  padding: 2px 8px !important;
+  background: rgba(0, 0, 0, 0.3) !important;
+  border-radius: var(--radius-sm) !important;
+}
+
+/* ============================================
+   首页排版重构 - 顶部标题栏 + 工具按钮栏
+   ============================================ */
+
+/* ===== 顶部固定标题栏 ===== */
+.seko-top-bar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background:
+    linear-gradient(180deg, rgba(5, 7, 11, 0.92) 0%, rgba(5, 7, 11, 0.76) 100%);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  border-bottom: 1px solid rgba(186, 221, 255, 0.1);
+  padding: 10px clamp(16px, 3vw, 32px);
+}
+
+.seko-top-bar-inner {
+  width: min(1180px, 100%);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-left: 0;
+  padding-right: 0;
+  box-sizing: border-box;
+}
+
+@keyframes seko-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes seko-bounce-click {
+  0% { transform: scale(1); }
+  40% { transform: scale(0.95); }
+  70% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+@keyframes seko-ripple {
+  0% { transform: scale(0.8); opacity: 0.6; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
+
+@keyframes seko-glow-pulse {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(0, 102, 255, 0.3), 0 0 20px rgba(0, 102, 255, 0.1); }
+  50% { box-shadow: 0 0 0 1px rgba(0, 102, 255, 0.5), 0 0 30px rgba(0, 102, 255, 0.2); }
+}
+
+@keyframes seko-badge-pop {
+  0% { transform: scale(0); }
+  50% { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+
+.seko-progress-shimmer {
+  background-size: 200% 100%;
+  background-image: linear-gradient(
+    90deg,
+    rgba(59, 130, 246, 0.8) 0%,
+    rgba(96, 165, 250, 1) 50%,
+    rgba(59, 130, 246, 0.8) 100%
+  );
+  animation: seko-shimmer 2s ease-in-out infinite;
+}
+
+.seko-btn-bounce:active {
+  animation: seko-bounce-click 0.3s ease-out;
+}
+
+.seko-toggle-group:active .seko-toggle-switch {
+  animation: seko-bounce-click 0.3s ease-out;
+}
+
+.seko-hero-input-bar.auto-editing {
+  animation: seko-glow-pulse 2s ease-in-out infinite;
+}
+
+.seko-relative-badge {
+  position: relative;
+}
+
+.seko-badge-count {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #3b82f6, #6366f1);
+  color: white;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 16px;
+  text-align: center;
+  animation: seko-badge-pop 0.3s ease-out;
+  pointer-events: none;
+  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.4);
+}
+
+.seko-toolbar-btn.seko-mode-btn:active {
+  animation: seko-bounce-click 0.3s ease-out;
+}
+
+.seko-top-bar-logo {
+  flex-shrink: 0;
+}
+
+.seko-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+
+.seko-logo-text {
+  font-size: 21px;
+  font-weight: 600;
+  color: #ffffff;
+  font-family: 'Inter', 'Noto Sans SC', system-ui, sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.seko-top-bar-center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.seko-top-bar-tutorial {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.seko-top-bar-tutorial:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+}
+
+.seko-top-bar-right {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+/* ===== 根容器 - 纵向布局（无侧边栏） ===== */
+.seko-style-landing {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.seko-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ===== 宣传语 - 放大显示 ===== */
+.seko-hero-slogan {
+  text-align: center;
+  margin: clamp(18px, 5vh, 54px) auto 4px;
+  width: 100%;
+  max-width: 900px;
+  padding: 0 12px;
+}
+
+.seko-hero-slogan h1 {
+  font-size: clamp(52px, 7vw, 96px) !important;
+  font-weight: 800;
+  margin: 0 0 14px 0 !important;
+  line-height: 1.02;
+  letter-spacing: 0;
+  font-family: 'Inter', 'Noto Sans SC', system-ui, sans-serif;
+  text-transform: none;
+  color: #ffffff;
+  background: linear-gradient(135deg, #ffffff 0%, #dffaff 36%, #66e8ff 62%, #f0c67a 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 68px rgba(102, 232, 255, 0.22);
+}
+
+.seko-hero-slogan p {
+  font-size: clamp(15px, 1.6vw, 19px) !important;
+  color: rgba(222, 239, 255, 0.7);
+  margin: 0 !important;
+  line-height: 1.6;
+  font-family: 'Inter', 'Noto Sans SC', system-ui, sans-serif;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* ===== 工具快捷按钮栏 ===== */
+.seko-tool-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 10px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding: 6px;
+  max-width: min(960px, calc(100vw - 48px));
+  scrollbar-width: none;
+}
+
+.seko-tool-bar::-webkit-scrollbar {
+  display: none;
+}
+
+
+
+.seko-hero-send-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 16px rgba(0, 102, 255, 0.4);
+}
+
+.seko-hero-send-btn:active {
+  transform: scale(0.98);
+}
+
+.seko-tool-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+  min-height: 42px;
+  padding: 10px 15px;
+  border-radius: 12px;
+  border: 1px solid rgba(186, 221, 255, 0.13);
+  background:
+    linear-gradient(180deg, rgba(16, 22, 32, 0.72), rgba(7, 10, 16, 0.68));
+  color: rgba(222, 239, 255, 0.74);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              backdrop-filter 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+}
+
+.seko-tool-btn:hover {
+  background:
+    linear-gradient(180deg, rgba(22, 30, 42, 0.88), rgba(8, 12, 20, 0.82));
+  border-color: rgba(102, 232, 255, 0.28);
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow:
+    0 12px 34px rgba(0, 0, 0, 0.32),
+    0 0 22px rgba(102, 232, 255, 0.08);
+}
+
+.seko-tool-btn-sparkle {
+  background:
+    linear-gradient(135deg, rgba(102, 232, 255, 0.16), rgba(139, 124, 255, 0.12));
+  border-color: rgba(102, 232, 255, 0.24);
+  color: rgba(232, 250, 255, 0.88);
+}
+
+.seko-tool-btn-sparkle:hover {
+  background:
+    linear-gradient(135deg, rgba(102, 232, 255, 0.22), rgba(139, 124, 255, 0.16));
+  border-color: rgba(240, 198, 122, 0.34);
+}
+
+/* ===== 发现短片素材 - 3列展示 ===== */
+.seko-showcase-inline {
+  width: 100%;
+  margin-top: clamp(34px, 7vh, 82px);
+  padding-top: clamp(20px, 4vh, 42px);
+  background: transparent;
+  position: relative;
+}
+
+.seko-showcase-inline::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: min(1180px, calc(100vw - 48px));
+  height: 1px;
+  transform: translateX(-50%);
+  background: linear-gradient(90deg, transparent, rgba(102, 232, 255, 0.22), rgba(240, 198, 122, 0.14), transparent);
+}
+
+.seko-showcase-header {
+  text-align: center;
+  margin-bottom: 18px;
+}
+
+.seko-showcase-header h2 {
+  font-size: clamp(22px, 2.4vw, 30px);
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 8px 0;
+  letter-spacing: 0;
+  font-family: 'Inter', 'Noto Sans SC', system-ui, sans-serif;
+  text-transform: none;
+}
+
+.seko-showcase-header p {
+  font-size: 13px;
+  color: rgba(222, 239, 255, 0.58);
+  margin: 0;
+  font-family: 'Inter', 'Noto Sans SC', system-ui, sans-serif;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.seko-photo-wall {
+  width: min(1180px, calc(100vw - 48px));
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-left: 0;
+  padding-right: 0;
+  box-sizing: border-box;
+}
+
+.seko-photo-row {
+  display: flex;
+  gap: 8px;
+  height: clamp(128px, 13vw, 172px);
+}
+
+.seko-photo-cell {
+  overflow: hidden;
+  line-height: 0;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(8, 11, 18, 0.72);
+  box-shadow: 0 14px 38px rgba(0, 0, 0, 0.26);
+}
+
+.seko-photo-cell img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.5s ease, filter 0.5s ease;
+}
+
+.seko-photo-cell:hover img {
+  transform: scale(1.035);
+  filter: saturate(1.08) contrast(1.04);
+}
+
+.seko-photo-span-1 { flex: 1; }
+.seko-photo-span-2 { flex: 2; }
+.seko-photo-span-3 { flex: 3; }
+
+/* ===== 中等屏幕适配 ===== */
+@media (max-width: 1440px) {
+  .seko-hero-input-bar {
+    width: min(920px, calc(100vw - 160px));
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+@media (max-width: 1200px) {
+  .seko-hero-input-bar {
+    width: min(900px, calc(100vw - 96px));
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .seko-ai-output-card {
+    opacity: 0.36;
+  }
+}
+
+@media (max-width: 968px) {
+  .seko-hero-input-bar {
+    width: min(860px, calc(100vw - 48px));
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .seko-ai-output-rail {
+    display: none;
+  }
+}
+
+/* ===== 移动端适配 ===== */
+@media (max-width: 768px) {
+  .seko-hero {
+    min-height: 100svh !important;
+    padding: 94px 16px 34px !important;
+  }
+
+  .seko-top-bar {
+    padding: 10px 12px;
+  }
+
+  .seko-top-bar-inner {
+    gap: 8px;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .seko-logo-text {
+    font-size: 18px;
+    letter-spacing: 0.06em;
+  }
+
+  .seko-hero-slogan {
+    margin-top: 18px;
+    padding: 0;
+  }
+
+  .seko-hero-slogan h1 {
+    font-size: clamp(42px, 13vw, 58px) !important;
+    line-height: 1.04;
+  }
+
+  .seko-hero-slogan p {
+    font-size: 14px !important;
+    line-height: 1.55;
+    max-width: 18em;
+    margin: 0 auto !important;
+  }
+
+  .seko-ai-field::before,
+  .seko-ai-field::after {
+    top: 34%;
+    width: 88vw;
+    height: 38vw;
+    opacity: 0.22;
+  }
+
+  .seko-ai-node {
+    display: none;
+  }
+
+  .seko-tool-bar {
+    justify-content: flex-start;
+    gap: 8px;
+    width: calc(100vw - 32px);
+    max-width: none;
+    margin-top: 8px;
+    padding: 4px 2px 8px;
+  }
+
+  .seko-tool-btn {
+    min-height: 38px;
+    padding: 8px 11px;
+    font-size: 12px;
+  }
+
+  .seko-tool-btn span {
+    display: none;
+  }
+
+  .seko-photo-row {
+    flex: 0 0 78vw;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-rows: 88px;
+    gap: 6px;
+    height: auto;
+  }
+
+  .seko-photo-wall {
+    width: calc(100vw - 32px);
+    flex-direction: row;
+    gap: 8px;
+    padding-left: 0;
+    padding-right: 0;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+
+  .seko-photo-wall::-webkit-scrollbar {
+    display: none;
+  }
+
+  .seko-photo-cell {
+    min-width: 0;
+    min-height: 88px;
+    scroll-snap-align: start;
+  }
+
+  .seko-photo-cell:nth-child(n + 5) {
+    display: none;
+  }
+
+  .seko-hero-input-bar {
+    width: calc(100vw - 32px);
+    margin-left: auto;
+    margin-right: auto;
+    border-radius: 22px;
+  }
+
+  .seko-hero-input-bar.collapsed {
+    min-height: 56px;
+    padding: 12px 16px;
+  }
+
+  .seko-hero-input-bar.expanded {
+    min-height: 172px;
+    padding: 18px 18px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .seko-style-landing .seko-hero-bg,
+  .seko-style-landing .seko-hero-bg::before,
+  .seko-hero-input-bar::after,
+  .seko-ai-node {
+    animation: none;
+  }
+
+  .seko-photo-cell img {
+    transition: none;
+  }
+}
+
+/* ===== Kory 内嵌聊天模式 ===== */
+.seko-hero-input-bar.kory-mode {
+  max-width: 720px;
+  min-height: 420px;
+  max-height: calc(100vh - 200px);
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+}
+
+.seko-kory-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+}
+
+.seko-kory-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.seko-kory-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #5865F2, #EB459E);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.seko-kory-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.seko-kory-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 6px rgba(34, 197, 94, 0.5);
+}
+
+.seko-kory-exit-btn {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.seko-kory-exit-btn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.seko-kory-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+}
+
+.seko-kory-welcome {
+  text-align: center;
+  padding: 30px 16px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.seko-kory-welcome p {
+  margin: 6px 0;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.seko-kory-msg {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.seko-kory-msg.user {
+  flex-direction: row-reverse;
+}
+
+.seko-kory-msg-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #5865F2, #EB459E);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.seko-kory-msg-bubble {
+  max-width: 78%;
+  padding: 8px 12px;
+  border-radius: 14px;
+  font-size: 13px;
+  line-height: 1.6;
+  word-break: break-word;
+}
+
+.seko-kory-msg.assistant .seko-kory-msg-bubble {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.9);
+  border-bottom-left-radius: 4px;
+}
+
+.seko-kory-msg.user .seko-kory-msg-bubble {
+  background: linear-gradient(135deg, #5865F2, #4752C4);
+  color: #fff;
+  border-bottom-right-radius: 4px;
+}
+
+.seko-kory-typing {
+  display: flex;
+  gap: 4px;
+  padding: 12px 16px;
+}
+
+.seko-kory-typing span {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.4);
+  animation: sekoKoryBounce 1.4s infinite ease-in-out;
+}
+
+.seko-kory-typing span:nth-child(1) { animation-delay: 0s; }
+.seko-kory-typing span:nth-child(2) { animation-delay: 0.2s; }
+.seko-kory-typing span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes sekoKoryBounce {
+  0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+  40% { transform: scale(1); opacity: 1; }
+}
+
+.seko-kory-input-row {
+  display: flex;
+  gap: 8px;
+  padding: 12px 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+}
+
+.seko-kory-input {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 9px 14px;
+  font-size: 13px;
+  color: #fff;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+.seko-kory-input:focus {
+  border-color: rgba(88, 101, 242, 0.4);
+}
+
+.seko-kory-input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.seko-kory-input:disabled {
+  opacity: 0.5;
+}
+
+.seko-kory-send-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(135deg, #5865F2, #4752C4);
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.seko-kory-send-btn:hover:not(:disabled) {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(88, 101, 242, 0.3);
+}
+
+.seko-kory-send-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ===== 创作工具栏新动画 ===== */
+@keyframes seko-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes seko-bounce-click {
+  0% { transform: scale(1); }
+  40% { transform: scale(0.95); }
+  70% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+@keyframes seko-glow-pulse {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(0, 102, 255, 0.3), 0 0 20px rgba(0, 102, 255, 0.1); }
+  50% { box-shadow: 0 0 0 1px rgba(0, 102, 255, 0.5), 0 0 30px rgba(0, 102, 255, 0.2); }
+}
+
+@keyframes seko-badge-pop {
+  0% { transform: scale(0); }
+  50% { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+
+.seko-progress-shimmer {
+  background-size: 200% 100%;
+  background-image: linear-gradient(
+    90deg,
+    rgba(59, 130, 246, 0.8) 0%,
+    rgba(96, 165, 250, 1) 50%,
+    rgba(59, 130, 246, 0.8) 100%
+  );
+  animation: seko-shimmer 2s ease-in-out infinite;
+}
+
+.seko-btn-bounce:active {
+  animation: seko-bounce-click 0.3s ease-out;
+}
+
+.seko-toggle-group:active .seko-toggle-switch {
+  animation: seko-bounce-click 0.3s ease-out;
+}
+
+.seko-hero-input-bar.auto-editing {
+  animation: seko-glow-pulse 2s ease-in-out infinite;
+}
+
+.seko-relative-badge {
+  position: relative;
+}
+
+.seko-badge-count {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #3b82f6, #6366f1);
+  color: white;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 16px;
+  text-align: center;
+  animation: seko-badge-pop 0.3s ease-out;
+  pointer-events: none;
+  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.4);
+}
+
+.seko-toolbar-btn.seko-mode-btn:active {
+  animation: seko-bounce-click 0.3s ease-out;
+}
+
+/* ===== 创作阶段进度动画 ===== */
+@keyframes seko-auto-edit-pulse {
+  0%, 100% { opacity: 0.4; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.1); }
+}
+
+.seko-auto-edit-stages {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 0;
+  flex-wrap: wrap;
+}
+
+.seko-auto-edit-stage {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  transition: all 0.4s ease;
+}
+
+.seko-auto-edit-stage.active {
+  color: #60a5fa;
+}
+
+.seko-auto-edit-stage.active .seko-auto-edit-dot {
+  background: #60a5fa;
+  animation: seko-auto-edit-pulse 1s ease-in-out infinite;
+}
+
+.seko-auto-edit-stage.done {
+  color: #34d399;
+}
+
+.seko-auto-edit-stage.done .seko-auto-edit-dot {
+  background: #34d399;
+}
+
+.seko-auto-edit-stage.pending {
+  color: #4b5563;
+}
+
+.seko-auto-edit-stage.pending .seko-auto-edit-dot {
+  background: #374151;
+}
+
+.seko-auto-edit-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.seko-auto-edit-connector {
+  width: 20px;
+  height: 1px;
+  background: #374151;
+  flex-shrink: 0;
+  transition: background 0.4s ease;
+}
+
+.seko-auto-edit-connector.done {
+  background: #34d399;
+}
+
+.seko-auto-edit-connector.active {
+  background: linear-gradient(90deg, #34d399, #60a5fa);
+}

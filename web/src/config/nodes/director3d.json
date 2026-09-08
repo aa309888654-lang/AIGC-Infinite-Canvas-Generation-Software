@@ -1,0 +1,20 @@
+{
+  "id": "director3D",
+  "name": "3D导演台",
+  "category": "video",
+  "description": "专业3D导演台 - 支持角色与模型调度、多机位时间线、构图安全框、ACES曝光、三点布光、HDR环境与高性能GLTF工作流",
+  "icon": "🎥",
+  "color": "#8B5CF6",
+  "ports": {
+    "inputs": [{ "id": "input", "name": "全景图/参考图", "type": "image", "optional": true }],
+    "outputs": [
+      { "id": "output", "name": "3D截图", "type": "image" },
+      { "id": "prompt", "name": "相机提示词", "type": "prompt" }
+    ]
+  },
+  "ui": { "shell": "glass-stack", "promptPanel": false, "resultRenderer": "3d", "toolbar": "default" },
+  "execution": { "executable": false },
+  "models": {
+    "mediaType": "none"
+  }
+}

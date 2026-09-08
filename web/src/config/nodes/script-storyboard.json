@@ -1,0 +1,39 @@
+{
+  "id": "scriptStoryboard",
+  "name": "剧本分镜",
+  "category": "video",
+  "description": "将剧本文本拆解为可生成的分镜画面，输出分镜数据与画面结果",
+  "icon": "🎞️",
+  "color": "#F59E0B",
+  "ports": {
+    "inputs": [
+      { "id": "scriptInput", "name": "剧本输入", "type": "string", "optional": true, "multiple": true },
+      { "id": "imageInput", "name": "图片参考", "type": "image", "optional": true, "multiple": true },
+      { "id": "characterRef", "name": "角色参考", "type": "image", "optional": true, "multiple": true },
+      { "id": "input", "name": "兼容输入", "type": "image", "optional": true, "multiple": true }
+    ],
+    "outputs": [
+      { "id": "output", "name": "分镜画面", "type": "image" },
+      { "id": "scenes", "name": "分镜数据", "type": "string" }
+    ]
+  },
+  "ui": { "shell": "glass-stack", "promptPanel": true, "resultRenderer": "image", "toolbar": "default" },
+  "execution": {
+    "executable": true,
+    "handler": "grid-director",
+    "mode": "async",
+    "maxRetries": 2,
+    "timeout": 300000
+  },
+  "models": {
+    "mediaType": "image",
+    "allowedProviders": ["doubao", "apipaths"],
+    "defaultModelId": "doubao-seedream-5-0-pro",
+    "excludeIdPatterns": ["gpt-5", "claude", "gemini-pro-vision"],
+    "requireCapabilities": ["text-to-image", "reference"],
+    "fallbackModels": [
+      { "modelId": "doubao-seedream-5-0-pro", "provider": "doubao", "name": "豆包 豆包 Seedream 5.0 Pro" },
+      { "modelId": "doubao-seedream-5-0-pro", "provider": "apipaths", "name": "小天3 豆包 Seedream 5.0 Pro" }
+    ]
+  }
+}

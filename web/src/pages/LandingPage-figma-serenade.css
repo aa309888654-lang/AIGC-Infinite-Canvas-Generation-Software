@@ -1,0 +1,1350 @@
+/* ============================================================
+   小天 AICG 首页 v2 — 深空创核风格（组件层）
+   覆盖：区块、卡片、模板、聊天、菜单、动画等
+   ============================================================ */
+
+/* ═════════════ 设计令牌 ═══════════════ */
+.serenade-landing {
+  --v2-bg: #0f0c29;
+  --v2-bg-elevated: #1a1040;
+  --v2-bg-card: rgba(15, 12, 41, 0.88);
+  --v2-border: rgba(127, 90, 240, 0.12);
+  --v2-border-hover: rgba(127, 90, 240, 0.25);
+  --v2-text-primary: #ffffff;
+  --v2-text-secondary: rgba(255, 255, 255, 0.72);
+  --v2-text-muted: rgba(255, 255, 255, 0.5);
+  --v2-cyan: #7f5af0;
+  --v2-purple: #e84393;
+  --v2-gradient: linear-gradient(135deg, #7f5af0, #e84393);
+  --v2-radius-sm: 12px;
+  --v2-radius-md: 16px;
+  --v2-radius-lg: 24px;
+  --v2-shadow: 0 8px 32px rgba(127, 90, 240, 0.12);
+}
+
+/* ═══════════════ 全局背景 ═══════════════ */
+.serenade-landing {
+  background: var(--v2-bg) !important;
+  color: var(--v2-text-primary);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+}
+
+.serenade-landing :where(a, button, textarea, input):focus-visible {
+  outline: 2px solid #7f5af0;
+  outline-offset: 2px;
+}
+
+/* ═══════════════ 隐藏旧装饰 ═══════════════ */
+.serenade-landing .seko-hero-intelligence-layer,
+.serenade-landing .seko-ai-field,
+.serenade-landing .seko-ai-output-rail,
+.serenade-landing .seko-omni-flow-board,
+.serenade-landing .seko-hero-bg {
+  display: none !important;
+}
+
+/* ═══════════════ 导航栏补充 ═══════════════ */
+.serenade-landing .seko-top-bar {
+  border: 1px solid var(--v2-border) !important;
+}
+
+.serenade-nav-menu {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.serenade-nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: var(--v2-radius-sm);
+  color: var(--v2-text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+}
+
+.serenade-nav-link:hover {
+  color: var(--v2-text-primary);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.serenade-nav-link-international {
+  position: relative;
+  color: #d9f8ff;
+  background: linear-gradient(135deg, rgba(116, 232, 255, 0.12), rgba(167, 139, 250, 0.12));
+  border: 1px solid rgba(116, 232, 255, 0.35);
+}
+
+.serenade-nav-link-international:hover {
+  color: #ffffff;
+  background: linear-gradient(135deg, rgba(116, 232, 255, 0.22), rgba(167, 139, 250, 0.22));
+  border-color: rgba(116, 232, 255, 0.6);
+}
+
+.serenade-social-links {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.serenade-social-link {
+  display: inline-flex;
+  width: 32px;
+  height: 32px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  color: var(--v2-text-muted);
+  transition: all 0.18s ease;
+}
+
+.serenade-social-link:hover {
+  color: var(--v2-text-primary);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* ═══════════════ 移动端菜单按钮 ═══════════════ */
+.serenade-mobile-menu-btn {
+  display: none;
+  width: 36px;
+  height: 36px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--v2-border);
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.serenade-mobile-menu-btn span {
+  display: block;
+  width: 18px;
+  height: 1.5px;
+  border-radius: 1px;
+  background: var(--v2-text-secondary);
+  transition: all 0.2s ease;
+}
+
+.serenade-mobile-menu-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--v2-border-hover);
+}
+
+.serenade-mobile-menu-btn:hover span {
+  background: var(--v2-text-primary);
+}
+
+/* ═══════════════ Hero 区域 ═══════════════ */
+.serenade-landing .seko-hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 0;
+  overflow: hidden;
+  background: var(--v2-bg) !important;
+}
+
+.serenade-landing .seko-main {
+  position: relative;
+  z-index: 1;
+  background: var(--v2-bg) !important;
+}
+
+.serenade-landing .seko-hero-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  width: 100%;
+  max-width: 1200px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.serenade-hero-stage {
+  position: relative;
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 120px 0 60px;
+}
+
+.serenade-hero-copy,
+.serenade-landing .serenade-hero-copy-overlay {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  width: min(100%, 860px);
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.serenade-hero-visual {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+/* ═══════════════ 旧版 Hero 机器人容器隐藏 ═══════════════ */
+.serenade-landing .serenade-hero-robot,
+.serenade-landing .serendale-robot-scene {
+  display: none !important;
+}
+
+/* ═══════════════ Section 区块 ═══════════════ */
+.serenade-landing .seko-section {
+  padding: 80px 24px;
+  max-width: 100%;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+  background: var(--v2-bg) !important;
+}
+
+.serenade-landing .seko-section-header {
+  text-align: center;
+  margin-bottom: 48px;
+  position: relative;
+}
+
+.serenade-landing .seko-section-title {
+  font-size: clamp(24px, 4vw, 32px);
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: var(--v2-text-primary);
+  background: linear-gradient(135deg, #ffffff 0%, #e0c3fc 40%, #f9a8d4 70%, #fcd34d 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.01em;
+}
+
+.serenade-landing .seko-section-desc {
+  font-size: 15px;
+  color: var(--v2-text-muted);
+  max-width: 560px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* ═══════════════ 特性卡片 ═══════════════ */
+.serenade-landing .seko-features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+@media (min-width: 1280px) {
+  .serenade-landing .seko-features-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .serenade-landing .seko-features-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .serenade-landing .seko-features-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+
+.serenade-landing .seko-feature-card {
+  background: var(--v2-bg-card) !important;
+  backdrop-filter: blur(24px) saturate(1.2) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(1.2) !important;
+  border: 1px solid var(--v2-border) !important;
+  border-radius: var(--v2-radius-lg) !important;
+  padding: 32px 24px !important;
+  text-align: center;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--v2-shadow) !important;
+}
+
+.serenade-landing .seko-feature-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5) !important;
+  border-color: var(--v2-border-hover) !important;
+  background: rgba(14, 14, 24, 0.92) !important;
+}
+
+.serenade-landing .seko-feature-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(127, 90, 240, 0.4), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.serenade-landing .seko-feature-card:hover::before {
+  opacity: 1;
+}
+
+.serenade-landing .seko-feature-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--v2-border);
+  border-radius: var(--v2-radius-md);
+  transition: all 0.3s ease;
+  color: var(--v2-text-muted);
+}
+
+.serenade-landing .seko-features-grid .seko-feature-card:nth-child(1) .seko-feature-icon {
+  background: rgba(255, 107, 107, 0.08);
+  border-color: rgba(255, 107, 107, 0.15);
+  color: #ff6b6b;
+}
+
+.serenade-landing .seko-features-grid .seko-feature-card:nth-child(2) .seko-feature-icon {
+  background: rgba(127, 90, 240, 0.08);
+  border-color: rgba(127, 90, 240, 0.15);
+  color: #7f5af0;
+}
+
+.serenade-landing .seko-features-grid .seko-feature-card:nth-child(3) .seko-feature-icon {
+  background: rgba(232, 67, 147, 0.06);
+  border-color: rgba(232, 67, 147, 0.12);
+  color: #e84393;
+}
+
+.serenade-landing .seko-features-grid .seko-feature-card:nth-child(4) .seko-feature-icon {
+  background: rgba(13, 180, 247, 0.06);
+  border-color: rgba(13, 180, 247, 0.12);
+  color: #0db4f7;
+}
+
+.serenade-landing .seko-feature-card:hover .seko-feature-icon {
+  transform: scale(1.08);
+  filter: brightness(1.15);
+}
+
+.serenade-landing .seko-feature-title {
+  font-size: 18px;
+  font-weight: 650;
+  margin-bottom: 10px;
+  color: var(--v2-text-primary);
+  transition: color 0.3s ease;
+}
+
+.serenade-landing .seko-feature-card:hover .seko-feature-title {
+  color: #7f5af0;
+}
+
+.serenade-landing .seko-feature-desc {
+  font-size: 13px;
+  color: var(--v2-text-muted);
+  line-height: 1.6;
+}
+
+/* ═══════════════ 灵感卡片 ═══════════════ */
+.serenade-landing .seko-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.serenade-landing .seko-card {
+  border-radius: var(--v2-radius-lg);
+  padding: 0;
+  color: var(--v2-text-primary);
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: var(--v2-shadow);
+  border: 1px solid var(--v2-border);
+  background: var(--v2-bg-card);
+  backdrop-filter: blur(24px) saturate(1.2);
+  -webkit-backdrop-filter: blur(24px) saturate(1.2);
+}
+
+.serenade-landing .seko-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 56px rgba(0, 0, 0, 0.55);
+  border-color: var(--v2-border-hover);
+}
+
+.serenade-landing .seko-card-fullvideo {
+  grid-column: 1 / -1;
+  min-height: 400px;
+}
+
+/* ═══════════════ 展示区 ═══════════════ */
+.serenade-landing .seko-future-showcase {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.serenade-landing .seko-future-section-head {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.serenade-landing .seko-future-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(127, 90, 240, 0.12), rgba(232, 67, 147, 0.08));
+  border: 1px solid rgba(127, 90, 240, 0.2);
+  color: var(--vt-electric, #a29bfe);
+  font-size: 12px;
+  font-weight: 660;
+  margin-bottom: 14px;
+}
+
+.serenade-landing .seko-future-section-head h2 {
+  font-size: clamp(22px, 3.5vw, 30px);
+  font-weight: 720;
+  color: var(--v2-text-primary);
+  margin-bottom: 10px;
+  background: linear-gradient(135deg, #ffffff 0%, #e0c3fc 40%, #f9a8d4 70%, #fcd34d 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.serenade-landing .seko-future-section-head p {
+  font-size: 15px;
+  color: var(--v2-text-muted);
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.serenade-landing .seko-future-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+/* ═══════════════ jimeng 展示卡片 ═══════════════ */
+.serenade-landing .jimeng-showcase-card {
+  position: relative;
+  border-radius: var(--v2-radius-lg);
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  background: var(--v2-bg-card);
+  border: 1px solid var(--v2-border);
+  box-shadow: var(--v2-shadow);
+}
+
+.serenade-landing .jimeng-showcase-card.jimeng-card-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.serenade-landing .jimeng-showcase-card:hover {
+  transform: translateY(-5px) scale(1.01);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55);
+  border-color: var(--v2-border-hover);
+}
+
+.serenade-landing .jimeng-showcase-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(180deg, transparent 50%, rgba(0, 0, 0, 0.6) 100%);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.serenade-landing .jimeng-showcase-card:hover::before {
+  background: linear-gradient(180deg, transparent 40%, rgba(0, 0, 0, 0.5) 100%);
+}
+
+.serenade-landing .jimeng-showcase-card-skeleton {
+  background: var(--v2-bg-elevated);
+  border: 1px solid var(--v2-border);
+}
+
+.serenade-landing .jimeng-card-poster {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.serenade-landing .jimeng-showcase-card:hover .jimeng-card-poster {
+  transform: scale(1.05);
+}
+
+.serenade-landing .jimeng-card-skeleton {
+  background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.03) 75%);
+  background-size: 200% 100%;
+  animation: v2-skeleton-shimmer 1.5s infinite;
+}
+
+@keyframes v2-skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ═══════════════ 模板库 ═══════════════ */
+.serenade-landing .jimeng-template-library {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+  border-radius: var(--v2-radius-lg);
+  background: var(--v2-bg-card);
+  border: 1px solid var(--v2-border);
+  box-shadow: var(--v2-shadow);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  transition: all 0.3s ease;
+}
+
+.serenade-landing .jimeng-template-library:hover {
+  border-color: var(--v2-border-hover);
+}
+
+.serenade-landing .jimeng-template-library.expanded {
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+}
+
+.serenade-landing .jimeng-template-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: var(--v2-radius-sm);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--v2-border);
+  color: var(--v2-text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.serenade-landing .jimeng-template-item:hover {
+  background: rgba(0, 229, 255, 0.08);
+  border-color: rgba(0, 229, 255, 0.25);
+  color: var(--v2-text-primary);
+  transform: translateY(-1px);
+}
+
+.serenade-landing .jimeng-template-item.selected {
+  background: linear-gradient(135deg, rgba(0, 229, 255, 0.15), rgba(168, 85, 247, 0.1));
+  border-color: rgba(0, 229, 255, 0.35);
+  color: var(--v2-text-primary);
+  box-shadow: 0 0 16px rgba(0, 229, 255, 0.1);
+}
+
+/* ═══════════════ 聊天面板 ═══════════════ */
+.serenade-landing .seko-chat-display {
+  width: 100%;
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 16px;
+  border-radius: var(--v2-radius-md);
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.serenade-landing .seko-chat-display::-webkit-scrollbar {
+  width: 5px;
+}
+
+.serenade-landing .seko-chat-display::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.serenade-landing .seko-chat-display::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+.serenade-landing .seko-chat-display-msg {
+  display: flex;
+  gap: 10px;
+  padding: 10px 0;
+  animation: v2-fade-in-up 0.3s ease;
+}
+
+@keyframes v2-fade-in-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.serenade-landing .seko-chat-display-label {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--v2-border);
+}
+
+.serenade-landing .seko-chat-display-msg.user .seko-chat-display-label {
+  color: #00c8ff;
+}
+
+.serenade-landing .seko-chat-display-msg.ai .seko-chat-display-label {
+  color: #00d4aa;
+}
+
+.serenade-landing .seko-chat-display-content {
+  flex: 1;
+  min-width: 0;
+  color: var(--v2-text-secondary);
+  font-size: 14px;
+  line-height: 1.6;
+  word-break: break-word;
+}
+
+/* ═══════════════ 生成动画 ═══════════════ */
+.serenade-landing .seko-generating-animation {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+}
+
+.serenade-landing .seko-generating-dots {
+  display: flex;
+  gap: 5px;
+}
+
+.serenade-landing .seko-generating-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--v2-cyan);
+  animation: v2-dot-bounce 1.4s infinite ease-in-out both;
+}
+
+.serenade-landing .seko-generating-dot:nth-child(1) { animation-delay: -0.32s; }
+.serenade-landing .seko-generating-dot:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes v2-dot-bounce {
+  0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+  40% { transform: scale(1); opacity: 1; }
+}
+
+.serenade-landing .seko-generating-text {
+  color: var(--v2-cyan);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* ═══════════════ 自动编辑阶段 ═══════════════ */
+.serenade-landing .seko-auto-edit-stages {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 0;
+  flex-wrap: wrap;
+}
+
+.serenade-landing .seko-auto-edit-stage {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--v2-border);
+  color: var(--v2-text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.serenade-landing .seko-auto-edit-stage.active {
+  background: rgba(0, 229, 255, 0.1);
+  border-color: rgba(0, 229, 255, 0.3);
+  color: var(--v2-cyan);
+  box-shadow: 0 0 12px rgba(0, 229, 255, 0.1);
+}
+
+.serenade-landing .seko-auto-edit-stage.done {
+  background: rgba(52, 211, 153, 0.1);
+  border-color: rgba(52, 211, 153, 0.25);
+  color: #34d399;
+}
+
+.serenade-landing .seko-auto-edit-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.serenade-landing .seko-auto-edit-connector {
+  width: 16px;
+  height: 1px;
+  background: var(--v2-border);
+  transition: background 0.3s ease;
+}
+
+.serenade-landing .seko-auto-edit-connector.done {
+  background: #34d399;
+}
+
+.serenade-landing .seko-auto-edit-connector.active {
+  background: linear-gradient(90deg, #34d399, var(--v2-cyan));
+}
+
+/* ═══════════════ Kory 聊天 ═══════════════ */
+.serenade-landing .seko-kory-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--v2-border);
+  background: var(--v2-bg-card);
+  border-radius: var(--v2-radius-md) var(--v2-radius-md) 0 0;
+}
+
+.serenade-landing .seko-kory-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.serenade-landing .seko-kory-avatar {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--v2-gradient);
+  color: #000;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.serenade-landing .seko-kory-name {
+  color: var(--v2-text-primary);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.serenade-landing .seko-kory-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #34d399;
+  box-shadow: 0 0 8px rgba(52, 211, 153, 0.5);
+  animation: v2-pulse-dot 2s ease-in-out infinite;
+}
+
+.serenade-landing .seko-kory-exit-btn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--v2-border);
+  color: var(--v2-text-muted);
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.serenade-landing .seko-kory-exit-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--v2-text-primary);
+}
+
+.serenade-landing .seko-kory-messages {
+  padding: 16px;
+  max-height: 360px;
+  overflow-y: auto;
+  background: rgba(4, 6, 10, 0.6);
+}
+
+.serenade-landing .seko-kory-msg {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+  animation: v2-fade-in-up 0.25s ease;
+}
+
+.serenade-landing .seko-kory-msg.assistant {
+  flex-direction: row;
+}
+
+.serenade-landing .seko-kory-msg-bubble {
+  padding: 10px 14px;
+  border-radius: var(--v2-radius-md);
+  background: var(--v2-bg-card);
+  border: 1px solid var(--v2-border);
+  color: var(--v2-text-secondary);
+  font-size: 14px;
+  line-height: 1.55;
+  max-width: 80%;
+  word-break: break-word;
+}
+
+.serenade-landing .seko-kory-msg.assistant .seko-kory-msg-bubble {
+  background: rgba(0, 229, 255, 0.06);
+  border-color: rgba(0, 229, 255, 0.12);
+}
+
+.serenade-landing .seko-kory-msg-bubble.seko-kory-typing {
+  display: flex;
+  gap: 4px;
+  padding: 12px 14px;
+}
+
+.serenade-landing .seko-kory-msg-bubble.seko-kory-typing span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--v2-cyan);
+  animation: v2-dot-bounce 1.4s infinite ease-in-out both;
+}
+
+.serenade-landing .seko-kory-msg-bubble.seko-kory-typing span:nth-child(1) { animation-delay: -0.32s; }
+.serenade-landing .seko-kory-msg-bubble.seko-kory-typing span:nth-child(2) { animation-delay: -0.16s; }
+
+.serenade-landing .seko-kory-input-row {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--v2-border);
+  background: var(--v2-bg-card);
+  border-radius: 0 0 var(--v2-radius-md) var(--v2-radius-md);
+}
+
+.serenade-landing .seko-kory-input {
+  flex: 1;
+  height: 40px;
+  padding: 0 14px;
+  border-radius: var(--v2-radius-sm);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--v2-border);
+  color: var(--v2-text-primary);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.serenade-landing .seko-kory-input:focus {
+  border-color: var(--v2-accent);
+}
+
+.serenade-landing .seko-kory-input::placeholder {
+  color: var(--v2-text-muted);
+}
+
+.serenade-landing .seko-kory-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.serenade-landing .seko-kory-send-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--v2-radius-sm);
+  background: var(--v2-accent);
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.serenade-landing .seko-kory-send-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.serenade-landing .seko-kory-send-btn:not(:disabled):hover {
+  opacity: 0.85;
+}
+
+/* ===== 居中单屏沉浸式布局 ===== */
+.seko-style-landing.serenade-landing .seko-hero-centered {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 24px 40px !important;
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, rgba(5, 7, 11, 0.72) 0%, rgba(5, 7, 11, 0.88) 55%, rgba(5, 7, 11, 0.98) 100%),
+    url('/aetheria-hero-city-reference.webp') center 30% / cover no-repeat !important;
+}
+
+.seko-style-landing.serenade-landing .seko-hero-motion {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 900ms ease;
+}
+
+/* The motion layer is decorative only; all interactive hero content stays above it. */
+.seko-style-landing.serenade-landing .seko-hero-centered-content,
+.seko-style-landing.serenade-landing .seko-home-input-cluster,
+.seko-style-landing.serenade-landing .seko-home-input-cluster-centered {
+  z-index: 20 !important;
+}
+
+@media (max-width: 768px) {
+  .seko-style-landing.serenade-landing .seko-hero-motion {
+    display: none !important;
+  }
+}
+
+.seko-style-landing.serenade-landing .seko-hero-motion-ready {
+  opacity: 1;
+}
+
+.seko-style-landing.serenade-landing .seko-hero-motion-video {
+  width: 100%;
+  height: 100%;
+  display: block;
+  /* Fill every viewport without stretching or side gutters. Viewports whose
+     ratio differs from the 16:9 source crop only the outer edges. */
+  object-fit: cover;
+  object-position: center bottom;
+}
+
+.seko-style-landing.serenade-landing .seko-hero-motion::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(5, 7, 11, 0.16) 0%,
+    rgba(5, 7, 11, 0.24) 55%,
+    rgba(5, 7, 11, 0.42) 100%
+  );
+}
+
+.seko-style-landing.serenade-landing .seko-hero-centered-content {
+  position: relative;
+  width: 100%;
+  max-width: 1100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  z-index: 10;
+  padding: 0 24px;
+  margin: 0 !important;
+}
+
+.seko-style-landing.serenade-landing .seko-hero-centered-stage {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+/* ===== 品牌与标题 ===== */
+.seko-style-landing.serenade-landing .seko-hero-centered-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+}
+
+.seko-style-landing.serenade-landing .seko-hero-centered-title {
+  font-size: clamp(32px, 5vw, 56px);
+  font-weight: 700;
+  line-height: 1.15;
+  margin: 8px 0 0;
+  letter-spacing: -0.02em;
+  background: linear-gradient(180deg, #ffffff 0%, rgba(255, 255, 255, 0.85) 50%, rgba(255, 255, 255, 0.65) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.seko-style-landing.serenade-landing .seko-hero-centered-title .title-accent {
+  display: block;
+  background: linear-gradient(120deg, #00e5ff 0%, #a855f7 50%, #ec4899 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: centered-title-glow 4s ease-in-out infinite alternate;
+}
+
+@keyframes centered-title-glow {
+  0% { filter: drop-shadow(0 0 8px rgba(0, 229, 255, 0.3)); }
+  100% { filter: drop-shadow(0 0 20px rgba(168, 85, 247, 0.5)); }
+}
+
+.seko-style-landing.serenade-landing .seko-hero-centered-subtitle {
+  font-size: clamp(13px, 1.5vw, 15px);
+  color: var(--v2-text-secondary);
+  max-width: 560px;
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* ===== 快速按钮 ===== */
+.seko-style-landing.serenade-landing .seko-hero-centered-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.seko-style-landing.serenade-landing .seko-centered-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 18px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--v2-border);
+  color: var(--v2-text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.seko-style-landing.serenade-landing .seko-centered-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--v2-text-primary);
+  border-color: var(--v2-border-hover);
+  transform: translateY(-1px);
+}
+
+.seko-style-landing.serenade-landing .seko-centered-btn-primary {
+  background: linear-gradient(120deg, #00e5ff 0%, #a855f7 100%);
+  border-color: transparent;
+  color: #000;
+  font-weight: 600;
+}
+
+.seko-style-landing.serenade-landing .seko-centered-btn-primary:hover {
+  background: linear-gradient(120deg, #00e5ff 0%, #a855f7 100%);
+  filter: brightness(1.1);
+  box-shadow: 0 8px 24px rgba(168, 85, 247, 0.35);
+}
+
+/* ===== 进入工作台 CTA ===== */
+.seko-style-landing.serenade-landing .seko-hero-centered-cta {
+  margin-top: 4px;
+}
+
+.seko-style-landing.serenade-landing .seko-centered-cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 24px;
+  border-radius: 999px;
+  background: transparent;
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  color: var(--v2-text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
+}
+
+.seko-style-landing.serenade-landing .seko-centered-cta-btn:hover {
+  border-color: var(--v2-cyan);
+  background: rgba(0, 229, 255, 0.08);
+  box-shadow: 0 0 30px rgba(0, 229, 255, 0.15);
+}
+
+/* ===== 动态背景 - 浮动能力图标 ===== */
+.seko-style-landing.serenade-landing .serenade-floating-capabilities {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.seko-style-landing.serenade-landing .float-cap {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 14px;
+  border-radius: var(--v2-radius-md);
+  background: rgba(10, 10, 18, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  color: var(--v2-text-secondary);
+  font-size: 11px;
+  opacity: 0.7;
+  animation: float-cap-float 8s ease-in-out infinite;
+}
+
+.seko-style-landing.serenade-landing .float-cap svg {
+  color: var(--v2-cyan);
+}
+
+.seko-style-landing.serenade-landing .float-cap-1 { top: 12%; left: 8%; animation-delay: 0s; }
+.seko-style-landing.serenade-landing .float-cap-2 { top: 18%; right: 10%; animation-delay: -1.5s; }
+.seko-style-landing.serenade-landing .float-cap-3 { bottom: 22%; left: 6%; animation-delay: -3s; }
+.seko-style-landing.serenade-landing .float-cap-4 { bottom: 18%; right: 8%; animation-delay: -4.5s; }
+.seko-style-landing.serenade-landing .float-cap-5 { top: 45%; left: 4%; animation-delay: -2s; }
+.seko-style-landing.serenade-landing .float-cap-6 { top: 50%; right: 5%; animation-delay: -3.5s; }
+
+.seko-style-landing.serenade-landing .float-cap-2 svg { color: #a855f7; }
+.seko-style-landing.serenade-landing .float-cap-3 svg { color: #ec4899; }
+.seko-style-landing.serenade-landing .float-cap-4 svg { color: #10b981; }
+.seko-style-landing.serenade-landing .float-cap-5 svg { color: #f59e0b; }
+.seko-style-landing.serenade-landing .float-cap-6 svg { color: #06b6d4; }
+
+@keyframes float-cap-float {
+  0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.55; }
+  50% { transform: translateY(-12px) rotate(1.5deg); opacity: 0.85; }
+}
+
+/* ===== 动态轨道背景 ===== */
+.seko-style-landing.serenade-landing .serenade-hero-backdrop {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.seko-style-landing.serenade-landing .serenade-orbit {
+  position: absolute;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 50%;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.seko-style-landing.serenade-landing .serenade-orbit-a {
+  width: min(600px, 65vmin);
+  height: min(600px, 65vmin);
+  border-color: rgba(0, 229, 255, 0.06);
+  animation: orbit-rotate 40s linear infinite;
+}
+
+.seko-style-landing.serenade-landing .serenade-orbit-b {
+  width: min(900px, 95vmin);
+  height: min(900px, 95vmin);
+  border-color: rgba(168, 85, 247, 0.05);
+  animation: orbit-rotate 60s linear infinite reverse;
+}
+
+.seko-style-landing.serenade-landing .serenade-orbit-c {
+  width: min(1200px, 125vmin);
+  height: min(1200px, 125vmin);
+  border-color: rgba(236, 72, 153, 0.04);
+  animation: orbit-rotate 80s linear infinite;
+}
+
+/* 缩小视口时降低光环不透明度，避免被裁切后形成不自然的光斑 */
+@media (max-width: 768px) {
+  .seko-style-landing.serenade-landing .serenade-orbit-a {
+    border-color: rgba(0, 229, 255, 0.04);
+  }
+  .seko-style-landing.serenade-landing .serenade-orbit-b {
+    border-color: rgba(168, 85, 247, 0.03);
+  }
+  .seko-style-landing.serenade-landing .serenade-orbit-c {
+    border-color: rgba(236, 72, 153, 0.025);
+  }
+}
+
+@media (max-width: 480px) {
+  .seko-style-landing.serenade-landing .serenade-orbit-b,
+  .seko-style-landing.serenade-landing .serenade-orbit-c {
+    display: none;
+  }
+}
+
+.seko-style-landing.serenade-landing .serenade-backdrop-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 60px 60px;
+  mask-image: radial-gradient(ellipse at center, black 0%, transparent 70%);
+  -webkit-mask-image: radial-gradient(ellipse at center, black 0%, transparent 70%);
+}
+
+@keyframes orbit-rotate {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* ===== 响应式 - 移动端 ===== */
+@media (max-width: 768px) {
+  .seko-style-landing.serenade-landing .seko-hero-centered {
+    padding: 70px 16px 32px !important;
+  }
+
+  .seko-style-landing.serenade-landing .float-cap {
+    display: none;
+  }
+
+  .seko-style-landing.serenade-landing .seko-hero-centered-actions {
+    gap: 8px;
+  }
+
+  .seko-style-landing.serenade-landing .seko-centered-btn {
+    height: 36px;
+    padding: 0 14px;
+    font-size: 12px;
+  }
+
+  .seko-style-landing.serenade-landing .seko-centered-cta-btn {
+    height: 40px;
+    padding: 0 20px;
+  }
+
+  .serenade-landing .seko-home-input-cluster-centered {
+    max-width: 100%;
+    margin-top: 8px;
+  }
+}
+
+/* ===== 隐藏多余元素 ===== */
+.seko-style-landing.serenade-landing .seko-home-refresh-stats,
+.seko-style-landing.serenade-landing .seko-home-refresh-capabilities,
+.seko-style-landing.serenade-landing .seko-home-refresh-flow,
+.seko-style-landing.serenade-landing .seko-future-showcase,
+.seko-style-landing.serenade-landing .serenade-hero-visual,
+.seko-style-landing.serenade-landing .serenade-hero-copy-overlay {
+  display: none !important;
+}
+
+/* ===== 强覆盖：输入框集群居中 - 覆盖绝对定位 ===== */
+.seko-style-landing.serenade-landing .seko-home-input-cluster,
+.seko-style-landing.serenade-landing .seko-home-input-cluster-centered {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  transform: none !important;
+  width: 100% !important;
+  max-width: 720px !important;
+  margin: 12px auto 0 !important;
+  z-index: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 10px !important;
+  flex-basis: auto !important;
+  flex-grow: 0 !important;
+}
+
+.seko-style-landing.serenade-landing .seko-hero-input-bar {
+  width: min(800px, calc(100vw - 40px)) !important;
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  transform: none !important;
+}
+
+/* ===== 强覆盖：内容容器高度 ===== */
+.seko-style-landing.serenade-landing .seko-hero-centered-content,
+.seko-style-landing.serenade-landing .seko-hero-content {
+  position: relative !important;
+  width: 100% !important;
+  max-width: 1100px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 24px !important;
+  z-index: 10 !important;
+  padding: 0 24px !important;
+  margin: 0 !important;
+  height: auto !important;
+  min-height: auto !important;
+  flex: none !important;
+  flex-basis: auto !important;
+  flex-grow: 0 !important;
+}
+
+.seko-style-landing.serenade-landing .seko-hero-centered-stage {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 20px !important;
+  width: 100% !important;
+  max-width: 1100px !important;
+  height: auto !important;
+  min-height: auto !important;
+  flex: none !important;
+}
+
+/* ===== 响应式：移动端输入框 ===== */
+@media (max-width: 768px) {
+  .seko-style-landing.serenade-landing .seko-home-input-cluster-centered {
+    max-width: 100% !important;
+    margin-top: 8px !important;
+  }
+}

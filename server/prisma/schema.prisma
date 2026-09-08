@@ -1,0 +1,1449 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  // P1 修复 #10：Prisma provider 必须为字面量（不支持 env()）。
+  // 开发环境使用 sqlite；生产部署时需将此项改为 "postgresql" 并重新 prisma generate。
+  // 运行时由 src/types/env.ts 强制校验：生产环境 DATABASE_URL 含 sqlite/file: 时直接 throw，拒绝启动。
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                      String                    @id @default(uuid())
+  username                String                    @unique
+  email                   String                    @unique
+  emailCipher             String?
+  emailHash               String?
+  password                String
+  role                    String                    @default("user")
+  apiQuota                Int                       @default(100)
+  usedQuota               Int                       @default(0)
+  isActive                Boolean                   @default(true)
+  phone                   String?                   @unique
+  phoneCipher             String?
+  phoneHash               String?
+  // A one-way hash of the client installation identifier.  It is unique so a
+  // browser/app installation cannot create multiple accounts.
+  deviceIdHash            String?                   @unique
+  avatar                  String?
+  lastLoginAt             DateTime?                 @map("last_login_at")
+  lastLoginIp             String?                   @map("last_login_ip")
+  points                  Int                       @default(0)
+  pointsBalance           Float                     @default(0)
+  rechargePointsBalance   Float                     @default(0)
+  frozenPoints            Float                     @default(0)
+  createdAt               DateTime                  @default(now())
+  updatedAt               DateTime                  @updatedAt
+  apiCallLogs             ApiCallLog[]
+  apiKeys                 ApiKey[]
+  campaignParticipations  CampaignParticipation[]
+  canvasProjects          CanvasProject[]
+  characterLibrary        CharacterLibrary[]
+  sceneLibrary            SceneLibrary[]
+  propLibrary             PropLibrary[]
+  chatConversations       ChatConversation[]
+  communityApplications   CommunityApplication[]
+  communityComments       CommunityComment[]
+  communityPostLikes      CommunityPostLike[]
+  communityPosts          CommunityPost[]
+  favorites               Favorite[]
+  ipPointsGrants          IpPointsGrant[]
+  loginLogs               LoginLog[]
+  manualRequests          ManualMembershipRequest[]
+  membershipOrders        MembershipOrder[]
+  notifications           Notification[]
+  paymentLogs             PaymentLog[]
+  payments                Payment[]
+  playHistory             PlayHistory[]
+  pointsAlerts            PointsAlert?
+  pointsOrders            PointsOrder[]
+  pointsTransactions      PointsTransaction[]
+  songs                   Song[]
+  tasks                   Task[]
+  tickets                 Ticket[]
+  usageLogs               UsageLog[]
+  userApiKeys             UserApiKey[]
+  modelCredentialVault    UserModelCredentialVault?
+  UserFile                UserFile[]
+  userMemberships         UserMembership[]
+  notificationSettings    UserNotificationSetting?
+  quota                   UserQuota?
+  rateLimits              UserRateLimit[]
+  registrations           UserRegistration[]
+  voiceChatMessages       VoiceChatMessage[]
+  posterProjects          PosterProject[]
+
+  @@map("users")
+}
+
+model Notification {
+  id        String    @id @default(uuid())
+  userId    String
+  type      String
+  title     String
+  content   String
+  data      String?
+  isRead    Boolean   @default(false)
+  priority  String    @default("normal")
+  createdAt DateTime  @default(now())
+  readAt    DateTime?
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead, createdAt])
+  @@index([type])
+  @@map("notifications")
+}
+
+model UserNotificationSetting {
+  id              String   @id @default(uuid())
+  userId          String   @unique
+  emailEnabled    Boolean  @default(true)
+  pushEnabled     Boolean  @default(true)
+  typesEnabled    String   @default("system,task,payment")
+  quietHoursStart String?
+  quietHoursEnd   String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_notification_settings")
+}
+
+model UserFile {
+  id           String    @id @default(uuid())
+  userId       String
+  filename     String
+  originalName String
+  fileType     String
+  fileSize     Int
+  size         Int?
+  mimeType     String
+  filePath     String
+  storagePath  String?
+  url          String?
+  cosUrl       String?
+  thumbnailUrl String?
+  metadata     String?
+  folder       String    @default("/")
+  isPublic     Boolean   @default(false)
+  isDeleted    Boolean   @default(false)
+  deletedAt    DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([fileType])
+  @@index([folder])
+  @@index([isDeleted])
+  @@index([createdAt])
+  @@map("user_files")
+}
+
+model CampaignParticipation {
+  id         String    @id @default(uuid())
+  userId     String
+  campaignId String
+  status     String    @default("pending")
+  prizeWon   String?
+  redeemedAt DateTime?
+  expiresAt  DateTime?
+  metadata   String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([campaignId])
+  @@map("campaign_participations")
+}
+
+model Ticket {
+  id         String    @id @default(uuid())
+  userId     String
+  subject    String
+  category   String    @default("general")
+  status     String    @default("open")
+  priority   String    @default("normal")
+  messages   String    @default("[]")
+  isPublic   Boolean   @default(false)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  resolvedAt DateTime?
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@map("tickets")
+}
+
+model UserMembership {
+  id           String     @id @default(uuid())
+  userId       String
+  membershipId String
+  level        String     @default("free")
+  status       String     @default("active")
+  startAt      DateTime?
+  endAt        DateTime?
+  nextGrantAt  DateTime?
+  grantPolicy  String?
+  autoRenew    Boolean    @default(false)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  membership   Membership @relation(fields: [membershipId], references: [id])
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([membershipId])
+  @@index([status])
+  @@index([userId, status, endAt]) // CFG-06 修复：添加复合索引优化认证路径高频查询
+  @@map("user_memberships")
+}
+
+model CharacterLibrary {
+  id           String             @id @default(uuid())
+  userId       String
+  name         String
+  description  String             @default("")
+  appearance   String             @default("")
+  personality  String             @default("")
+  outfit       String             @default("")
+  traits       String             @default("[]")
+  imageUrl     String?
+  thumbnailUrl String?
+  groupType    String             @default("MAIN")
+  isActive     Boolean            @default(true)
+  useCount     Int                @default(0)
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+  user         User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  usageHistory CharacterUsage[]
+  variants     CharacterVariant[]
+
+  @@index([userId])
+  @@index([groupType])
+  @@index([createdAt])
+  @@map("character_library")
+}
+
+model CharacterVariant {
+  id           String           @id @default(uuid())
+  characterId  String
+  variantType  String
+  variantName  String
+  expression   String?
+  pose         String?
+  outfit       String?
+  angle        String?
+  imageUrl     String?
+  thumbnailUrl String?
+  prompt       String           @default("")
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  character    CharacterLibrary @relation(fields: [characterId], references: [id], onDelete: Cascade)
+
+  @@index([characterId])
+  @@index([variantType])
+  @@map("character_variants")
+}
+
+model CharacterUsage {
+  id             String           @id @default(uuid())
+  characterId    String
+  sceneId        String?
+  sceneName      String?
+  usageContext   String?
+  generatedImage String?
+  createdAt      DateTime         @default(now())
+  character      CharacterLibrary @relation(fields: [characterId], references: [id], onDelete: Cascade)
+
+  @@index([characterId])
+  @@index([createdAt])
+  @@map("character_usage")
+}
+
+model SceneLibrary {
+  id                String   @id @default(uuid())
+  userId            String
+  name              String
+  summary           String   @default("")
+  primaryImage      String?
+  lightingPrompt    String   @default("")
+  environmentPrompt String   @default("")
+  prompt            String   @default("")
+  negativePrompt    String   @default("")
+  tags              String   @default("[]")
+  isActive          Boolean  @default(true)
+  useCount          Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("scene_library")
+}
+
+model PropLibrary {
+  id             String   @id @default(uuid())
+  userId         String
+  name           String
+  summary        String   @default("")
+  primaryImage   String?
+  materialTags   String   @default("[]")
+  prompt         String   @default("")
+  negativePrompt String   @default("")
+  tags           String   @default("[]")
+  isActive       Boolean  @default(true)
+  useCount       Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("prop_library")
+}
+
+model CharacterTemplate {
+  id           String   @id @default(uuid())
+  userId       String?
+  name         String
+  category     String   @default("custom")
+  description  String   @default("")
+  prompt       String
+  thumbnailUrl String?
+  isPublic     Boolean  @default(false)
+  useCount     Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([userId])
+  @@index([category])
+  @@index([isPublic])
+  @@map("character_templates")
+}
+
+model ApiKey {
+  id        String    @id @default(uuid())
+  userId    String
+  name      String
+  key       String    @unique
+  provider  String?
+  models    String?
+  isActive  Boolean   @default(true)
+  lastUsed  DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("api_keys")
+}
+
+model Task {
+  id             String   @id @default(uuid())
+  userId         String
+  type           String
+  prompt         String
+  params         String?
+  status         String   @default("pending")
+  progress       Int      @default(0)
+  result         String?
+  error          String?
+  taskId         String?  @unique
+  providerTaskId String?
+  model          String?
+  provider       String?
+  outputUrl      String?
+  cosUrl         String?
+  thumbnailUrl   String?
+  credits        Int      @default(0)
+  reviewStatus   String   @default("pending")
+  reviewedAt     DateTime?
+  reviewedBy     String?
+  reviewNote     String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([reviewStatus])
+  @@index([createdAt])
+  @@map("tasks")
+}
+
+/// 服务端权威海报项目。浏览器存储仅缓存 project id，不再承载会话事实。
+model PosterProject {
+  id              String                @id
+  userId          String
+  name            String                @default("未命名海报")
+  status          String                @default("draft")
+  textRenderMode  String                @default("native")
+  messages        String                @default("[]")
+  brief           String?
+  compiledPrompt  String?
+  referenceImages String                @default("[]")
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  user            User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  briefVersions   PosterBriefVersion[]
+  generationRuns  PosterGenerationRun[]
+
+  @@index([userId, updatedAt(sort: Desc)])
+  @@index([status])
+  @@map("poster_projects")
+}
+
+model PosterBriefVersion {
+  id        String        @id @default(uuid())
+  projectId String
+  version   Int
+  brief     String
+  createdAt DateTime      @default(now())
+  project   PosterProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, version])
+  @@map("poster_brief_versions")
+}
+
+model PosterGenerationRun {
+  id                 String            @id @default(uuid())
+  projectId          String
+  idempotencyKey     String            @unique
+  status             String            @default("queued")
+  model              String            @default("gpt-image-2")
+  provider           String?
+  textRenderMode     String            @default("native")
+  prompt             String
+  requestPayload     String?
+  templateId         String?
+  promptVersion      String            @default("gpt-image-2-native-text-v1")
+  layoutRuleVersion  String            @default("poster-layout-v1")
+  qualityRuleVersion String            @default("poster-three-gates-v1")
+  refinementVersion  String            @default("gpt-image-2-native-refine-v1")
+  providerTaskId     String?
+  error              String?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  project            PosterProject     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  candidates         PosterCandidate[]
+
+  @@index([projectId, createdAt])
+  @@index([status])
+  @@index([templateId])
+  @@map("poster_generation_runs")
+}
+
+model PosterCandidate {
+  id              String                @id @default(uuid())
+  generationRunId String
+  imageUrl        String
+  status          String                @default("generated")
+  rank            Int?
+  qualityStatus   String?
+  createdAt       DateTime              @default(now())
+  generationRun   PosterGenerationRun   @relation(fields: [generationRunId], references: [id], onDelete: Cascade)
+  qualityReports  PosterQualityReport[]
+
+  @@index([generationRunId, rank])
+  @@map("poster_candidates")
+}
+
+model PosterQualityReport {
+  id          String          @id @default(uuid())
+  candidateId String
+  status      String          @default("completed")
+  engine      String?
+  report      String
+  degraded    Boolean         @default(false)
+  createdAt   DateTime        @default(now())
+  candidate   PosterCandidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  @@index([candidateId, createdAt])
+  @@index([degraded])
+  @@map("poster_quality_reports")
+}
+
+model PaymentLog {
+  id            String    @id @default(uuid())
+  userId        String
+  type          String
+  amount        Float
+  currency      String    @default("CNY")
+  status        String    @default("pending")
+  method        String?
+  orderNo       String?   @unique
+  transactionId String?
+  metadata      String?
+  createdAt     DateTime  @default(now())
+  paidAt        DateTime?
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("payment_logs")
+}
+
+model Payment {
+  id            String    @id @default(uuid())
+  userId        String
+  membershipId  String
+  orderNo       String    @unique
+  amount        Float
+  currency      String    @default("CNY")
+  status        String    @default("pending")
+  paymentMethod String?
+  channel       String?
+  transactionId String?
+  tradeNo       String?
+  qrCodeImage   String?
+  refundAmount  Float?
+  refundStatus  String?
+  refundNo      String?
+  refundReason  String?
+  refundedAt    DateTime?
+  refundedBy    String?
+  paidAt        DateTime?
+  expiredAt     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([refundStatus])
+  @@map("payments")
+}
+
+model ManualMembershipRequest {
+  id           String    @id @default(uuid())
+  userId       String
+  membershipId String
+  duration     String    @default("monthly")
+  amount       Float
+  status       String    @default("pending")
+  paymentProof String?
+  paidAt       DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@map("manual_membership_requests")
+}
+
+model LoginLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  ip        String?
+  userAgent String?
+  device    String?
+  location  String?
+  status    String   @default("success")
+  createdAt DateTime @default(now())
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("login_logs")
+}
+
+model UsageLog {
+  id        String   @id @default(uuid())
+  userId    String
+  endpoint  String
+  method    String
+  params    String?
+  status    Int
+  duration  Int?
+  ip        String?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("usage_logs")
+}
+
+model UserQuota {
+  id              String   @id @default(uuid())
+  userId          String   @unique
+  dailyLimit      Int      @default(100)
+  dailyUsed       Int      @default(0)
+  monthlyLimit    Int      @default(1000)
+  monthlyUsed     Int      @default(0)
+  concurrentLimit Int      @default(3)
+  concurrentUsed  Int      @default(0)
+  storageLimit    BigInt?
+  fileLimit       Int?
+  apiCallsLimit   Int?
+  resetAt         DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_quotas")
+}
+
+model MembershipOrder {
+  id           String    @id @default(uuid())
+  userId       String
+  orderNo      String    @unique
+  membershipId String
+  duration     String    @default("monthly")
+  amount       Float
+  status       String    @default("pending")
+  paymentProof String?
+  paidAt       DateTime?
+  expiresAt    DateTime?
+  refundAmount Float     @default(0)
+  refundStatus String?
+  refundNo     String?
+  refundReason String?
+  refundedAt   DateTime?
+  refundedBy   String?
+  metadata     String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([refundStatus])
+  @@map("membership_orders")
+}
+
+model ProcessedPaymentCallback {
+  id          String   @id @default(uuid())
+  outTradeNo  String   @unique
+  tradeNo     String?
+  totalFee    Float
+  processedAt DateTime @default(now())
+  status      String   @default("success")
+  error       String?
+  metadata    String?
+
+  @@index([processedAt])
+  @@map("processed_payment_callbacks")
+}
+
+model Membership {
+  id                String           @id @default(uuid())
+  name              String           @unique
+  displayName       String?
+  description       String?
+  price             Float
+  monthlyPrice      Float?
+  quarterlyPrice    Float?
+  yearlyPrice       Float?
+  duration          String           @default("monthly")
+  quota             Int              @default(0)
+  monthlyGiftPoints Int              @default(0)
+  features          String           @default("[]")
+  limits            String?
+  grantPolicy       String?
+  isActive          Boolean          @default(true)
+  sortOrder         Int              @default(0)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  userMemberships   UserMembership[]
+
+  @@map("memberships")
+}
+
+model ProviderConfig {
+  id          String           @id @default(uuid())
+  provider    String           @unique
+  name        String
+  displayName String?
+  description String?
+  endpoint    String?
+  apiKey      String?
+  apiSecret   String?
+  isActive    Boolean          @default(false)
+  config      String           @default("{}")
+  priority    Int              @default(0)
+  rateLimit   Int?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  apiKeys     ProviderApiKey[]
+
+  @@map("provider_configs")
+}
+
+model ProviderApiKey {
+  id             String         @id @default(uuid())
+  providerName   String
+  keyLabel       String
+  encryptedKey   String
+  modelScope     String?
+  weight         Int            @default(1)
+  maxConcurrency Int            @default(1)
+  quotaTotal     Int            @default(0)
+  quotaUsed      Int            @default(0)
+  quotaRemaining Int            @default(0)
+  isActive       Boolean        @default(true)
+  isExhausted    Boolean        @default(false)
+  failureCount   Int            @default(0)
+  lastFailureAt  DateTime?
+  disabledAt     DateTime?
+  priority       Int            @default(0)
+  lastUsedAt     DateTime?
+  exhaustedAt    DateTime?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  provider       ProviderConfig @relation(fields: [providerName], references: [provider], onDelete: Cascade)
+
+  @@unique([providerName, keyLabel])
+  @@index([providerName, isActive, isExhausted])
+  @@map("provider_api_keys")
+}
+
+model UserRegistration {
+  id                 String    @id @default(uuid())
+  userId             String
+  username           String
+  email              String
+  phone              String?
+  passwordHash       String
+  status             String    @default("pending")
+  registrationMethod String    @default("email")
+  referralCode       String?
+  metadata           String?
+  approvalAdminId    String?
+  approvalNote       String?
+  approvedAt         DateTime?
+  createdAt          DateTime  @default(now())
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("user_registrations")
+}
+
+model IpPointsGrant {
+  id        String    @id @default(uuid())
+  userId    String?
+  ip        String
+  points    Int
+  reason    String?
+  adminId   String?
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+  user      User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([ip])
+  @@index([createdAt])
+  @@map("ip_points_grants")
+}
+
+model UserRateLimit {
+  id              String   @id @default(uuid())
+  userId          String
+  endpoint        String?
+  limitType       String   @default("fixed")
+  limit           Int
+  window          Int      @default(60)
+  dailyLimit      Int      @default(1000)
+  dailyUsed       Int      @default(0)
+  monthlyLimit    Int      @default(10000)
+  monthlyUsed     Int      @default(0)
+  minuteLimit     Int      @default(60)
+  secondLimit     Int      @default(10)
+  concurrentLimit Int      @default(5)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_rate_limits")
+}
+
+model PointsAlert {
+  id          String    @id @default(uuid())
+  userId      String    @unique
+  threshold   Int       @default(100)
+  isEnabled   Boolean   @default(true)
+  lastAlertAt DateTime?
+  alertCount  Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("points_alerts")
+}
+
+model FrontendSession {
+  id             String    @id @default(uuid())
+  sessionId      String    @unique
+  userId         String?
+  userAgent      String
+  screenWidth    Int?
+  screenHeight   Int?
+  viewportWidth  Int?
+  viewportHeight Int?
+  deviceType     String?
+  browserName    String?
+  browserVersion String?
+  osName         String?
+  osVersion      String?
+  language       String?
+  timezone       String?
+  ipAddress      String?
+  country        String?
+  city           String?
+  startTime      DateTime  @default(now())
+  endTime        DateTime?
+  duration       Int?
+  pageCount      Int       @default(0)
+  eventCount     Int       @default(0)
+  errorCount     Int       @default(0)
+  isBounce       Boolean?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([sessionId])
+  @@index([userId])
+  @@index([startTime])
+  @@map("frontend_sessions")
+}
+
+model FrontendPageView {
+  id             String   @id @default(uuid())
+  sessionId      String
+  pageUrl        String
+  pageTitle      String?
+  referrer       String?
+  viewportWidth  Int?
+  viewportHeight Int?
+  scrollDepth    Int?
+  timeOnPage     Int?
+  timestamp      DateTime @default(now())
+
+  @@index([sessionId])
+  @@index([pageUrl])
+  @@index([timestamp])
+  @@map("frontend_page_views")
+}
+
+model FrontendEvent {
+  id        String   @id @default(uuid())
+  sessionId String
+  category  String
+  action    String
+  label     String?
+  value     String?
+  timestamp DateTime @default(now())
+
+  @@index([sessionId])
+  @@index([category])
+  @@index([timestamp])
+  @@map("frontend_events")
+}
+
+model Song {
+  id            String        @id @default(uuid())
+  userId        String
+  title         String
+  artist        String?
+  composer      String?
+  lyricist      String?
+  arranger      String?
+  producer      String?
+  album         String?
+  genre         String?
+  year          String?
+  comment       String?
+  lyrics        String?
+  lrc           String?
+  audioUrl      String
+  coverImageUrl String?
+  duration      Int?
+  model         String?
+  provider      String?
+  isPublic      Boolean       @default(false)
+  playCount     Int           @default(0)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  favorites     Favorite[]
+  playHistory   PlayHistory[]
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([title])
+  @@index([genre])
+  @@index([createdAt])
+  @@map("songs")
+}
+
+model Favorite {
+  id        String   @id @default(uuid())
+  userId    String
+  songId    String
+  createdAt DateTime @default(now())
+  song      Song     @relation(fields: [songId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, songId])
+  @@index([userId])
+  @@index([songId])
+  @@index([createdAt])
+  @@map("favorites")
+}
+
+model PlayHistory {
+  id         String   @id @default(uuid())
+  userId     String
+  songId     String
+  playedAt   DateTime @default(now())
+  duration   Int?
+  completion Float    @default(0)
+  song       Song     @relation(fields: [songId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([songId])
+  @@index([playedAt])
+  @@map("play_history")
+}
+
+model FrontendError {
+  id        String   @id @default(uuid())
+  sessionId String
+  errorType String
+  message   String
+  stack     String?
+  url       String?
+  lineNo    Int?
+  colNo     Int?
+  userAgent String?
+  timestamp DateTime @default(now())
+
+  @@index([sessionId])
+  @@index([errorType])
+  @@index([timestamp])
+  @@map("frontend_errors")
+}
+
+model DailyUsage {
+  id                      String   @id @default(uuid())
+  userId                  String
+  date                    String
+  musicCount              Int      @default(0)
+  imageCount              Int      @default(0)
+  audioMinutes            Float    @default(0)
+  promptOptimizationCount Int      @default(0)
+  videoCount              Int      @default(0)
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  @@unique([userId, date])
+  @@index([userId])
+  @@index([date])
+  @@map("daily_usage")
+}
+
+model ApiCallLog {
+  id           String     @id @default(uuid())
+  userApiKeyId String
+  userId       String
+  provider     String
+  model        String?
+  endpoint     String
+  method       String
+  inputTokens  Int?
+  outputTokens Int?
+  inputCost    Float      @default(0)
+  outputCost   Float      @default(0)
+  totalCost    Float      @default(0)
+  pointsCost   Int        @default(0)
+  latencyMs    Int?
+  statusCode   Int?
+  requestId    String?
+  errorMessage String?
+  ipAddress    String?
+  userAgent    String?
+  createdAt    DateTime   @default(now())
+  userApiKey   UserApiKey @relation(fields: [userApiKeyId], references: [id], onDelete: Cascade)
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userApiKeyId, createdAt])
+  @@index([userId, createdAt])
+  @@index([provider, createdAt])
+  @@index([createdAt])
+  @@map("api_call_logs")
+}
+
+model UserApiKey {
+  id              String       @id @default(uuid())
+  userId          String
+  keyName         String
+  apiKey          String       @unique
+  apiSecret       String?
+  provider        String?
+  models          String?
+  permissions     String?
+  isActive        Boolean      @default(true)
+  isPrimary       Boolean      @default(false)
+  rateLimit       Int          @default(60)
+  rateLimitWindow String       @default("minute")
+  expiresAt       DateTime?
+  lastUsedAt      DateTime?
+  totalCalls      Int          @default(0)
+  totalCost       Float        @default(0)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  callLogs        ApiCallLog[]
+  user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isActive])
+  @@map("user_api_keys")
+}
+
+/// 用户自带模型凭据：整份内容使用服务器 AES-256-GCM 加密，绝不向浏览器回传明文。
+/// 限额由路由按解密前 JSON 字节数强制为 2MB。
+model UserModelCredentialVault {
+  id               String   @id @default(uuid())
+  userId           String   @unique
+  encryptedPayload String
+  payloadBytes     Int      @default(0)
+  version          Int      @default(1)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_model_credential_vaults")
+}
+
+model PointsTransaction {
+  id             String    @id @default(uuid())
+  userId         String
+  idempotencyKey String?   @unique
+  type           String
+  amount         Float
+  balanceBefore  Float
+  balanceAfter   Float
+  rechargeAmount Float     @default(0)
+  pointsCost     Int       @default(0)
+  reason         String?
+  relatedType    String?
+  relatedId      String?
+  adminId        String?
+  adminUsername  String?
+  orderNo        String?
+  expiresAt      DateTime?
+  createdAt      DateTime  @default(now())
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([type])
+  @@index([createdAt])
+  @@index([expiresAt])
+  @@map("points_transactions")
+}
+
+model PointsOrder {
+  id            String    @id @default(uuid())
+  userId        String
+  orderNo       String    @unique
+  points        Int
+  amount        Float
+  paymentMethod String
+  status        String    @default("pending")
+  transactionId String?
+  qrCodeImage   String?
+  qrCode        String?
+  paidAt        DateTime?
+  expiredAt     DateTime?
+  refundAmount  Float     @default(0)
+  metadata      String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("points_orders")
+}
+
+model AdminOperationLog {
+  id            String   @id @default(uuid())
+  adminId       String
+  adminUsername String
+  action        String
+  targetType    String
+  targetId      String?
+  targetName    String?
+  beforeValue   String?
+  afterValue    String?
+  ipAddress     String?
+  userAgent     String?
+  status        String   @default("success")
+  errorMessage  String?
+  metadata      String?
+  createdAt     DateTime @default(now())
+
+  @@index([adminId])
+  @@index([action])
+  @@index([targetType])
+  @@index([targetId])
+  @@index([createdAt])
+  @@index([status])
+  @@map("admin_operation_logs")
+}
+
+model SystemConfig {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  value       String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("system_configs")
+}
+
+model EmailSendLog {
+  id           String   @id @default(uuid())
+  email        String
+  type         String
+  status       String   @default("pending")
+  messageId    String?
+  errorMessage String?
+  ipAddress    String?
+  createdAt    DateTime @default(now())
+
+  @@index([email])
+  @@index([type])
+  @@index([status])
+  @@index([createdAt])
+  @@index([ipAddress])
+  @@map("email_send_logs")
+}
+
+model SmsVerification {
+  id          String    @id @default(uuid())
+  phone       String
+  countryCode String    @default("86")
+  code        String
+  type        String    @default("login")
+  status      String    @default("pending")
+  attempts    Int       @default(0)
+  ipAddress   String?
+  expiresAt   DateTime
+  verifiedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([phone])
+  @@index([status])
+  @@index([expiresAt])
+  @@map("sms_verifications")
+}
+
+model EmailVerification {
+  id         String    @id @default(uuid())
+  email      String
+  ipAddress  String?
+  code       String
+  type       String    @default("register")
+  status     String    @default("pending")
+  attempts   Int       @default(0)
+  expiresAt  DateTime
+  verifiedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([email])
+  @@index([status])
+  @@index([expiresAt])
+  @@map("email_verifications")
+}
+
+model EnhancedAuditLog {
+  id           String    @id @default(uuid())
+  userId       String?
+  adminId      String?
+  action       String
+  resource     String
+  resourceId   String?
+  details      String?
+  ipAddress    String?
+  userAgent    String?
+  severity     String    @default("INFO")
+  category     String    @default("SYSTEM")
+  status       String    @default("success")
+  errorCode    String?
+  errorMessage String?
+  metadata     String?
+  duration     Int?
+  createdAt    DateTime  @default(now())
+  expiresAt    DateTime?
+
+  @@index([userId])
+  @@index([adminId])
+  @@index([action])
+  @@index([resource])
+  @@index([createdAt])
+  @@index([severity])
+  @@index([category])
+  @@index([status])
+  @@index([expiresAt])
+  @@map("enhanced_audit_logs")
+}
+
+model AuditArchive {
+  id          String    @id @default(uuid())
+  archiveDate DateTime
+  filePath    String
+  fileSize    Int
+  logCount    Int
+  format      String    @default("json")
+  compressed  Boolean   @default(true)
+  checksum    String?
+  status      String    @default("completed")
+  createdAt   DateTime  @default(now())
+  expiresAt   DateTime?
+
+  @@index([archiveDate])
+  @@index([status])
+  @@map("audit_archives")
+}
+
+model ChatConversation {
+  id            String        @id @default(uuid())
+  userId        String
+  subject       String?
+  status        String        @default("active")
+  lastMessageAt DateTime      @default(now())
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  user          User          @relation(fields: [userId], references: [id])
+  messages      ChatMessage[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([lastMessageAt])
+  @@map("chat_conversations")
+}
+
+model ChatMessage {
+  id             String           @id @default(uuid())
+  conversationId String
+  senderType     String
+  senderId       String?
+  content        String
+  isRead         Boolean          @default(false)
+  createdAt      DateTime         @default(now())
+  conversation   ChatConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@index([senderType])
+  @@index([createdAt])
+  @@index([isRead])
+  @@map("chat_messages")
+}
+
+model VoiceChatMessage {
+  id        String   @id @default(uuid())
+  userId    String
+  sessionId String
+  role      String
+  content   String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, sessionId, createdAt])
+  @@map("voice_chat_messages")
+}
+
+model CanvasProject {
+  id              String                @id @default(uuid())
+  userId          String
+  name            String                @default("未命名工程")
+  description     String?
+  nodes           String                @default("[]")
+  edges           String                @default("[]")
+  revision        Int                   @default(0)
+  viewport        String?
+  thumbnail       String?
+  isFavorite      Boolean               @default(false)
+  sortOrder       Int                   @default(0)
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  user            User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, updatedAt(sort: Desc)])
+  @@index([userId, isFavorite])
+  @@map("canvas_projects")
+}
+
+model CommunityPost {
+  id           String              @id @default(uuid())
+  userId       String
+  title        String
+  content      String
+  category     String              @default("综合讨论")
+  images       String?
+  viewCount    Int                 @default(0)
+  likeCount    Int                 @default(0)
+  commentCount Int                 @default(0)
+  isPinned     Boolean             @default(false)
+  isDeleted    Boolean             @default(false)
+  status       String              @default("published")
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+  comments     CommunityComment[]
+  likes        CommunityPostLike[]
+  user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([category])
+  @@index([status])
+  @@index([createdAt])
+  @@index([isPinned])
+  @@map("community_posts")
+}
+
+model CommunityComment {
+  id        String             @id @default(uuid())
+  postId    String
+  userId    String
+  content   String
+  parentId  String?
+  likeCount Int                @default(0)
+  isDeleted Boolean            @default(false)
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+  parent    CommunityComment?  @relation("CommentReplies", fields: [parentId], references: [id])
+  replies   CommunityComment[] @relation("CommentReplies")
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post      CommunityPost      @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+  @@index([userId])
+  @@index([parentId])
+  @@index([createdAt])
+  @@map("community_comments")
+}
+
+model CommunityPostLike {
+  id        String        @id @default(uuid())
+  postId    String
+  userId    String
+  createdAt DateTime      @default(now())
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post      CommunityPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@index([postId])
+  @@index([userId])
+  @@map("community_post_likes")
+}
+
+model CommunityApplication {
+  id         String    @id @default(uuid())
+  userId     String
+  reason     String
+  status     String    @default("pending")
+  adminNote  String?
+  reviewedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("community_applications")
+}
+
+model SoftwareVersion {
+  id           String   @id @default(uuid())
+  version      String   @unique
+  name         String
+  description  String?
+  releaseNotes String?
+  platform     String   @default("win")
+  filePath     String
+  fileName     String
+  fileSize     Int
+  checksum     String?
+  isLatest     Boolean  @default(false)
+  isActive     Boolean  @default(true)
+  uploadedBy   String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([version])
+  @@index([platform, isLatest])
+  @@index([isActive, createdAt])
+  @@map("software_versions")
+}
+
+model SiteMessage {
+  id          String            @id @default(uuid())
+  title       String
+  content     String
+  type        String            @default("system")
+  priority    String            @default("normal")
+  audience    String            @default("all")
+  showInLogin Boolean           @default(true) @map("show_in_login")
+  autoPopup   Boolean           @default(false) @map("auto_popup")
+  isActive    Boolean           @default(true) @map("is_active")
+  sortOrder   Int               @default(0) @map("sort_order")
+  linkUrl     String?           @map("link_url")
+  linkLabel   String?           @map("link_label")
+  startsAt    DateTime?         @map("starts_at")
+  endsAt      DateTime?         @map("ends_at")
+  createdAt   DateTime          @default(now()) @map("created_at")
+  updatedAt   DateTime          @updatedAt @map("updated_at")
+  reads       SiteMessageRead[]
+
+  @@index([isActive, sortOrder])
+  @@index([audience])
+  @@map("site_messages")
+}
+
+model SiteMessageRead {
+  id        String      @id @default(uuid())
+  userId    String      @map("user_id")
+  messageId String      @map("message_id")
+  readAt    DateTime    @default(now()) @map("read_at")
+  message   SiteMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, messageId])
+  @@index([userId])
+  @@index([messageId])
+  @@map("site_message_reads")
+}
+
+model PromptLog {
+  id              String   @id @default(uuid())
+  userId          String?  @map("user_id")
+  prompt          String
+  negativePrompt  String   @default("") @map("negative_prompt")
+  model           String?
+  provider        String?
+  type            String   @default("image")
+  source          String   @default("ai-view")
+  optimizedPrompt String?  @map("optimized_prompt")
+  ipAddress       String?  @map("ip_address")
+  userAgent       String?  @map("user_agent")
+  metadata        String?
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@index([type])
+  @@index([source])
+  @@index([createdAt])
+  @@map("prompt_logs")
+}

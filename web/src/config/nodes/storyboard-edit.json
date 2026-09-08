@@ -1,0 +1,42 @@
+{
+  "id": "storyboardEdit",
+  "name": "分镜编辑",
+  "category": "video",
+  "description": "独立分镜编辑轻节点：负责镜头重排、宫格裁剪、补镜提示与节奏标记",
+  "icon": "✂️",
+  "color": "#F59E0B",
+  "ports": {
+    "inputs": [
+      { "id": "scriptInput", "name": "分镜/剧本输入", "type": "string", "optional": true, "multiple": true },
+      { "id": "imageInput", "name": "分镜图片输入", "type": "image", "optional": true, "multiple": true }
+    ],
+    "outputs": [
+      { "id": "output", "name": "编辑后分镜", "type": "string" },
+      { "id": "scenes", "name": "镜头清单", "type": "string" }
+    ]
+  },
+  "ui": { "shell": "glass", "promptPanel": true, "resultRenderer": "text", "toolbar": "default" },
+  "execution": {
+    "executable": true,
+    "handler": "ai-gen-text",
+    "mode": "async",
+    "maxRetries": 1,
+    "timeout": 60000
+  },
+  "models": {
+    "mediaType": "text",
+    "useTextModelGroups": true,
+    "defaultModelId": "apipaths",
+    "fallbackModels": [
+      { "modelId": "apipaths", "provider": "apipaths" },
+      { "modelId": "deepseek-v4-pro", "provider": "deepseek" },
+      { "modelId": "deepseek-v4-flash", "provider": "sensenova" },
+      { "modelId": "sensenova-6.7-flash-lite", "provider": "sensenova" },
+      { "modelId": "gemini-3.5-flash", "provider": "apipaths" },
+      { "modelId": "gemini-3.1-pro-high", "provider": "apipaths" },
+      { "modelId": "gemini-3.1-pro-low", "provider": "apipaths" },
+      { "modelId": "gemini-3.1-pro-preview", "provider": "apipaths" },
+      { "modelId": "gemini-3-flash", "provider": "apipaths" }
+    ]
+  }
+}

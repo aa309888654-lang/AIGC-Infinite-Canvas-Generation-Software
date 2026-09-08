@@ -1,0 +1,170 @@
+import { STORAGE_SPACE_BYTES } from './membership-permissions';
+
+export interface DefaultMembershipRecord {
+  name: string;
+  displayName: string;
+  description: string;
+  price: number;
+  monthlyPrice?: number;
+  yearlyPrice?: number;
+  duration: string;
+  quota: number;
+  monthlyGiftPoints: number;
+  features: string;
+  limits: string;
+  grantPolicy?: string;
+  isActive: boolean;
+  sortOrder: number;
+}
+
+export const DEFAULT_MEMBERSHIPS: DefaultMembershipRecord[] = [
+  {
+    name: 'trial',
+    displayName: '体验版',
+    description: '免费体验，注册即可使用基本功能',
+    price: 0,
+    monthlyPrice: 0,
+    yearlyPrice: 0,
+    duration: '永久',
+    quota: 100,
+    monthlyGiftPoints: 100,
+    features: JSON.stringify([
+      '云空间100M',
+      '注册得500积分',
+      'AI音乐按照模型积分抵扣',
+      'AI图片按照模型积分抵扣',
+      'AI配音按照模型积分抵扣',
+      '提示词优化每次扣1积分',
+      '视频按照模型与时长积分抵扣',
+    ]),
+    limits: JSON.stringify({
+      concurrentTasks: 1,
+      dailyMusic: -1,
+      dailyImage: -1,
+      minimaxImage01FreeQuota: 0,
+      dailyAudioMinutes: -1,
+      dailyPromptOptimization: -1,
+      dailyVideo: -1,
+      musicDeductionPoints: 100,
+      imageDeductionPoints: 100,
+      audioDeductionPoints: 30,
+      promptDeductionPoints: 1,
+      storageSpace: STORAGE_SPACE_BYTES.trial,
+    }),
+    grantPolicy: 'cycle',
+    isActive: true,
+    sortOrder: 0,
+  },
+  {
+    name: 'light',
+    displayName: '轻享版',
+    description: '适合个人用户，满足日常创作需求',
+    price: 52.8,
+    monthlyPrice: 52.8,
+    yearlyPrice: 580,
+    duration: 'monthly',
+    quota: 5000,
+    monthlyGiftPoints: 5000,
+    features: JSON.stringify([
+      '云空间1000M',
+      '开通获得5000积分',
+      'AI音乐按照模型积分抵扣',
+      'AI图片按照模型积分抵扣',
+      'AI配音按照模型积分抵扣',
+      '提示词优化每次扣1积分',
+      '视频按照模型与时长积分抵扣',
+    ]),
+    limits: JSON.stringify({
+      concurrentTasks: 2,
+      dailyMusic: -1,
+      dailyImage: -1,
+      dailyAudioMinutes: -1,
+      dailyPromptOptimization: -1,
+      dailyVideo: -1,
+      minimaxImage01FreeQuota: 0,
+      musicDeductionPoints: 100,
+      imageDeductionPoints: 100,
+      audioDeductionPoints: 30,
+      promptDeductionPoints: 1,
+      storageSpace: STORAGE_SPACE_BYTES.light,
+    }),
+    grantPolicy: 'cycle',
+    isActive: true,
+    sortOrder: 2,
+  },
+  {
+    name: 'pro',
+    displayName: '专业版',
+    description: '适合专业创作者，解锁更多功能',
+    price: 202.8,
+    monthlyPrice: 202.8,
+    yearlyPrice: 2228,
+    duration: 'monthly',
+    quota: 20200,
+    monthlyGiftPoints: 20200,
+    features: JSON.stringify([
+      '云空间1000M',
+      '开通获得20200积分',
+      'AI音乐按照模型积分抵扣',
+      'AI图片按照模型积分抵扣',
+      'AI配音按照模型积分抵扣',
+      '提示词优化每次扣1积分',
+      '视频按照模型与时长积分抵扣',
+    ]),
+    limits: JSON.stringify({
+      concurrentTasks: 10,
+      dailyMusic: -1,
+      dailyImage: -1,
+      dailyAudioMinutes: -1,
+      dailyPromptOptimization: -1,
+      dailyVideo: -1,
+      minimaxImage01FreeQuota: 0,
+      musicDeductionPoints: 100,
+      imageDeductionPoints: 100,
+      audioDeductionPoints: 30,
+      promptDeductionPoints: 1,
+      storageSpace: STORAGE_SPACE_BYTES.pro,
+    }),
+    grantPolicy: 'cycle',
+    isActive: true,
+    sortOrder: 3,
+  },
+  {
+    name: 'local',
+    displayName: '本地安装版本',
+    description: '本地终身版，支持自定义大模型API，终身使用',
+    price: 399,
+    monthlyPrice: 399,
+    yearlyPrice: 4389,
+    duration: '永久',
+    quota: 10000,
+    monthlyGiftPoints: 10000,
+    features: JSON.stringify([
+      '云空间100M',
+      '开通获得10000积分',
+      'AI音乐按照模型积分抵扣',
+      'AI图片按照模型积分抵扣',
+      'AI配音按照模型积分抵扣',
+      '提示词优化每次扣1积分',
+      '视频设置自己的大模型API（全部模块都可以设置自己的大模型）',
+      '本地软件，终身使用',
+    ]),
+    limits: JSON.stringify({
+      concurrentTasks: 10,
+      dailyMusic: -1,
+      dailyImage: -1,
+      dailyAudioMinutes: -1,
+      dailyPromptOptimization: -1,
+      dailyVideo: -1,
+      minimaxImage01FreeQuota: 0,
+      musicDeductionPoints: 100,
+      imageDeductionPoints: 100,
+      audioDeductionPoints: 30,
+      promptDeductionPoints: 1,
+      storageSpace: STORAGE_SPACE_BYTES.local,
+    }),
+    grantPolicy: 'cycle',
+    isActive: true,
+    sortOrder: 4,
+  },
+];

@@ -1,0 +1,29 @@
+{
+  "id": "videoUpscale",
+  "name": "提升清晰度",
+  "category": "video",
+  "description": "基于深度学习的视频超分，智能提升视频分辨率至1080P，增强画面细节",
+  "icon": "✨",
+  "color": "#06B6D4",
+  "ports": {
+    "inputs": [{ "id": "video", "name": "视频输入", "type": "video" }],
+    "outputs": [{ "id": "output", "name": "高清视频输出", "type": "video" }]
+  },
+  "ui": { "shell": "glass-stack", "promptPanel": false, "resultRenderer": "video", "toolbar": "default" },
+  "execution": {
+    "executable": true,
+    "handler": "video-upscale",
+    "mode": "async",
+    "maxRetries": 0,
+    "timeout": 600000,
+    "requiredParams": [
+      { "key": "video_url", "type": "string", "required": true, "label": "视频" }
+    ]
+  },
+  "models": { "mediaType": "video" },
+  "pricing": {
+    "mode": "points",
+    "points": 20,
+    "label": "20积分/秒"
+  }
+}

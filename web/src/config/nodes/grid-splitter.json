@@ -1,0 +1,15 @@
+{
+  "id": "gridSplitter",
+  "name": "宫格切分",
+  "category": "image",
+  "description": "AICG 图片节点的卫星工具：将图片切分为 2x2 / 3x3 / 4x4 / 5x5 宫格",
+  "icon": "▦",
+  "color": "#06B6D4",
+  "ports": {
+    "inputs": [{ "id": "input", "name": "图片输入", "type": "image", "optional": true }],
+    "outputs": [{ "id": "output", "name": "选中格子输出", "type": "image" }]
+  },
+  "ui": { "hiddenFromPalette": true, "shell": "glass", "promptPanel": false, "resultRenderer": "image", "toolbar": "minimal" },
+  "execution": { "executable": false },
+  "models": { "mediaType": "none" }
+}

@@ -1,0 +1,30 @@
+{
+  "id": "cameraPath",
+  "name": "镜头路径",
+  "category": "video",
+  "description": "在图片上绘制镜头运动路径，生成镜头起点、关键点、终点和 Seedance 视频运镜指令",
+  "icon": "🧭",
+  "color": "#FF584D",
+  "ports": {
+    "inputs": [
+      { "id": "image", "name": "输入图片", "type": "image", "optional": true }
+    ],
+    "outputs": [
+      { "id": "output", "name": "镜头路径", "type": "string" },
+      { "id": "prompt", "name": "运镜提示词", "type": "prompt" },
+      { "id": "image", "name": "原图", "type": "image" }
+    ]
+  },
+  "defaultParams": {
+    "mode": "smart",
+    "semantics": "screen_tracking",
+    "durationSec": 5,
+    "preferredModelId": "doubao-seedance-2-0",
+    "preferredModelProvider": "doubao",
+    "cameraPathJson": "",
+    "prompt": ""
+  },
+  "ui": { "shell": "glass-stack", "promptPanel": false, "resultRenderer": "none", "toolbar": "minimal" },
+  "execution": { "executable": false, "mode": "sync" },
+  "models": { "mediaType": "none" }
+}

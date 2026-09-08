@@ -1,0 +1,25 @@
+# P1 修复 #14：Docker 构建忽略清单，避免将开发产物/敏感文件拷入镜像
+node_modules
+dist
+logs
+uploads
+dev.db
+test.db
+*.log
+.env
+.env.local
+.env.*.local
+.git
+.gitignore
+.vscode
+.idea
+coverage
+.nyc_output
+tests
+load-tests
+scripts
+docs
+*.md
+Dockerfile
+.dockerignore
+docker-compose.yml

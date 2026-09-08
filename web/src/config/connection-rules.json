@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "_comment_portCompatibility": "已废弃：portCompatibility 单一数据源在 node-system.ts 的 PORT_COMPATIBILITY。保留此字段仅为向后兼容。",
+  "portCompatibility": {
+    "string": ["string", "prompt", "image"],
+    "image": ["image", "string"],
+    "video": ["video", "string", "image"],
+    "audio": ["audio", "string", "image"],
+    "prompt": ["prompt", "string", "image"]
+  },
+  "_comment_nodeRules": "已迁移至 node-system.ts 的 NODE_CONNECTION_RULES（单一数据源）",
+  "inferRules": [
+    { "pattern": "image|Image|input3|firstFrame|lastFrame|referenceImage", "type": "image" },
+    { "pattern": "video|Video|input4", "type": "video" },
+    { "pattern": "audio|Audio", "type": "audio" },
+    { "pattern": "prompt|Prompt", "type": "prompt" }
+  ],
+  "defaultType": "string"
+}

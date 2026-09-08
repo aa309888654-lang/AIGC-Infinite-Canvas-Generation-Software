@@ -1,0 +1,87 @@
+/* LandingPage 科技感样式覆盖 */
+
+/* 模板库容器 - 深蓝渐变背景 */
+.jimeng-template-library {
+  background: linear-gradient(135deg, rgba(15, 25, 50, 0.7), rgba(10, 18, 35, 0.8)) !important;
+  border: 1px solid rgba(0, 200, 255, 0.1) !important;
+  box-shadow: 0 4px 16px rgba(0, 100, 200, 0.06) !important;
+}
+
+.jimeng-template-library:hover {
+  box-shadow: 0 8px 24px rgba(0, 100, 200, 0.1) !important;
+  border-color: rgba(0, 200, 255, 0.2) !important;
+}
+
+/* 模板库头部 */
+.jimeng-library-header {
+  background: rgba(0, 200, 255, 0.04) !important;
+  border: 1px solid rgba(0, 200, 255, 0.08) !important;
+}
+
+.jimeng-library-header:hover {
+  background: rgba(0, 200, 255, 0.08) !important;
+  border-color: rgba(0, 200, 255, 0.15) !important;
+}
+
+/* 输入框容器 */
+.jimeng-input-box {
+  background: linear-gradient(135deg, rgba(15, 25, 50, 0.85), rgba(10, 18, 35, 0.9)) !important;
+  border: 1px solid rgba(0, 200, 255, 0.15) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2), 0 8px 32px rgba(0, 100, 200, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+}
+
+.jimeng-input-box:focus-within {
+  border-color: rgba(0, 200, 255, 0.4) !important;
+  box-shadow: 0 8px 32px rgba(0, 100, 200, 0.15), 0 0 0 3px rgba(0, 200, 255, 0.08) !important;
+  background: linear-gradient(135deg, rgba(15, 25, 50, 0.9), rgba(10, 18, 35, 0.95)) !important;
+}
+
+/* Textarea 内部 */
+.jimeng-textarea-wrapper {
+  background: rgba(12, 20, 40, 0.5) !important;
+  border: 1px solid rgba(0, 200, 255, 0.08) !important;
+}
+
+.jimeng-textarea-wrapper:focus-within {
+  border-color: rgba(0, 200, 255, 0.3) !important;
+  box-shadow: 0 0 0 3px rgba(0, 200, 255, 0.06) !important;
+}
+
+/* 模型选择器 */
+.jimeng-text-model-select {
+  border: 1.5px solid rgba(0, 200, 255, 0.2) !important;
+  background: linear-gradient(135deg, rgba(15, 25, 50, 0.9), rgba(20, 30, 55, 0.95)) !important;
+  color: #e0f0ff !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2), 0 0 8px rgba(0, 200, 255, 0.05) !important;
+}
+
+/* 模式标签 */
+.jimeng-mode-tab {
+  color: #c0d0e0 !important;
+}
+
+.jimeng-mode-tab.active {
+  background: rgba(0, 200, 255, 0.1) !important;
+  border-color: rgba(0, 200, 255, 0.35) !important;
+  color: #00d4ff !important;
+  box-shadow: 0 0 12px rgba(0, 200, 255, 0.1) !important;
+}
+
+/* 剩余次数 */
+.jimeng-remaining {
+  color: #8ab4d8 !important;
+}
+
+/* 底部栏间距 */
+.jimeng-input-bottom {
+  padding: 10px 16px !important;
+  gap: 16px !important;
+}
+
+.jimeng-bottom-left {
+  gap: 8px !important;
+}
+
+.jimeng-btn-group {
+  gap: 12px !important;
+}

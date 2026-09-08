@@ -1,0 +1,643 @@
+/* ========================================
+   AI剪辑工作室 - UI布局优化系统 v2.0
+   统一布局、间距、响应式设计 - 明亮科技风
+   ======================================== */
+
+/* ========================================
+   1. 布局区域定义
+   ======================================== */
+.app-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+.app-header {
+  flex-shrink: 0;
+  height: 56px;
+  background: linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%);
+  border-bottom: 1px solid rgba(30, 41, 59, 0.08);
+  z-index: 100;
+  -webkit-app-region: drag;
+}
+
+.app-header button,
+.app-header input,
+.app-header select,
+.app-header a {
+  -webkit-app-region: no-drag;
+}
+
+.app-main {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  background: #F8FAFC;
+}
+
+.app-sidebar-left {
+  flex-shrink: 0;
+  width: 60px;
+  background: #FFFFFF;
+  border-right: 1px solid rgba(30, 41, 59, 0.06);
+  display: flex;
+  flex-direction: column;
+}
+
+.app-content {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-sidebar-right {
+  flex-shrink: 0;
+  width: 320px;
+  background: #FFFFFF;
+  border-left: 1px solid rgba(30, 41, 59, 0.06);
+  display: flex;
+  flex-direction: column;
+}
+
+.app-footer {
+  flex-shrink: 0;
+  height: 80px;
+  background: #FFFFFF;
+  border-top: 1px solid rgba(30, 41, 59, 0.06);
+}
+
+/* 紧凑模式 */
+.app-layout.compact .app-header {
+  height: 48px;
+}
+
+.app-layout.compact .app-sidebar-left {
+  width: 48px;
+}
+
+.app-layout.compact .app-sidebar-right {
+  width: 280px;
+}
+
+.app-layout.compact .app-footer {
+  height: 64px;
+}
+
+/* ========================================
+   2. 间距系统 (基于 4px 网格)
+   ======================================== */
+:root {
+  --space-0: 0;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.6);
+}
+
+/* 统一间距类 */
+.spacing-none { gap: 0; padding: 0; margin: 0; }
+.spacing-xs { gap: var(--space-1); padding: var(--space-1); margin: var(--space-1); }
+.spacing-sm { gap: var(--space-2); padding: var(--space-2); margin: var(--space-2); }
+.spacing-md { gap: var(--space-4); padding: var(--space-4); margin: var(--space-4); }
+.spacing-lg { gap: var(--space-6); padding: var(--space-6); margin: var(--space-6); }
+.spacing-xl { gap: var(--space-8); padding: var(--space-8); margin: var(--space-8); }
+
+/* ========================================
+   3. 面板系统
+   ======================================== */
+.panel {
+  background: #FFFFFF;
+  border: 1px solid rgba(30, 41, 59, 0.08);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(30, 41, 59, 0.06);
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  background: rgba(30, 41, 59, 0.02);
+  border-bottom: 1px solid rgba(30, 41, 59, 0.06);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1E293B;
+}
+
+.panel-content {
+  padding: var(--space-4);
+  overflow-y: auto;
+}
+
+.panel-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  background: rgba(30, 41, 59, 0.02);
+  border-top: 1px solid rgba(30, 41, 59, 0.06);
+}
+
+/* 面板折叠状态 */
+.panel.collapsed .panel-content {
+  display: none;
+}
+
+.panel.collapsed .panel-footer {
+  display: none;
+}
+
+/* ========================================
+   4. 卡片系统
+   ======================================== */
+.card {
+  background: #FFFFFF;
+  border: 1px solid rgba(30, 41, 59, 0.08);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(30, 41, 59, 0.06);
+}
+
+.card:hover {
+  background: #F8FAFC;
+  border-color: rgba(30, 41, 59, 0.12);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(30, 41, 59, 0.1);
+}
+
+.card-interactive {
+  cursor: pointer;
+}
+
+.card-interactive:active {
+  transform: translateY(0);
+}
+
+.card-compact {
+  padding: var(--space-3);
+}
+
+.card-spacious {
+  padding: var(--space-6);
+}
+
+/* ========================================
+   5. 按钮系统
+   ======================================== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: var(--radius-md);
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #6B7280 0%, #4B5563 100%);
+  color: #ffffff;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #9CA3AF 0%, #6B7280 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.btn-secondary {
+  background: rgba(30, 41, 59, 0.05);
+  color: #1E293B;
+  border: 1px solid rgba(30, 41, 59, 0.1);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: rgba(30, 41, 59, 0.08);
+  border-color: rgba(30, 41, 59, 0.15);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: #64748B;
+}
+
+.btn-ghost:hover:not(:disabled) {
+  background: rgba(30, 41, 59, 0.05);
+  color: #1E293B;
+}
+
+.btn-icon {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: var(--radius-md);
+}
+
+.btn-sm {
+  padding: var(--space-1) var(--space-3);
+  font-size: 0.75rem;
+}
+
+.btn-lg {
+  padding: var(--space-3) var(--space-6);
+  font-size: 1rem;
+}
+
+/* ========================================
+   6. 输入系统
+   ======================================== */
+.input {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  background: #FFFFFF;
+  border: 1px solid rgba(30, 41, 59, 0.1);
+  border-radius: var(--radius-md);
+  color: #1E293B;
+  font-size: 0.875rem;
+  transition: all 0.15s ease;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #6B7280;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.input::placeholder {
+  color: #94A3B8;
+}
+
+.input-sm {
+  padding: var(--space-1) var(--space-2);
+  font-size: 0.75rem;
+}
+
+.input-lg {
+  padding: var(--space-3) var(--space-4);
+  font-size: 1rem;
+}
+
+/* ========================================
+   7. 列表系统
+   ======================================== */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.list-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.list-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.list-item.active {
+  background: rgba(16, 185, 129, 0.15);
+  border-left: 3px solid #10b981;
+}
+
+.list-item-interactive {
+  cursor: pointer;
+}
+
+.list-item-interactive:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.list-item-interactive:active {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* ========================================
+   8. 标签页系统
+   ======================================== */
+.tabs {
+  display: flex;
+  gap: var(--space-1);
+  padding: var(--space-1);
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: var(--radius-lg);
+}
+
+.tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  color: #64748B;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tab:hover {
+  color: #1E293B;
+  background: rgba(30, 41, 59, 0.05);
+}
+
+.tab.active {
+  background: #6B7280;
+  color: #ffffff;
+}
+
+.tab-icon-only {
+  padding: var(--space-2);
+}
+
+/* ========================================
+   9. 工具栏系统
+   ======================================== */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-2);
+  background: rgba(30, 41, 59, 0.02);
+  border-radius: var(--radius-lg);
+}
+
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.toolbar-separator {
+  width: 1px;
+  height: 24px;
+  background: rgba(30, 41, 59, 0.1);
+  margin: 0 var(--space-2);
+}
+
+.toolbar-divider {
+  width: 100%;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.08);
+  margin: var(--space-2) 0;
+}
+
+/* ========================================
+   10. 拖放区域
+   ======================================== */
+.dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  padding: var(--space-8);
+  background: rgba(255, 255, 255, 0.02);
+  border: 2px dashed rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-xl);
+  transition: all 0.2s ease;
+}
+
+.dropzone:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.dropzone.active {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: #10b981;
+  border-style: solid;
+}
+
+/* ========================================
+   11. 响应式布局
+   ======================================== */
+@media (max-width: 768px) {
+  .app-sidebar-right {
+    position: fixed;
+    right: 0;
+    top: 56px;
+    bottom: 0;
+    width: 100%;
+    max-width: 320px;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+    z-index: 50;
+  }
+  
+  .app-sidebar-right.open {
+    transform: translateX(0);
+  }
+  
+  .app-layout.mobile-collapsed .app-sidebar-right {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .app-sidebar-left {
+    position: fixed;
+    left: 0;
+    top: 56px;
+    bottom: 0;
+    width: 72px;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    z-index: 50;
+  }
+  
+  .app-sidebar-left.open {
+    transform: translateX(0);
+  }
+  
+  .hide-mobile {
+    display: none !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hide-desktop {
+    display: none !important;
+  }
+}
+
+/* ========================================
+   12. 动画系统
+   ======================================== */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from { 
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideLeft {
+  from { 
+    opacity: 0;
+    transform: translateX(10px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideRight {
+  from { 
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleIn {
+  from { 
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to { 
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.2s ease;
+}
+
+.animate-slideUp {
+  animation: slideUp 0.3s ease;
+}
+
+.animate-slideDown {
+  animation: slideDown 0.3s ease;
+}
+
+.animate-slideLeft {
+  animation: slideLeft 0.3s ease;
+}
+
+.animate-slideRight {
+  animation: slideRight 0.3s ease;
+}
+
+.animate-scaleIn {
+  animation: scaleIn 0.2s ease;
+}
+
+/* ========================================
+   13. 滚动条美化
+   ======================================== */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(30, 41, 59, 0.05);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(30, 41, 59, 0.15);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(30, 41, 59, 0.25);
+}
+
+/* ========================================
+   14. 工具提示
+   ======================================== */
+.tooltip {
+  position: relative;
+}
+
+.tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: var(--space-1) var(--space-2);
+  background: #1E293B;
+  color: #ffffff;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  border-radius: var(--radius-sm);
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.15s ease;
+  z-index: 1000;
+}
+
+.tooltip:hover::after {
+  opacity: 1;
+  visibility: visible;
+  bottom: calc(100% + 4px);
+}

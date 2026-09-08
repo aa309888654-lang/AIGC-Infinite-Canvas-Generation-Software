@@ -1,0 +1,14 @@
+[
+  { "id": "pop", "name": "流行", "icon": "🎤", "desc": "华语流行、欧美流行、K-Pop", "prompt": "pop, catchy melody, mainstream" },
+  { "id": "folk", "name": "民谣", "icon": "🎸", "desc": "校园民谣、城市民谣、独立民谣", "prompt": "acoustic folk, gentle guitar, warm vocals" },
+  { "id": "classical", "name": "古典", "icon": "🎻", "desc": "交响乐、钢琴曲、弦乐四重奏", "prompt": "classical, orchestral, elegant, symphonic" },
+  { "id": "electronic", "name": "电子", "icon": "🎹", "desc": "EDM、House、Trance、Lo-Fi", "prompt": "electronic, synth, beat-driven, modern" },
+  { "id": "rock", "name": "摇滚", "icon": "🥁", "desc": "硬摇滚、朋克、另类摇滚", "prompt": "rock, electric guitar, drums, powerful" },
+  { "id": "jazz", "name": "爵士", "icon": "🎷", "desc": "Smooth Jazz、Bebop、Swing", "prompt": "jazz, smooth, saxophone, swing rhythm" },
+  { "id": "chinese", "name": "古风", "icon": "🏮", "desc": "国风、古风、中国风", "prompt": "Chinese traditional, guzheng, pipa, erhu, pentatonic, oriental" },
+  { "id": "hiphop", "name": "嘻哈", "icon": "🎧", "desc": "Rap、Trap、Old School", "prompt": "hip-hop, rap, beat, rhythmic, urban" },
+  { "id": "rnb", "name": "R&B", "icon": "💜", "desc": "节奏蓝调、Soul、Neo-Soul", "prompt": "R&B, soul, smooth vocals, groove" },
+  { "id": "ambient", "name": "氛围", "icon": "🌌", "desc": "冥想、白噪音、环境音", "prompt": "ambient, atmospheric, ethereal, soundscape" },
+  { "id": "country", "name": "乡村", "icon": "🤠", "desc": "Country、Bluegrass", "prompt": "country, acoustic guitar, storytelling, warm" },
+  { "id": "custom", "name": "自定义", "icon": "✨", "desc": "自由描述你想要的音乐风格", "prompt": "" }
+]

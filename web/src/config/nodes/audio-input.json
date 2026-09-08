@@ -1,0 +1,15 @@
+{
+  "id": "audioInput",
+  "name": "音频输入",
+  "category": "input",
+  "description": "输入音频文件",
+  "icon": "🎵",
+  "color": "#EC4899",
+  "ports": {
+    "inputs": [{ "id": "input", "name": "音频输入", "type": "audio", "optional": true }],
+    "outputs": [{ "id": "audioOutput", "name": "音频", "type": "audio" }]
+  },
+  "ui": { "shell": "glass", "promptPanel": false, "resultRenderer": "audio", "toolbar": "minimal" },
+  "execution": { "executable": false },
+  "models": { "mediaType": "none" }
+}

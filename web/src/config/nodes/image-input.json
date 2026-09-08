@@ -1,0 +1,15 @@
+{
+  "id": "imageInput",
+  "name": "图片输入",
+  "category": "input",
+  "description": "输入图片文件",
+  "icon": "🖼️",
+  "color": "#2ECC71",
+  "ports": {
+    "inputs": [],
+    "outputs": [{ "id": "imageOutput", "name": "图片", "type": "image" }]
+  },
+  "ui": { "shell": "glass", "promptPanel": false, "resultRenderer": "image", "toolbar": "minimal" },
+  "execution": { "executable": false },
+  "models": { "mediaType": "none" }
+}

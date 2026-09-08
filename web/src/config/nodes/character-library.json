@@ -1,0 +1,21 @@
+{
+  "id": "characterLibrary",
+  "name": "角色库",
+  "category": "video",
+  "description": "从角色资产中心选择角色，并输出角色参考图、服装参考图与角色 payload",
+  "icon": "📚",
+  "color": "#8B5CF6",
+  "ports": {
+    "inputs": [],
+    "outputs": [
+      { "id": "characterRef", "name": "角色参考图", "type": "image" },
+      { "id": "outfitRef", "name": "服装参考图", "type": "image", "optional": true },
+      { "id": "payload", "name": "角色 payload", "type": "string" }
+    ]
+  },
+  "ui": { "shell": "glass", "promptPanel": false, "resultRenderer": "image", "toolbar": "default" },
+  "execution": { "executable": false },
+  "models": {
+    "mediaType": "none"
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "commonjs",
+    "lib": ["ES2020"],
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": false,
+    "noEmitOnError": false,
+    "noImplicitAny": false,
+    "noUnusedLocals": false, // CFG-02 修复：待逐步启用，当前因大量遗留代码先保持 false
+    "noUnusedParameters": false, // CFG-02 修复：待逐步启用
+    "checkJs": false,
+    "allowJs": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "types": ["node"],
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "moduleResolution": "node",
+    "baseUrl": ".",
+    "paths": {
+      "@shared/*": ["src/shared/*"],
+      "@shared": ["src/shared/index.ts"]
+    },
+
+    // P1 修复 #13：分阶段启用 strict —— 第一阶段（安全子集，不破坏现有构建）
+    // 这些 flag 不依赖全量 any 标注重写，可立即生效
+    "alwaysStrict": true,              // 输出 JS 顶部添加 'use strict'
+    "strictBindCallApply": true,       // 校验 bind/call/apply 参数类型
+    "noImplicitThis": true,            // 禁止 this 隐式 any
+    "strictFunctionTypes": false,      // 第二阶段启用（函数参数双变检查，影响较大）
+    "strictNullChecks": false,         // 第二阶段启用（影响面最大，需逐文件修复）
+    "strictPropertyInitialization": false, // 第二阶段启用（依赖 strictNullChecks）
+    "useUnknownInCatchVariables": false    // 第二阶段启用（catch (e) 默认 unknown）
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}

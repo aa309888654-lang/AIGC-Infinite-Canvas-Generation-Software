@@ -1,0 +1,931 @@
+/* ============================================================
+   小天 AICG 首页 v3 — 活力潮流风格
+   魔法海报 & 海报设计区域全面改版
+   设计方向：高饱和渐变 + 动态光效 + 毛玻璃 + 潮流动效
+   ============================================================ */
+
+/* ═══════════════ 设计令牌 ═══════════════ */
+.seko-style-landing,
+.serenade-landing {
+  /* 活力潮流色彩 */
+  --vt-coral: #ff6b6b;
+  --vt-coral-deep: #ee5a24;
+  --vt-sunset: #ff9f43;
+  --vt-peach: #ffb8a0;
+  --vt-fuchsia: #e84393;
+  --vt-violet: #7f5af0;
+  --vt-indigo: #6c5ce7;
+  --vt-cyan: #00cec9;
+  --vt-mint: #16f2b3;
+  --vt-sky: #0db4f7;
+  --vt-electric: #a29bfe;
+
+  /* 渐变组合 */
+  --vt-gradient-warm: linear-gradient(135deg, #ff6b6b 0%, #ff9f43 50%, #ffb8a0 100%);
+  --vt-gradient-twilight: linear-gradient(135deg, #7f5af0 0%, #e84393 100%);
+  --vt-gradient-aurora: linear-gradient(135deg, #16f2b3 0%, #0db4f7 100%);
+  --vt-gradient-sunset: linear-gradient(135deg, #ff7e5f 0%, #feb47b 100%);
+  --vt-gradient-neon: linear-gradient(135deg, #a29bfe 0%, #e84393 50%, #ff6b6b 100%);
+  --vt-gradient-hero: linear-gradient(160deg, #0f0c29 0%, #1a1040 30%, #302b63 60%, #24243e 100%);
+  --vt-gradient-glow: radial-gradient(ellipse at 50% 50%, rgba(127, 90, 240, 0.35) 0%, rgba(232, 67, 147, 0.15) 40%, transparent 70%);
+
+  /* 毛玻璃 */
+  --vt-glass-bg: rgba(15, 12, 41, 0.65);
+  --vt-glass-surface: rgba(255, 255, 255, 0.08);
+  --vt-glass-border: rgba(255, 255, 255, 0.15);
+  --vt-glass-blur: blur(24px) saturate(1.6);
+
+  /* 圆角 */
+  --vt-radius-sm: 12px;
+  --vt-radius-md: 16px;
+  --vt-radius-lg: 24px;
+  --vt-radius-xl: 32px;
+  --vt-radius-pill: 9999px;
+
+  /* 阴影 */
+  --vt-shadow-sm: 0 4px 16px rgba(127, 90, 240, 0.15);
+  --vt-shadow-md: 0 8px 32px rgba(127, 90, 240, 0.2);
+  --vt-shadow-lg: 0 16px 48px rgba(127, 90, 240, 0.25);
+  --vt-shadow-glow: 0 0 40px rgba(232, 67, 147, 0.3), 0 0 80px rgba(127, 90, 240, 0.15);
+}
+
+/* ═══════════════ Hero 背景 — 活力渐变 + 动态光效 ═══════════════ */
+.serenade-landing .seko-hero {
+  background: var(--vt-gradient-hero) !important;
+  overflow: hidden;
+}
+
+/* 主渐变光球 — 紫粉暖色 */
+.serenade-landing .seko-hero::before {
+  content: '';
+  position: absolute;
+  width: 800px;
+  height: 800px;
+  top: -200px;
+  right: -200px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(232, 67, 147, 0.4) 0%, rgba(127, 90, 240, 0.2) 40%, transparent 70%);
+  filter: blur(60px);
+  animation: vtOrbFloat1 12s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* 辅助渐变光球 — 青蓝色 */
+.serenade-landing .seko-hero::after {
+  content: '';
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  bottom: -100px;
+  left: -150px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(13, 180, 247, 0.35) 0%, rgba(22, 242, 179, 0.15) 45%, transparent 70%);
+  filter: blur(50px);
+  animation: vtOrbFloat2 15s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes vtOrbFloat1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(-40px, 30px) scale(1.08); }
+  66% { transform: translate(20px, -20px) scale(0.95); }
+}
+
+@keyframes vtOrbFloat2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(30px, -40px) scale(1.1); }
+  50% { transform: translate(-20px, 20px) scale(0.92); }
+  75% { transform: translate(40px, 10px) scale(1.05); }
+}
+
+/* 隐藏旧版深空背景网格 */
+.serenade-landing .serenade-hero-backdrop .serenade-backdrop-grid {
+  display: none !important;
+}
+
+/* ═══════════════ Hero 轨道 — 活力彩色环 ═══════════════ */
+.serenade-landing .serenade-orbit {
+  border-color: transparent !important;
+}
+
+.serenade-landing .serenade-orbit-a {
+  border: 1px solid rgba(232, 67, 147, 0.15) !important;
+  box-shadow: 0 0 40px rgba(232, 67, 147, 0.08);
+}
+
+.serenade-landing .serenade-orbit-b {
+  border: 1px solid rgba(127, 90, 240, 0.12) !important;
+  box-shadow: 0 0 30px rgba(127, 90, 240, 0.06);
+}
+
+.serenade-landing .serenade-orbit-c {
+  border: 1px solid rgba(13, 180, 247, 0.1) !important;
+  box-shadow: 0 0 20px rgba(13, 180, 247, 0.05);
+}
+
+/* ═══════════════ 浮动能力标签 — 活力渐变胶囊 ═══════════════ */
+.serenade-landing .float-cap {
+  background: var(--vt-glass-surface) !important;
+  backdrop-filter: var(--vt-glass-blur) !important;
+  -webkit-backdrop-filter: var(--vt-glass-blur) !important;
+  border: 1px solid var(--vt-glass-border) !important;
+  border-radius: var(--vt-radius-pill) !important;
+  padding: 8px 16px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: rgba(255, 255, 255, 0.85) !important;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;
+}
+
+.serenade-landing .float-cap svg {
+  opacity: 0.9;
+}
+
+/* 各标签差异化渐变边框光 */
+.serenade-landing .float-cap-1 {
+  border-color: rgba(255, 107, 107, 0.3) !important;
+  color: #ffb0b0 !important;
+}
+.serenade-landing .float-cap-1 svg { color: var(--vt-coral) !important; }
+
+.serenade-landing .float-cap-2 {
+  border-color: rgba(127, 90, 240, 0.3) !important;
+  color: #c4b5fd !important;
+}
+.serenade-landing .float-cap-2 svg { color: var(--vt-violet) !important; }
+
+.serenade-landing .float-cap-3 {
+  border-color: rgba(13, 180, 247, 0.3) !important;
+  color: #7dd3fc !important;
+}
+.serenade-landing .float-cap-3 svg { color: var(--vt-sky) !important; }
+
+.serenade-landing .float-cap-4 {
+  border-color: rgba(22, 242, 179, 0.3) !important;
+  color: #6ee7b7 !important;
+}
+.serenade-landing .float-cap-4 svg { color: var(--vt-mint) !important; }
+
+.serenade-landing .float-cap-5 {
+  border-color: rgba(232, 67, 147, 0.3) !important;
+  color: #f9a8d4 !important;
+}
+.serenade-landing .float-cap-5 svg { color: var(--vt-fuchsia) !important; }
+
+.serenade-landing .float-cap-6 {
+  border-color: rgba(255, 159, 67, 0.3) !important;
+  color: #fcd34d !important;
+}
+.serenade-landing .float-cap-6 svg { color: var(--vt-sunset) !important; }
+
+.serenade-landing .float-cap:hover {
+  transform: translateY(-3px) scale(1.05) !important;
+  box-shadow: 0 8px 32px rgba(127, 90, 240, 0.25) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+/* ═══════════════ 品牌标题 — 活力渐变文字 ═══════════════ */
+.serenade-landing .serenade-eyebrow {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 6px 16px !important;
+  border-radius: var(--vt-radius-pill) !important;
+  background: linear-gradient(135deg, rgba(127, 90, 240, 0.15), rgba(232, 67, 147, 0.15)) !important;
+  border: 1px solid rgba(127, 90, 240, 0.25) !important;
+  color: var(--vt-electric) !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.02em !important;
+  backdrop-filter: blur(12px) !important;
+  box-shadow: 0 8px 24px rgba(127, 90, 240, 0.12) !important;
+}
+
+.seko-style-landing .serenade-eyebrow {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 6px 16px !important;
+  border-radius: var(--vt-radius-pill) !important;
+  background: linear-gradient(135deg, rgba(127, 90, 240, 0.15), rgba(232, 67, 147, 0.15)) !important;
+  border: 1px solid rgba(127, 90, 240, 0.25) !important;
+  color: var(--vt-electric) !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.02em !important;
+  backdrop-filter: blur(12px) !important;
+  box-shadow: 0 8px 24px rgba(127, 90, 240, 0.12) !important;
+}
+
+.serenade-landing .serenade-eyebrow-dot {
+  background: var(--vt-gradient-twilight) !important;
+  box-shadow: 0 0 8px rgba(127, 90, 240, 0.5) !important;
+  width: 8px !important;
+  height: 8px !important;
+  border-radius: 50% !important;
+  animation: vtPulse 2s ease-in-out infinite !important;
+}
+
+@keyframes vtPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.3); }
+}
+
+.seko-style-landing .serenade-eyebrow-dot {
+  background: var(--vt-gradient-twilight) !important;
+  box-shadow: 0 0 8px rgba(127, 90, 240, 0.5) !important;
+  width: 8px !important;
+  height: 8px !important;
+  border-radius: 50% !important;
+  animation: vtPulse 2s ease-in-out infinite !important;
+}
+
+.serenade-landing .seko-hero-centered-title,
+.serenade-landing .seko-hero-title,
+.seko-style-landing .serenade-hero-title {
+  background: linear-gradient(135deg, #ffffff 0%, #e0c3fc 30%, #f9a8d4 55%, #fcd34d 80%, #ff6b6b 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+  animation: vtTitleShimmer 6s ease-in-out infinite alternate !important;
+  text-shadow: none !important;
+}
+
+@keyframes vtTitleShimmer {
+  0% { filter: brightness(1) hue-rotate(0deg); }
+  50% { filter: brightness(1.08) hue-rotate(5deg); }
+  100% { filter: brightness(1) hue-rotate(-5deg); }
+}
+
+.serenade-landing .seko-hero-centered-subtitle {
+  color: rgba(255, 255, 255, 0.7) !important;
+  font-weight: 400 !important;
+  line-height: 1.6 !important;
+}
+
+/* ═══════════════ 输入区 — 活力渐变边框 ═══════════════ */
+.serenade-landing .seko-hero-input-bar,
+.seko-style-landing .seko-hero-input-bar {
+  background: rgba(15, 12, 41, 0.7) !important;
+  backdrop-filter: blur(32px) saturate(1.8) !important;
+  -webkit-backdrop-filter: blur(32px) saturate(1.8) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: var(--vt-radius-lg) !important;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  position: relative;
+  overflow: visible;
+}
+
+/* 输入区渐变边框光效 */
+.serenade-landing .seko-hero-input-bar::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: linear-gradient(135deg, var(--vt-violet), var(--vt-fuchsia), var(--vt-coral), var(--vt-sunset));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.serenade-landing .seko-hero-input-bar.focused::before,
+.serenade-landing .seko-hero-input-bar.expanded::before {
+  opacity: 1;
+  animation: vtGradientSpin 4s linear infinite;
+}
+
+@keyframes vtGradientSpin {
+  0% {
+    background: linear-gradient(0deg, var(--vt-violet), var(--vt-fuchsia), var(--vt-coral), var(--vt-sunset));
+  }
+  25% {
+    background: linear-gradient(90deg, var(--vt-violet), var(--vt-fuchsia), var(--vt-coral), var(--vt-sunset));
+  }
+  50% {
+    background: linear-gradient(180deg, var(--vt-violet), var(--vt-fuchsia), var(--vt-coral), var(--vt-sunset));
+  }
+  75% {
+    background: linear-gradient(270deg, var(--vt-violet), var(--vt-fuchsia), var(--vt-coral), var(--vt-sunset));
+  }
+  100% {
+    background: linear-gradient(360deg, var(--vt-violet), var(--vt-fuchsia), var(--vt-coral), var(--vt-sunset));
+  }
+}
+
+.serenade-landing .seko-hero-input-bar.focused,
+.seko-style-landing .seko-hero-input-bar.focused,
+.serenade-landing .seko-hero-input-bar.expanded,
+.seko-style-landing .seko-hero-input-bar.expanded {
+  border-color: transparent !important;
+  box-shadow:
+    0 8px 32px rgba(127, 90, 240, 0.2),
+    0 0 60px rgba(232, 67, 147, 0.1) !important;
+}
+
+/* ═══════════════ 模式选择器 — 活力高亮 ═══════════════ */
+.serenade-landing .seko-toolbar-btn {
+  border-radius: var(--vt-radius-sm) !important;
+  transition: all 0.25s ease !important;
+}
+
+.serenade-landing .seko-toolbar-btn:hover {
+  background: rgba(127, 90, 240, 0.15) !important;
+  color: var(--vt-electric) !important;
+}
+
+.toolbar-model-dropdown {
+  background: rgba(13, 13, 13, 1) !important;
+  backdrop-filter: blur(24px) saturate(1.5) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(1.5) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: var(--vt-radius-md) !important;
+  box-shadow: var(--vt-shadow-lg) !important;
+  padding: 6px !important;
+  overflow: hidden;
+}
+
+.toolbar-model-dropdown::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--vt-gradient-neon);
+  opacity: 0.6;
+}
+
+.toolbar-model-option {
+  border-radius: var(--vt-radius-sm) !important;
+  padding: 10px 14px !important;
+  transition: all 0.2s ease !important;
+  color: rgba(255, 255, 255, 0.7) !important;
+  font-weight: 500 !important;
+}
+
+.toolbar-model-option:hover {
+  background: rgba(127, 90, 240, 0.12) !important;
+  color: #fff !important;
+}
+
+.toolbar-model-option.selected {
+  background: linear-gradient(135deg, rgba(127, 90, 240, 0.2), rgba(232, 67, 147, 0.15)) !important;
+  color: #fff !important;
+  border: 1px solid rgba(127, 90, 240, 0.25) !important;
+}
+
+/* 海报模式特别高亮 */
+.seko-hero-input-bar[data-active-mode="poster"] .seko-toolbar-btn[title*="海报"],
+.toolbar-model-option:has(svg + span:nth-child(2)) {
+  /* handled by JS */
+}
+
+/* ═══════════════ 发送按钮 — 活力渐变 ═══════════════ */
+.serenade-landing .seko-hero-send-btn,
+.serenade-landing .seko-send-btn {
+  background: var(--vt-gradient-twilight) !important;
+  border: none !important;
+  border-radius: var(--vt-radius-sm) !important;
+  box-shadow: 0 4px 16px rgba(127, 90, 240, 0.35) !important;
+  transition: all 0.3s ease !important;
+}
+
+.serenade-landing .seko-hero-send-btn:hover,
+.serenade-landing .seko-send-btn:hover {
+  box-shadow: 0 8px 28px rgba(127, 90, 240, 0.5) !important;
+  transform: translateY(-1px) !important;
+}
+
+.serenade-landing .seko-hero-send-icon {
+  color: #fff !important;
+  fill: #fff !important;
+}
+
+/* ═══════════════ 聊天消息 — 活力风格 ═══════════════ */
+.serenade-landing .seko-hero-input-bar .seko-chat-msg,
+.serenade-landing .chat-messages > div {
+  border-radius: var(--vt-radius-md) !important;
+}
+
+/* 用户消息 */
+.serenade-landing .seko-chat-msg-user,
+.serenade-landing .seko-chat-bubble-user {
+  background: linear-gradient(135deg, rgba(127, 90, 240, 0.25), rgba(232, 67, 147, 0.2)) !important;
+  border: 1px solid rgba(127, 90, 240, 0.2) !important;
+  color: #f0e6ff !important;
+  border-radius: var(--vt-radius-md) var(--vt-radius-md) 4px var(--vt-radius-md) !important;
+}
+
+/* AI 消息 */
+.serenade-landing .seko-chat-msg-assistant,
+.serenade-landing .seko-chat-bubble-assistant {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+  border-radius: var(--vt-radius-md) var(--vt-radius-md) var(--vt-radius-md) 4px !important;
+}
+
+/* ═══════════════ Mention 面板 — 活力风格 ═══════════════ */
+.serenade-landing .seko-hero-mention-panel {
+  background: rgba(15, 12, 41, 0.92) !important;
+  backdrop-filter: blur(24px) saturate(1.5) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(1.5) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: var(--vt-radius-md) !important;
+  box-shadow: var(--vt-shadow-md) !important;
+}
+
+/* ═══════════════ 海报模式特别样式 — 活力渐变强调 ═══════════════ */
+.serenade-landing .seko-hero-input-bar.poster-mode-active {
+  border-color: rgba(232, 67, 147, 0.3) !important;
+}
+
+.serenade-landing .seko-hero-input-bar.poster-mode-active::before {
+  opacity: 0.7 !important;
+  background: linear-gradient(135deg, var(--vt-fuchsia), var(--vt-coral), var(--vt-sunset)) !important;
+}
+
+/* 海报模式标识 */
+.poster-mode-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: var(--vt-radius-pill);
+  background: linear-gradient(135deg, rgba(232, 67, 147, 0.2), rgba(255, 107, 107, 0.15));
+  border: 1px solid rgba(232, 67, 147, 0.25);
+  color: #f9a8d4;
+  font-size: 12px;
+  font-weight: 600;
+  animation: vtFadeSlideIn 0.3s ease-out;
+}
+
+@keyframes vtFadeSlideIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ═══════════════ 海报设计面板 — 活力毛玻璃 ═══════════════ */
+.poster-gen-panel {
+  background: rgba(15, 12, 41, 0.85) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: var(--vt-radius-lg) !important;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+  backdrop-filter: blur(28px) saturate(1.5) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(1.5) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 面板顶部渐变线 */
+.poster-gen-panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--vt-gradient-neon);
+  opacity: 0.7;
+}
+
+.poster-gen-preview-panel {
+  background: rgba(15, 12, 41, 0.85) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: var(--vt-radius-lg) !important;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+  backdrop-filter: blur(28px) saturate(1.5) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(1.5) !important;
+}
+
+/* 海报面板头部 */
+.poster-gen-header {
+  background: rgba(0, 0, 0, 0.2) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.poster-gen-header h3 {
+  color: #fff !important;
+  background: var(--vt-gradient-neon);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 700 !important;
+}
+
+/* ═══════════════ 海报聊天消息 — 活力风格 ═══════════════ */
+.poster-design-root .poster-msg-user {
+  background: linear-gradient(135deg, rgba(127, 90, 240, 0.3), rgba(232, 67, 147, 0.2)) !important;
+  color: #f0e6ff !important;
+  border: 1px solid rgba(127, 90, 240, 0.2) !important;
+  border-radius: var(--vt-radius-md) var(--vt-radius-md) 4px var(--vt-radius-md) !important;
+  text-shadow: none !important;
+}
+
+.poster-design-root .poster-msg-assistant {
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: var(--vt-radius-md) var(--vt-radius-md) var(--vt-radius-md) 4px !important;
+  text-shadow: none !important;
+}
+
+/* ═══════════════ 海报欢迎芯片 — 活力渐变 ═══════════════ */
+.poster-welcome-chip {
+  background: linear-gradient(135deg, rgba(127, 90, 240, 0.12), rgba(232, 67, 147, 0.1)) !important;
+  border: 1px solid rgba(127, 90, 240, 0.2) !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+  border-radius: var(--vt-radius-md) !important;
+  transition: all 0.3s ease !important;
+}
+
+.poster-welcome-chip:hover {
+  background: linear-gradient(135deg, rgba(127, 90, 240, 0.18), rgba(232, 67, 147, 0.15)) !important;
+  border-color: rgba(127, 90, 240, 0.3) !important;
+  box-shadow: var(--vt-shadow-sm) !important;
+  transform: translateY(-1px);
+}
+
+/* ═══════════════ 海报智能提示 — 活力标签 ═══════════════ */
+.poster-smart-prompts__chip {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: var(--vt-radius-pill) !important;
+  color: rgba(255, 255, 255, 0.8) !important;
+  transition: all 0.25s ease !important;
+}
+
+.poster-smart-prompts__chip:hover {
+  background: linear-gradient(135deg, rgba(127, 90, 240, 0.15), rgba(232, 67, 147, 0.12)) !important;
+  border-color: rgba(127, 90, 240, 0.25) !important;
+  color: #fff !important;
+  box-shadow: 0 4px 16px rgba(127, 90, 240, 0.15) !important;
+}
+
+/* ═══════════════ 海报 textarea — 活力焦点 ═══════════════ */
+.poster-design-root .poster-hero-textarea {
+  background: rgba(0, 0, 0, 0.25) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: var(--vt-radius-md) !important;
+  color: rgba(255, 255, 255, 0.92) !important;
+  transition: all 0.3s ease !important;
+}
+
+.poster-design-root .poster-hero-textarea:focus {
+  border-color: rgba(127, 90, 240, 0.4) !important;
+  box-shadow: 0 0 0 3px rgba(127, 90, 240, 0.15), 0 4px 16px rgba(127, 90, 240, 0.1) !important;
+}
+
+/* ═══════════════ 海报工具栏按钮 — 活力渐变 ═══════════════ */
+.poster-composer-actions button,
+.poster-design-root .poster-gen-btn,
+.poster-design-root .poster-generate-btn {
+  background: var(--vt-gradient-twilight) !important;
+  border: none !important;
+  border-radius: var(--vt-radius-sm) !important;
+  color: #fff !important;
+  font-weight: 600 !important;
+  box-shadow: 0 4px 16px rgba(127, 90, 240, 0.3) !important;
+  transition: all 0.3s ease !important;
+}
+
+.poster-composer-actions button:hover,
+.poster-design-root .poster-gen-btn:hover,
+.poster-design-root .poster-generate-btn:hover {
+  box-shadow: 0 8px 28px rgba(127, 90, 240, 0.45) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* ═══════════════ 趋势展示区 — 活力卡片 ═══════════════ */
+.serenade-landing .aetheria-trending-section {
+  position: relative;
+}
+
+/* 趋势区域标题 */
+.serenade-landing .aetheria-section-header h2,
+.serenade-landing .aetheria-trending-title {
+  color: #ffffff !important;
+  background: none !important;
+  -webkit-text-fill-color: currentColor !important;
+}
+
+/* 趋势卡片 */
+.serenade-landing .aetheria-card,
+.serenade-landing .aetheria-mosaic-item {
+  border-radius: var(--vt-radius-lg) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  overflow: hidden;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  background: rgba(15, 12, 41, 0.6) !important;
+  backdrop-filter: blur(16px) saturate(1.3) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(1.3) !important;
+}
+
+.serenade-landing .aetheria-card:hover,
+.serenade-landing .aetheria-mosaic-item:hover {
+  transform: translateY(-6px) scale(1.01) !important;
+  box-shadow:
+    0 20px 60px rgba(127, 90, 240, 0.2),
+    0 0 40px rgba(232, 67, 147, 0.1) !important;
+  border-color: rgba(127, 90, 240, 0.25) !important;
+}
+
+/* 卡片悬浮渐变叠加 */
+.serenade-landing .aetheria-card::after,
+.serenade-landing .aetheria-mosaic-item::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(180deg, transparent 60%, rgba(127, 90, 240, 0.08) 100%);
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+}
+
+.serenade-landing .aetheria-card:hover::after,
+.serenade-landing .aetheria-mosaic-item:hover::after {
+  opacity: 1;
+}
+
+/* ═══════════════ 特性卡片 — 活力图标 ═══════════════ */
+.serenade-landing .seko-feature-card,
+.seko-style-landing .seko-feature-card {
+  border-radius: var(--vt-radius-lg) !important;
+  background: rgba(15, 12, 41, 0.6) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.serenade-landing .seko-feature-card:hover,
+.seko-style-landing .seko-feature-card:hover {
+  background: rgba(15, 12, 41, 0.8) !important;
+  border-color: rgba(127, 90, 240, 0.25) !important;
+  box-shadow:
+    0 16px 48px rgba(127, 90, 240, 0.15),
+    0 0 30px rgba(232, 67, 147, 0.08) !important;
+}
+
+.serenade-landing .seko-feature-card::before {
+  background: var(--vt-gradient-neon) !important;
+}
+
+.serenade-landing .seko-feature-card:hover .seko-feature-title {
+  background: var(--vt-gradient-neon) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+}
+
+/* 图标差异化颜色 */
+.serenade-landing .seko-features-grid .seko-feature-card:nth-child(1) .seko-feature-icon,
+.seko-style-landing .seko-features-grid .seko-feature-card:nth-child(1) .seko-feature-icon {
+  background: rgba(255, 107, 107, 0.1) !important;
+  border-color: rgba(255, 107, 107, 0.2) !important;
+  color: var(--vt-coral) !important;
+}
+
+.serenade-landing .seko-features-grid .seko-feature-card:nth-child(2) .seko-feature-icon,
+.seko-style-landing .seko-features-grid .seko-feature-card:nth-child(2) .seko-feature-icon {
+  background: rgba(127, 90, 240, 0.1) !important;
+  border-color: rgba(127, 90, 240, 0.2) !important;
+  color: var(--vt-violet) !important;
+}
+
+.serenade-landing .seko-features-grid .seko-feature-card:nth-child(3) .seko-feature-icon,
+.seko-style-landing .seko-features-grid .seko-feature-card:nth-child(3) .seko-feature-icon {
+  background: rgba(232, 67, 147, 0.1) !important;
+  border-color: rgba(232, 67, 147, 0.2) !important;
+  color: var(--vt-fuchsia) !important;
+}
+
+.serenade-landing .seko-features-grid .seko-feature-card:nth-child(4) .seko-feature-icon,
+.seko-style-landing .seko-features-grid .seko-feature-card:nth-child(4) .seko-feature-icon {
+  background: rgba(13, 180, 247, 0.1) !important;
+  border-color: rgba(13, 180, 247, 0.2) !important;
+  color: var(--vt-sky) !important;
+}
+
+/* ═══════════════ 导航栏 — 活力毛玻璃 ═══════════════ */
+.serenade-landing .seko-top-bar,
+.seko-style-landing .seko-top-bar {
+  background:
+    linear-gradient(180deg, rgba(15, 12, 41, 0.85), rgba(15, 12, 41, 0.9)) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  backdrop-filter: blur(24px) saturate(1.5) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(1.5) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+}
+
+.serenade-landing .seko-logo-text,
+.seko-style-landing .seko-logo-text {
+  background: var(--vt-gradient-neon) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+}
+
+/* ═══════════════ 底部渐变过渡 ═══════════════ */
+.serenade-landing .seko-hero::before {
+  /* Override the old grid */
+}
+
+.serenade-landing .seko-section {
+  background: transparent !important;
+}
+
+/* 区块之间的渐变过渡 */
+.serenade-landing .seko-section + .seko-section {
+  position: relative;
+}
+
+.serenade-landing .seko-section + .seko-section::before {
+  content: '';
+  position: absolute;
+  top: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%;
+  height: 120px;
+  background: radial-gradient(ellipse, rgba(127, 90, 240, 0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* ═══════════════ Footer — 活力风格 ═══════════════ */
+.serenade-landing .seko-footer,
+.serenade-landing footer {
+  background: rgba(8, 6, 20, 0.9) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+/* ═══════════════ 滚动条 — 活力风格 ═══════════════ */
+.serenade-landing ::-webkit-scrollbar {
+  width: 6px;
+}
+
+.serenade-landing ::-webkit-scrollbar-track {
+  background: rgba(15, 12, 41, 0.5);
+}
+
+.serenade-landing ::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--vt-violet), var(--vt-fuchsia));
+  border-radius: 3px;
+}
+
+.serenade-landing ::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, var(--vt-fuchsia), var(--vt-coral));
+}
+
+/* ═══════════════ 动画 — 粒子装饰 ═══════════════ */
+.vt-particles-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.vt-particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  opacity: 0.4;
+  animation: vtParticleFloat 8s ease-in-out infinite;
+}
+
+.vt-particle:nth-child(1) {
+  background: var(--vt-violet);
+  top: 20%;
+  left: 15%;
+  animation-delay: 0s;
+  animation-duration: 10s;
+}
+
+.vt-particle:nth-child(2) {
+  background: var(--vt-fuchsia);
+  top: 40%;
+  right: 20%;
+  animation-delay: 1.5s;
+  animation-duration: 8s;
+}
+
+.vt-particle:nth-child(3) {
+  background: var(--vt-coral);
+  bottom: 30%;
+  left: 30%;
+  animation-delay: 3s;
+  animation-duration: 12s;
+}
+
+.vt-particle:nth-child(4) {
+  background: var(--vt-mint);
+  top: 60%;
+  right: 35%;
+  animation-delay: 2s;
+  animation-duration: 9s;
+}
+
+.vt-particle:nth-child(5) {
+  background: var(--vt-sunset);
+  bottom: 15%;
+  right: 10%;
+  animation-delay: 4s;
+  animation-duration: 11s;
+}
+
+.vt-particle:nth-child(6) {
+  background: var(--vt-electric);
+  top: 10%;
+  left: 55%;
+  animation-delay: 1s;
+  animation-duration: 7s;
+}
+
+@keyframes vtParticleFloat {
+  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.3; }
+  25% { transform: translate(20px, -30px) scale(1.5); opacity: 0.6; }
+  50% { transform: translate(-15px, -50px) scale(1); opacity: 0.4; }
+  75% { transform: translate(25px, -20px) scale(1.3); opacity: 0.5; }
+}
+
+/* ═══════════════ 响应式 — 移动端适配 ═══════════════ */
+@media (max-width: 768px) {
+  .serenade-landing .seko-hero::before {
+    width: 400px;
+    height: 400px;
+    top: -100px;
+    right: -100px;
+  }
+
+  .serenade-landing .seko-hero::after {
+    width: 300px;
+    height: 300px;
+    bottom: -50px;
+    left: -80px;
+  }
+
+  .serenade-landing .float-cap {
+    display: none !important;
+  }
+
+  .serenade-landing .seko-hero-centered-title,
+  .serenade-landing .seko-hero-title {
+    font-size: clamp(28px, 7vw, 42px) !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .serenade-landing .seko-hero::before,
+  .serenade-landing .seko-hero::after {
+    opacity: 0.6;
+  }
+
+  .poster-gen-panel,
+  .poster-gen-preview-panel {
+    border-radius: var(--vt-radius-md) !important;
+  }
+}
+
+/* ═══════════════ Reduced Motion ═══════════════ */
+@media (prefers-reduced-motion: reduce) {
+  .serenade-landing .seko-hero::before,
+  .serenade-landing .seko-hero::after {
+    animation: none !important;
+  }
+
+  .vt-particle {
+    animation: none !important;
+    opacity: 0.2;
+  }
+
+  .serenade-landing .seko-hero-centered-title,
+  .serenade-landing .seko-hero-title {
+    animation: none !important;
+  }
+
+  .serenade-landing .serenade-eyebrow-dot {
+    animation: none !important;
+  }
+
+  .serenade-landing .seko-hero-input-bar.focused::before,
+  .serenade-landing .seko-hero-input-bar.expanded::before {
+    animation: none !important;
+    opacity: 0.6;
+  }
+}

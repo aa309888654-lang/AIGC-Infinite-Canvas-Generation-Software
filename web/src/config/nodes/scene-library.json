@@ -1,0 +1,20 @@
+{
+  "id": "sceneLibrary",
+  "name": "场景库",
+  "category": "video",
+  "description": "从场景资产中心选择场景，并输出场景参考图与场景 payload",
+  "icon": "🏞️",
+  "color": "#10B981",
+  "ports": {
+    "inputs": [],
+    "outputs": [
+      { "id": "sceneRef", "name": "场景参考图", "type": "image" },
+      { "id": "payload", "name": "场景 payload", "type": "string" }
+    ]
+  },
+  "ui": { "shell": "glass", "promptPanel": false, "resultRenderer": "image", "toolbar": "default" },
+  "execution": { "executable": false },
+  "models": {
+    "mediaType": "none"
+  }
+}

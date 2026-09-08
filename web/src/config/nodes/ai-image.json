@@ -1,0 +1,43 @@
+{
+  "id": "aiImage",
+  "name": "AI图片",
+  "category": "image",
+  "description": "统一 AI 图片入口 - 按模型动态切换文生图、图生图、参考图、高清、局部重绘等参数",
+  "icon": "🖼️",
+  "color": "#8B5CF6",
+  "ports": {
+    "inputs": [
+      { "id": "input", "name": "输入", "type": "image", "optional": true, "multiple": true },
+      { "id": "prompt", "name": "提示词", "type": "prompt", "optional": true },
+      { "id": "image", "name": "参考图", "type": "image", "optional": true, "multiple": true }
+    ],
+    "outputs": [{ "id": "output", "name": "生成图片", "type": "image" }]
+  },
+  "ui": { "shell": "glass-stack", "promptPanel": true, "resultRenderer": "image", "toolbar": "default" },
+  "execution": {
+    "executable": true,
+    "handler": "image-gen",
+    "mode": "async",
+    "maxRetries": 2,
+    "timeout": 120000,
+    "requiredParams": [
+      { "key": "prompt", "type": "string", "required": true, "minLength": 1, "label": "提示词" },
+      { "key": "modelId", "type": "string", "required": true, "label": "模型" },
+      { "key": "modelProvider", "type": "string", "required": true, "label": "提供商" }
+    ]
+  },
+  "models": {
+    "mediaType": "image",
+    "allowedProviders": ["minimax", "agnes", "apipaths", "doubao", "sensenova", "stepfun"],
+    "defaultModelId": "sensenova-u1-fast",
+    "excludeIdPatterns": ["gpt-5", "claude", "gemini-pro-vision", "speech", "tts", "music", "video"],
+    "requireCapabilities": ["image", "text-to-image", "image-to-image", "reference", "image-edit", "image-erase", "image-remove-background", "image-upscale", "image-inpaint", "image-outpaint", "image-variation", "image-reroll", "image-remix", "inpainting"],
+    "fallbackModels": [
+      { "modelId": "sensenova-u1-fast", "provider": "sensenova" },
+      { "modelId": "agnes-image-2.1-flash", "provider": "agnes" },
+      { "modelId": "doubao-seedream-5-0-pro", "provider": "doubao" },
+      { "modelId": "step-image-edit-2", "provider": "stepfun" },
+      { "modelId": "doubao-seedream-5-0-lite", "provider": "doubao" }
+    ]
+  }
+}
