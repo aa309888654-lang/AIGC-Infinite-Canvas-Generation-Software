@@ -1,6 +1,10 @@
 # 小天画布 · AIGC Infinite Canvas
 
 > **开源 · 个人免费商用 · 企业授权商用** · 纯前端 AI 创意工作台
+>
+> 🌐 **English version available: [README.en.md](./README.en.md)**
+
+[![GitHub](https://img.shields.io/badge/GitHub-aa309888654--lang%2FAIGC--Infinite--Canvas--Generation--Software-blue?logo=github)](https://github.com/aa309888654-lang/AIGC-Infinite-Canvas-Generation-Software)
 
 [![GitHub](https://img.shields.io/badge/GitHub-aa309888654--lang%2FAIGC--Infinite--Canvas--Generation--Software-blue?logo=github)](https://github.com/aa309888654-lang/AIGC-Infinite-Canvas-Generation-Software)
 [![License: Source-Available](https://img.shields.io/badge/license-Source--Available-orange)](#-授权说明)
