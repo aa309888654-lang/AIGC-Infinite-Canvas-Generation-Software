@@ -174,7 +174,6 @@ const largeJsonRoutePrefixes = [
   '/api/v1/rembg',
   '/api/v1/sam2',
   '/api/v1/upscale',
-  '/api/v1/poster-agent',
 ];
 const largeJsonParser = express.json({ limit: '20mb' });
 largeJsonRoutePrefixes.forEach((routePrefix) => app.use(routePrefix, largeJsonParser));
@@ -241,14 +240,12 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 const publicPath = path.join(process.cwd(), 'public');
 // 前端构建产物路径：
 // - 生产环境通过 FRONTEND_DIST_PATH 指定（如 /var/www/aicgxt）
-// - 开发环境回退到 ../frontend/dist（与后端 cwd 的父目录关系）
-const adminDistPath = process.env.FRONTEND_DIST_PATH
+// - 开发环境回退到 ../web/dist（与后端 cwd 的父目录关系）
+const frontendDistPath = process.env.FRONTEND_DIST_PATH
   ? path.resolve(process.env.FRONTEND_DIST_PATH)
-  : path.join(process.cwd(), '..', 'frontend', 'dist');
-const hasAdminDist = fs.existsSync(path.join(adminDistPath, 'admin.html'));
-const adminHtmlPath = hasAdminDist ? path.join(adminDistPath, 'admin.html') : path.join(publicPath, 'admin.html');
-const hasMainDist = fs.existsSync(path.join(adminDistPath, 'index.html'));
-const mainHtmlPath = hasMainDist ? path.join(adminDistPath, 'index.html') : path.join(publicPath, 'index.html');
+  : path.join(process.cwd(), '..', 'web', 'dist');
+const hasMainDist = fs.existsSync(path.join(frontendDistPath, 'index.html'));
+const mainHtmlPath = hasMainDist ? path.join(frontendDistPath, 'index.html') : path.join(publicPath, 'index.html');
 
 // 健康检查端点 (P0优先级)
 import healthRoutes from '../routes/health';
@@ -293,10 +290,6 @@ import { v1Router } from '../routes/v1';
 
 app.use('/api/v1', v1Router);
 
-// 腾讯云邮件事件回调（无需认证，腾讯云服务器直接调用）
-import emailCallbackRouter from '../routes/email-callback';
-app.use('/api/email-callback', emailCallbackRouter);
-
 import { csAgentRouter } from '../routes/cs-agent';
 import { promptSafety } from '../middleware/prompt-safety';
 app.use('/api/cs-agent', promptSafety, csAgentRouter);
@@ -329,23 +322,14 @@ app.use((req, res, next) => {
   next();
 });
 
-// 管理后台构建产物静态服务
-if (hasAdminDist) {
-  app.use('/assets', express.static(path.join(adminDistPath, 'assets')));
-  app.use('/manifest.webmanifest', express.static(path.join(adminDistPath, 'manifest.webmanifest')));
-  app.use('/registerSW.js', express.static(path.join(adminDistPath, 'registerSW.js')));
-  app.use('/sw.js', express.static(path.join(adminDistPath, 'sw.js')));
-  app.use('/workbox-1d305bb8.js', express.static(path.join(adminDistPath, 'workbox-1d305bb8.js')));
-}
-
-// 主前端 SPA 构建产物静态服务（开源本地模式：后端同源托管前端）
+// 主前端 SPA 构建产物静态服务（单一前端入口，后端同源托管）
 if (hasMainDist) {
-  app.use(express.static(adminDistPath, {
+  app.use(express.static(frontendDistPath, {
     dotfiles: 'deny',
     fallthrough: true,
     index: false,
   }));
-  app.use('/public', express.static(path.join(adminDistPath, 'public')));
+  app.use('/public', express.static(path.join(frontendDistPath, 'public')));
 }
 
 // 静态文件服务
@@ -413,15 +397,6 @@ app.use('/sponsor', (req, res, next) => {
   res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
   next();
 }, express.static(path.join(publicPath, 'sponsor')));
-
-// 管理后台SPA入口 - 必须在静态文件服务之后
-app.get('/admin', (req, res) => {
-  res.sendFile(adminHtmlPath);
-});
-
-app.get('/admin/*', (req, res) => {
-  res.sendFile(adminHtmlPath);
-});
 
 // 主前端 SPA 入口（开源本地模式：后端同源托管前端）
 // 未构建前端时返回服务信息，便于开发调试

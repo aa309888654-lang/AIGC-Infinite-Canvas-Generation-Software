@@ -5,6 +5,11 @@ import { authenticate, type AuthRequest } from '../middleware/auth';
 import { asyncHandler, AppError } from '../middleware/errorHandler';
 import { decrypt, encrypt } from '../utils/encryption';
 import { isLocalOnlyMode } from '../utils/local-mode';
+import {
+  getPromptOptimizerLlmDefinition,
+  isFixedPromptOptimizerEndpoint,
+  PROMPT_OPTIMIZER_CREDENTIAL_PROVIDER,
+} from '../services/promptSmart3/promptOptimizerLlmPolicy';
 
 export const userModelCredentialsRouter = Router();
 
@@ -100,20 +105,50 @@ userModelCredentialsRouter.get('/', asyncHandler(async (req: AuthRequest, res) =
 
 userModelCredentialsRouter.put('/:provider', asyncHandler(async (req: AuthRequest, res) => {
   const input = entrySchema.parse({ ...req.body, provider: req.params.provider });
-  validatePublicHttpsEndpoint(input.baseUrl);
+  const isPromptOptimizerCredential = input.provider === PROMPT_OPTIMIZER_CREDENTIAL_PROVIDER;
+  const promptOptimizerDefinition = isPromptOptimizerCredential
+    ? getPromptOptimizerLlmDefinition(input.selectedModel)
+    : null;
+  if (isPromptOptimizerCredential) {
+    const definition = promptOptimizerDefinition;
+    if (!definition) throw new AppError('LLM 模型不在允许列表中', 400);
+    if (input.protocol !== definition.protocol) throw new AppError('LLM 协议与模型不匹配', 400);
+    if (input.displayName !== undefined || input.baseUrl !== undefined) {
+      throw new AppError('LLM 配置不允许自定义名称或接口地址', 400);
+    }
+    if (input.apiSecret !== undefined || input.accessKey !== undefined || input.secretKey !== undefined) {
+      throw new AppError('LLM 配置只允许 API Key', 400);
+    }
+    if (!input.apiKey?.trim() && !input.clearSecretFields) {
+      throw new AppError('请输入 API Key', 400);
+    }
+    if (input.baseUrl && !isFixedPromptOptimizerEndpoint(input.baseUrl, definition)) {
+      throw new AppError('LLM 接口地址不受支持', 400);
+    }
+  } else {
+    validatePublicHttpsEndpoint(input.baseUrl);
+  }
   const vault = await prisma.userModelCredentialVault.findUnique({ where: { userId: req.userId! } });
   const entries = parseVault(vault?.encryptedPayload);
   const existing = entries.find((entry) => entry.provider === input.provider);
-  const next: CredentialEntry = {
-    ...(existing || { provider: input.provider, enabled: true, updatedAt: new Date().toISOString() }),
-    provider: input.provider,
-    enabled: input.enabled ?? existing?.enabled ?? true,
-    displayName: input.displayName ?? existing?.displayName,
-    protocol: input.protocol ?? existing?.protocol,
-    selectedModel: input.selectedModel ?? existing?.selectedModel,
-    baseUrl: input.baseUrl ?? existing?.baseUrl,
-    updatedAt: new Date().toISOString(),
-  };
+  const next: CredentialEntry = isPromptOptimizerCredential
+    ? {
+        provider: input.provider,
+        enabled: input.enabled ?? existing?.enabled ?? true,
+        protocol: promptOptimizerDefinition!.protocol,
+        selectedModel: promptOptimizerDefinition!.id,
+        updatedAt: new Date().toISOString(),
+      }
+    : {
+        ...(existing || { provider: input.provider, enabled: true, updatedAt: new Date().toISOString() }),
+        provider: input.provider,
+        enabled: input.enabled ?? existing?.enabled ?? true,
+        displayName: input.displayName ?? existing?.displayName,
+        protocol: input.protocol ?? existing?.protocol,
+        selectedModel: input.selectedModel ?? existing?.selectedModel,
+        baseUrl: input.baseUrl ?? existing?.baseUrl,
+        updatedAt: new Date().toISOString(),
+      };
   for (const field of secretFields) {
     if (input.clearSecretFields) delete next[field];
     else if (input[field] !== undefined && input[field] !== '') next[field] = input[field];

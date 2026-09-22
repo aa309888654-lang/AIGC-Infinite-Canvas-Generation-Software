@@ -74,6 +74,13 @@ function normalizeBaseUrl(baseUrl?: string): string {
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, __dirname, '')
+  const rollupInputs: Record<string, string> = {
+    main: resolve(__dirname, 'index.html'),
+  }
+  // 管理端入口被移除时仍允许构建公开的主应用。
+  if (fs.existsSync(resolve(__dirname, 'admin.html'))) {
+    rollupInputs.admin = resolve(__dirname, 'admin.html')
+  }
 
   return {
     // Keep app entry assets on the same origin by default.
@@ -133,8 +140,7 @@ export default defineConfig(({ mode }) => {
           handler(level, log);
         },
         input: {
-          main: resolve(__dirname, 'index.html'),
-          admin: resolve(__dirname, 'admin.html'),
+          ...rollupInputs,
         },
         output: {
           manualChunks(id) {
@@ -164,31 +170,7 @@ export default defineConfig(({ mode }) => {
           assetFileNames: 'assets/[ext]/[name]-[hash].[ext]',
         },
       },
-      minify: 'terser',
-      terserOptions: {
-        compress: {
-          drop_console: false,
-          drop_debugger: true,
-          dead_code: true,
-          unused: true,
-          passes: 3,
-          // 移除非关键日志调用，保留 console.error / console.warn 用于线上排障
-          pure_funcs: [
-            'console.log',
-            'console.info',
-            'console.debug',
-            'console.trace',
-          ],
-        },
-        mangle: {
-          toplevel: true,
-          keep_fnames: false,
-          keep_classnames: false,
-        },
-        format: {
-          comments: false,
-        },
-      },
+      minify: false,
       sourcemap: false,
       target: 'es2020',
       cssCodeSplit: true,

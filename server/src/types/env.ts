@@ -12,11 +12,9 @@ import fs from 'fs';
 import crypto from 'crypto';
 
 /**
- * 定位 .env 文件：优先当前工作目录，其次查找 backend/.env
+ * 定位 .env 文件：优先当前工作目录，其次向上查找 server/.env 或根 .env
  */
 function locateEnvFile(): { envPath: string | null; productionPath: string | null } {
-  const candidates: string[] = [process.cwd()];
-
   const workingDirectoryEnv = path.join(process.cwd(), '.env');
   if (fs.existsSync(workingDirectoryEnv)) {
     return {
@@ -25,7 +23,8 @@ function locateEnvFile(): { envPath: string | null; productionPath: string | nul
     };
   }
 
-  // 向上查找最多 5 层父目录，寻找包含 backend/.env 或 .env 的位置
+  // 向上查找最多 5 层父目录，收集候选根
+  const candidates: string[] = [];
   let dir = process.cwd();
   for (let i = 0; i < 5; i++) {
     const parent = path.dirname(dir);
@@ -34,13 +33,13 @@ function locateEnvFile(): { envPath: string | null; productionPath: string | nul
     candidates.push(dir);
   }
 
-  // 优先在 backend/ 子目录中查找
+  // 优先在 server/ 子目录中查找
   for (const base of candidates) {
-    const backendEnv = path.join(base, 'backend', '.env');
-    if (fs.existsSync(backendEnv)) {
+    const serverEnv = path.join(base, 'server', '.env');
+    if (fs.existsSync(serverEnv)) {
       return {
-        envPath: backendEnv,
-        productionPath: path.join(base, 'backend', '.env.production'),
+        envPath: serverEnv,
+        productionPath: path.join(base, 'server', '.env.production'),
       };
     }
   }

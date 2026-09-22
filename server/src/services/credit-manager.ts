@@ -58,15 +58,9 @@ const CREDIT_COST_PER_REQUEST: Record<ProviderType, Record<string, number>> = {
     video_vidu: 100,
     video_omni: 100,
     video_seedance: 100,
-    'agnes-video-v2.0': 8,
     Digital_Humans: 20,
     'Package_1.0': 10,
     default: 50,
-  },
-  agnes: {
-    'agnes-video-v2.0': 8,
-    'agnes-image-2.1-flash': 20,
-    default: 20,
   },
 };
 

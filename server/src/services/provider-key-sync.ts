@@ -17,19 +17,9 @@ interface EnvProviderMapping {
   };
 }
 
-const AGNES_GENERATIVE_MODEL_SCOPE = 'agnes-generative';
 const WUYIN_API_ENV_KEYS = [
   'WUYIN_API_KEY',
   ...Array.from({ length: 7 }, (_, index) => `WUYIN_API_KEY_${index + 2}`),
-];
-const AGNES_API_ENV_KEYS = [
-  'AGNES_KEY_POOL_API_KEY',
-  ...Array.from({ length: 7 }, (_, index) => `AGNES_KEY_POOL_API_KEY_${index + 2}`),
-  'AGNES_VIDEO_API_KEY',
-  ...Array.from({ length: 7 }, (_, index) => `AGNES_VIDEO_API_KEY_${index + 2}`),
-  'AGNES_API_KEY',
-  'AGNES_API_KEY_2',
-  'AGNES_API_KEY_3',
 ];
 
 const ENV_PROVIDER_MAPPINGS: EnvProviderMapping[] = [
@@ -65,17 +55,6 @@ const ENV_PROVIDER_MAPPINGS: EnvProviderMapping[] = [
     keyOptions: () => ({
       modelScope: null,
       maxConcurrency: 5,
-    }),
-  },
-  {
-    provider: 'agnes',
-    envKeys: AGNES_API_ENV_KEYS,
-    endpoint: process.env.AGNES_BASE_URL || 'https://apihub.agnes-ai.com/v1',
-    displayName: 'Agnes 生成专用池',
-    keyOptions: (_entry, index) => ({
-      modelScope: AGNES_GENERATIVE_MODEL_SCOPE,
-      maxConcurrency: 5,
-      priority: index,
     }),
   },
   {

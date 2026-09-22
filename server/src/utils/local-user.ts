@@ -38,31 +38,15 @@ export async function ensureLocalUser(): Promise<void> {
         password: hashedPassword,
         role: 'user',
         isActive: true,
-        apiQuota: 1000000,
-        points: 1000000,
-        pointsBalance: 1000000,
-        rechargePointsBalance: 1000000,
       },
     });
     await prisma.userQuota.upsert({
       where: { userId: LOCAL_USER_ID },
       update: {
-        dailyLimit: 1000000,
-        dailyUsed: 0,
-        monthlyLimit: 1000000,
-        monthlyUsed: 0,
-        concurrentLimit: 10,
-        concurrentUsed: 0,
         storageLimit: 1000000n * 1024n * 1024n,
       },
       create: {
         userId: LOCAL_USER_ID,
-        dailyLimit: 1000000,
-        dailyUsed: 0,
-        monthlyLimit: 1000000,
-        monthlyUsed: 0,
-        concurrentLimit: 10,
-        concurrentUsed: 0,
         storageLimit: 1000000n * 1024n * 1024n,
       },
     });

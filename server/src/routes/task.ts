@@ -7,7 +7,7 @@ import { websocketPushService } from '../services/websocket-push-service';
 import { videoTaskBindingService } from '../services/video-task-binding-service';
 import { videoModelKeyScheduler } from '../services/video-model-key-scheduler';
 import { logger } from '../utils/logger';
-import { isContentReviewEnabled, toUserVisibleTask } from '../services/content-review-service';
+// 内容审核系统已移除：任务结果始终直接展示，不再做审核遮蔽
 
 export const taskRouter = Router();
 
@@ -67,7 +67,6 @@ taskRouter.get('/:taskId', authenticate, async (req, res, next) => {
         userId: true,
         type: true,
         status: true,
-        reviewStatus: true,
         progress: true,
         result: true,
         outputUrl: true,
@@ -82,7 +81,7 @@ taskRouter.get('/:taskId', authenticate, async (req, res, next) => {
       throw new AppError('任务不存在或无权访问', 404);
     }
 
-    const visibleTask = toUserVisibleTask(task, await isContentReviewEnabled());
+    const visibleTask = task;
 
     // 解析输出结果（可能是 JSON 字符串）
     let resultUrl: string | undefined;
@@ -104,8 +103,7 @@ taskRouter.get('/:taskId', authenticate, async (req, res, next) => {
         type: task.type,
         status: task.status as 'pending' | 'processing' | 'completed' | 'failed',
         progress: task.progress,
-        reviewStatus: visibleTask.reviewStatus,
-        resultAvailable: visibleTask.resultAvailable,
+        resultAvailable: true,
         resultUrl: resultUrl || visibleTask.outputUrl || undefined,
         result: parsedResult,
         error: task.error
@@ -204,7 +202,6 @@ taskRouter.get('/', authenticate, async (req, res, next) => {
           provider: true,
           model: true,
           status: true,
-          reviewStatus: true,
           progress: true,
           params: true,
           result: true,
@@ -219,8 +216,7 @@ taskRouter.get('/', authenticate, async (req, res, next) => {
       prisma.task.count({ where })
     ]);
 
-    const reviewEnabled = await isContentReviewEnabled();
-    const visibleTasks = tasks.map((task) => toUserVisibleTask(task, reviewEnabled));
+    const visibleTasks = tasks;
 
     res.json({
       success: true,
@@ -231,7 +227,7 @@ taskRouter.get('/', authenticate, async (req, res, next) => {
           inputParams: task.params || {},
           outputResult: task.result || {},
           resultUrl: task.outputUrl || undefined,
-          resultAvailable: task.resultAvailable,
+          resultAvailable: true,
           errorMessage: task.error,
         }))
       },

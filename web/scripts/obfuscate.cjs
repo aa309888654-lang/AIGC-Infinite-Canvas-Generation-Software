@@ -150,6 +150,34 @@ function hideModelNames(code) {
 const TARGET_DIRS = ['assets/js', 'assets/css'];
 
 const zlib = require('zlib');
+const strongMode = process.env.STRONG_OBFUSCATION === '1';
+
+function applyStrongObfuscation(code) {
+  if (!strongMode) return code;
+  const result = JavaScriptObfuscator.obfuscate(code, {
+    compact: true,
+    simplify: true,
+    target: 'browser',
+    identifierNamesGenerator: 'hexadecimal',
+    renameGlobals: false,
+    renameProperties: false,
+    transformObjectKeys: false,
+    stringArray: true,
+    stringArrayThreshold: 1,
+    stringArrayEncoding: ['base64'],
+    stringArrayRotate: true,
+    stringArrayShuffle: true,
+    splitStrings: true,
+    splitStringsChunkLength: 8,
+    controlFlowFlattening: false,
+    deadCodeInjection: false,
+    selfDefending: false,
+    disableConsoleOutput: false,
+  });
+  const obfuscated = result.getObfuscatedCode();
+  if (!obfuscated) throw new Error('javascript-obfuscator 返回空代码');
+  return obfuscated;
+}
 
 // terser 超时包装（防止大文件卡死）
 function minifyWithTimeout(code, opts, timeoutMs = 30000) {
@@ -173,12 +201,15 @@ async function processFile(filePath) {
   const startTime = Date.now();
 
   try {
-    // 大文件（>300KB）跳过 terser，仅做 hideModelNames，避免卡死
+    // Vite 已经压缩大文件；强混淆仍处理应用 chunk，超大第三方 chunk 保持原样。
     // vite 已做 esbuild 压缩，大文件跳过 terser 不影响功能
     let finalCode;
 
-    if (codeBytes > 300 * 1024) {
+    if (codeBytes > (strongMode ? 600 : 300) * 1024) {
       console.log(`  [大文件跳过terser] ${fileName} (${(codeBytes / 1024).toFixed(0)}KB)`);
+      // Large chunks are already minified by Vite. Keep their literals
+      // byte-for-byte compatible; rewriting model strings can produce escape
+      // sequences that some browser parsers reject in lazy-loaded modules.
       finalCode = code;
     } else {
       const result = await minifyWithTimeout(code, {
@@ -210,8 +241,13 @@ async function processFile(filePath) {
       if (!result.code || result.code.length === 0) {
         return { skipped: true };
       }
+      // Terser provides the safe identifier mangling and dead-code removal.
+      // Do not rewrite string literals after parsing: model/provider IDs are
+      // runtime data and changing their escape form can break dynamic chunks.
       finalCode = result.code;
     }
+
+    finalCode = applyStrongObfuscation(finalCode);
 
     const originalSize = codeBytes;
     const minifiedSize = Buffer.byteLength(finalCode);
@@ -232,6 +268,7 @@ async function processFile(filePath) {
     console.log(`  [OK ${elapsed}s] ${fileName} (${(originalSize / 1024).toFixed(0)}KB -> ${(minifiedSize / 1024).toFixed(0)}KB)`);
     return { originalSize, minifiedSize };
   } catch (err) {
+    if (strongMode) throw err;
     // 混淆失败的文件：仍然应用 hideModelNames，保持原代码结构
     console.error(`  [跳过terser] ${fileName}: ${err.message}`);
     try {
@@ -297,7 +334,9 @@ async function processDir(dir) {
 }
 
 async function main() {
-  const distDir = path.resolve(__dirname, '..', 'dist');
+  const distDir = process.env.OBFUSCATE_DIST
+    ? path.resolve(process.env.OBFUSCATE_DIST)
+    : path.resolve(__dirname, '..', 'dist');
 
   if (!fs.existsSync(distDir)) {
     console.error('错误: dist 目录不存在，请先运行 npm run build');

@@ -52,19 +52,11 @@ const EQUIVALENT_MODELS: Record<ProviderType, Record<string, string>> = {
   },
   minimax: {},
   wuyinkeji: {
-    'viduq3-turbo': 'Wan2.7',
-    'doubao-seedance-1-5-pro': 'Wan2.7',
     video_seedance: 'video_vidu',
     video_vidu: 'video_omni',
     video_omni: 'Wan2.7',
-    // ✅ P0-5：XT 模型（agnes-video-v2.0）失败后 fallback 到 wuyinkeji 时
-    // 必须映射为 wuyinkeji 支持的模型 ID（Wan2.7），否则 wuyinkeji 收到不支持的模型 ID 报错
-    'agnes-video-v2.0': 'Wan2.7',
   },
-  agnes: {
-    'viduq3-turbo': 'agnes-video-v2.0',
-    'doubao-seedance-1-5-pro': 'agnes-video-v2.0',
-  },
+
 };
 
 export class FallbackChain {
@@ -173,7 +165,7 @@ export class FallbackChain {
 
   getProviderStatus(): Record<ProviderType, { inCooldown: boolean; failedCategory?: ErrorCategory; cooldownRemaining?: number }> {
     const status: Record<string, any> = {};
-    const allProviders: ProviderType[] = ['vidu', 'doubao', 'minimax', 'wuyinkeji', 'agnes'];
+    const allProviders: ProviderType[] = ['vidu', 'doubao', 'minimax', 'wuyinkeji'];
 
     for (const provider of allProviders) {
       const cooldownUntil = this.providerCooldowns.get(provider);

@@ -95,7 +95,6 @@ userApiKeyRouter.get('/', authenticate, requireAdmin, async (req, res) => {
               id: true,
               username: true,
               email: true,
-              points: true,
             },
           },
         },

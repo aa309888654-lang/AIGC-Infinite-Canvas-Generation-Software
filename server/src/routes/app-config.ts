@@ -12,17 +12,12 @@ import {
   getFeatureFlags,
   getModelCatalog,
   publishSnapshot,
-  resetRechargePackages,
   saveAppSections,
   saveFeatureFlags,
   saveModelParameterSchema,
-  savePointsPolicy,
-  saveRechargePackageList,
   setModelStatus,
-  updateModelPricing,
   upsertModelInProvider,
 } from '../services/app-config-service';
-import { normalizeRechargePackage } from '../services/points-packages-service';
 import { websocketPushService } from '../services/websocket-push-service';
 
 export const appConfigRouter = Router();
@@ -95,27 +90,6 @@ const statusSchema = z.object({
   disabledReason: z.string().optional(),
 });
 
-const pricingSchema = z.object({
-  taskType: z.enum(['image', 'video', 'text', 'audio', 'music']),
-  pointsCost: z.number().int().min(0),
-  isActive: z.boolean().optional(),
-  note: z.string().optional(),
-});
-
-const pointsPolicySchema = z.record(z.number().min(0));
-
-const rechargePackageSchema = z.object({
-  id: z.string().optional(),
-  name: z.string().min(1),
-  points: z.number().int().min(1),
-  price: z.number().min(0.01),
-  originalPrice: z.number().min(0).optional(),
-  description: z.string().optional(),
-  bonusPoints: z.number().int().min(0).optional(),
-  isPopular: z.boolean().optional(),
-  isActive: z.boolean().optional(),
-});
-
 async function getAdminIdentity(req: AuthRequest): Promise<{ id: string; username: string }> {
   if (!req.userId) return { id: 'unknown', username: 'unknown' };
   const user = await prisma.user.findUnique({
@@ -174,11 +148,10 @@ function decodeParam(value: string): string {
 
 appConfigRouter.get('/bootstrap', optionalAuth, async (req: AuthRequest, res) => {
   try {
-    const data = await getAppBootstrap(req.membershipLevel);
+    const data = await getAppBootstrap();
     if (!req.userId) {
       data.models = [];
       data.providers = [];
-      data.pricingRules = [];
     }
     res.json({ success: true, data });
   } catch (error: unknown) {
@@ -196,7 +169,7 @@ appConfigRouter.get('/sections', async (_req, res) => {
 
 appConfigRouter.get('/models/available', authenticate, async (req: AuthRequest, res) => {
   try {
-    const catalog = await getModelCatalog({ membershipLevel: req.membershipLevel });
+    const catalog = await getModelCatalog();
     res.json({ success: true, data: catalog });
   } catch (error: unknown) {
     res.status(500).json({ success: false, error: error instanceof Error ? error.message : String(error) });
@@ -207,7 +180,7 @@ adminAppConfigRouter.use(authenticate, requireAdmin);
 
 adminAppConfigRouter.get('/bootstrap', async (req: AuthRequest, res) => {
   try {
-    const data = await getAppBootstrap(req.membershipLevel || 'enterprise');
+    const data = await getAppBootstrap();
     res.json({ success: true, data });
   } catch (error: unknown) {
     res.status(500).json({ success: false, error: error instanceof Error ? error.message : String(error) });
@@ -216,7 +189,7 @@ adminAppConfigRouter.get('/bootstrap', async (req: AuthRequest, res) => {
 
 adminAppConfigRouter.get('/models', async (_req, res) => {
   try {
-    const data = await getModelCatalog({ includeInactive: true, membershipLevel: 'enterprise' });
+    const data = await getModelCatalog({ includeInactive: true });
     res.json({ success: true, data });
   } catch (error: unknown) {
     res.status(500).json({ success: false, error: error instanceof Error ? error.message : String(error) });
@@ -306,27 +279,7 @@ adminAppConfigRouter.put('/models/:provider/:modelId/parameters', async (req: Au
   }
 });
 
-adminAppConfigRouter.put('/models/:provider/:modelId/pricing', async (req: AuthRequest, res) => {
-  try {
-    const provider = decodeParam(req.params.provider);
-    const modelId = decodeParam(req.params.modelId);
-    const input = pricingSchema.parse(req.body);
-    const rule = await updateModelPricing(provider, modelId, {
-      taskType: input.taskType,
-      pointsCost: input.pointsCost,
-      isActive: input.isActive,
-      note: input.note,
-    });
-    await logConfigChange(req, `model-pricing:${provider}:${modelId}`, null, rule);
-    notifyConfigUpdate('model_pricing_update', req.userId || 'unknown', { provider, modelId });
-    res.json({ success: true, data: rule, message: '模型积分定价已保存' });
-  } catch (error: unknown) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ success: false, error: '参数校验失败', details: error.errors });
-    }
-    res.status(500).json({ success: false, error: error instanceof Error ? error.message : String(error) });
-  }
-});
+// 模型积分定价端点已随计费系统移除
 
 adminAppConfigRouter.get('/sections', async (_req, res) => {
   try {
@@ -372,57 +325,7 @@ adminAppConfigRouter.put('/feature-flags', async (req: AuthRequest, res) => {
   }
 });
 
-adminAppConfigRouter.put('/points-policy', async (req: AuthRequest, res) => {
-  try {
-    const values = pointsPolicySchema.parse(req.body.config || req.body);
-    const saved = await savePointsPolicy(values);
-    await logConfigChange(req, 'points-policy', null, saved);
-    res.json({ success: true, data: saved, message: '积分政策已保存' });
-  } catch (error: unknown) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ success: false, error: '参数校验失败', details: error.errors });
-    }
-    res.status(500).json({ success: false, error: error instanceof Error ? error.message : String(error) });
-  }
-});
-
-adminAppConfigRouter.put('/invite-policy', async (req: AuthRequest, res) => {
-  try {
-    const values = pointsPolicySchema.parse(req.body.config || req.body);
-    const saved = await savePointsPolicy(values);
-    await logConfigChange(req, 'invite-policy', null, saved);
-    res.json({ success: true, data: saved, message: '邀请奖励政策已保存' });
-  } catch (error: unknown) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ success: false, error: '参数校验失败', details: error.errors });
-    }
-    res.status(500).json({ success: false, error: error instanceof Error ? error.message : String(error) });
-  }
-});
-
-adminAppConfigRouter.put('/recharge-packages', async (req: AuthRequest, res) => {
-  try {
-    const packages = z.array(rechargePackageSchema).parse(req.body.packages || req.body);
-    const saved = await saveRechargePackageList(packages.map((pkg) => normalizeRechargePackage(pkg)));
-    await logConfigChange(req, 'recharge-packages', null, saved);
-    res.json({ success: true, data: saved, message: '充值套餐已保存' });
-  } catch (error: unknown) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ success: false, error: '参数校验失败', details: error.errors });
-    }
-    res.status(500).json({ success: false, error: error instanceof Error ? error.message : String(error) });
-  }
-});
-
-adminAppConfigRouter.post('/recharge-packages/reset', async (req: AuthRequest, res) => {
-  try {
-    const saved = await resetRechargePackages();
-    await logConfigChange(req, 'recharge-packages-reset', null, saved);
-    res.json({ success: true, data: saved, message: '充值套餐已重置' });
-  } catch (error: unknown) {
-    res.status(500).json({ success: false, error: error instanceof Error ? error.message : String(error) });
-  }
-});
+// 积分政策 / 邀请奖励 / 充值套餐 端点已随计费系统移除
 
 adminAppConfigRouter.post('/publish', async (req: AuthRequest, res) => {
   try {

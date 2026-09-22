@@ -4,10 +4,8 @@ import { unifiedApiService } from './unified-service';
 import { decryptProviderSecrets } from '../routes/ai-provider';
 import { decrypt } from '../utils/encryption';
 import { autoSaveService } from './auto-save-service';
-import { creditService } from './credit-service';
 import { ProviderKeyManager } from './provider-key-manager';
 import { videoOrchestrator } from './video-orchestrator';
-import { resolvePosterImageRequestPoints } from './poster-image-pricing';
 
 function parseProviderConfig(configValue?: any): Record<string, unknown> {
   if (!configValue || typeof configValue !== 'object') return {};
@@ -34,17 +32,6 @@ function parseTaskOutput(
       imageUrl?: string;
       metadata?: Record<string, any>;
     };
-  } catch (e) {
-    return null;
-  }
-}
-
-function parseTaskParams(params?: any): Record<string, any> | null {
-  if (!params) return null;
-  try {
-    const result = typeof params === 'string' ? JSON.parse(params) : params;
-    if (!result || typeof result !== 'object') return null;
-    return result as Record<string, any>;
   } catch (e) {
     return null;
   }
@@ -95,18 +82,6 @@ async function getCachedProviderConfig(
 const TASK_AGE_LIMIT_MS = 25 * 60 * 1000;
 const VIDEO_TASK_AGE_LIMIT_MS = 24 * 60 * 60 * 1000;
 const POLL_BATCH_SIZE = 10;
-
-async function resolveUserMembershipLevel(userId: string): Promise<string> {
-  const activeMembership = await prisma.userMembership.findFirst({
-    where: {
-      userId,
-      status: 'active',
-      endAt: { gte: new Date() },
-    },
-    orderBy: { createdAt: 'desc' },
-  });
-  return activeMembership?.level || 'trial';
-}
 
 // P1 修复：添加轮询重叠守卫，防止 setInterval 在上一轮未完成时触发重复轮询
 let isPolling = false;
@@ -163,28 +138,14 @@ export async function pollPendingTasks(): Promise<void> {
         let providerTaskId = task.providerTaskId || task.taskId || task.id;
         const output = parseTaskOutput(task.result);
         if (!task.providerTaskId && !task.taskId && !binding && output) {
-          // agnes-video-v2.0 查询用 task_id（video_id 查询返回 task_not_exist）
-          const isAgnesVideo =
-            task.model === 'agnes-video-v2.0' || task.model === 'Agnes-Video-V2.0';
-          if (isAgnesVideo) {
-            providerTaskId =
-              output.metadata?.task_id ||
-              output.apiTaskId ||
-              output.metadata?.video_id ||
-              output.metadata?.videoId ||
-              output.metadata?.id ||
-              output.metadata?.request_id ||
-              task.id;
-          } else {
-            providerTaskId =
-              output.metadata?.video_id ||
-              output.metadata?.videoId ||
-              output.apiTaskId ||
-              output.metadata?.task_id ||
-              output.metadata?.id ||
-              output.metadata?.request_id ||
-              task.id;
-          }
+          providerTaskId =
+            output.metadata?.video_id ||
+            output.metadata?.videoId ||
+            output.apiTaskId ||
+            output.metadata?.task_id ||
+            output.metadata?.id ||
+            output.metadata?.request_id ||
+            task.id;
         }
         if (
           !task.providerTaskId &&
@@ -224,65 +185,6 @@ export async function pollPendingTasks(): Promise<void> {
         });
 
         if (newStatus === 'completed') {
-          try {
-            if (task.type === 'image') {
-              const membershipLevel = await resolveUserMembershipLevel(task.userId);
-              const taskParams = parseTaskParams(task.params);
-              const isPosterTask = taskParams?.source === 'poster';
-              const imageCount = Math.max(
-                1,
-                Number(taskParams?.imageCount) || Number(taskParams?.n) || 1
-              );
-              const posterPoints = isPosterTask
-                ? resolvePosterImageRequestPoints({
-                    provider: task.provider,
-                    model: task.model || '',
-                    imageCount,
-                    candidateCount: taskParams?.posterCandidateCount,
-                  })
-                : undefined;
-              await creditService.consume({
-                userId: task.userId,
-                membershipLevel,
-                type: 'image',
-                taskId: task.id,
-                reason: isPosterTask ? 'AI海报生成(后台轮询)' : '图片生成(后台轮询)',
-                provider: task.provider,
-                model: task.model || undefined,
-                customPoints: posterPoints,
-              });
-            } else if (task.type === 'audio' || task.type === 'music') {
-              const membershipLevel = await resolveUserMembershipLevel(task.userId);
-              await creditService.consume({
-                userId: task.userId,
-                membershipLevel,
-                type: 'audio',
-                taskId: task.id,
-                reason: `${task.type === 'music' ? '音乐' : '语音'}生成(后台轮询)`,
-                provider: task.provider,
-              });
-            }
-          } catch (pointsError) {
-            console.error('[BackgroundPoller] 积分扣除失败:', pointsError);
-            // BUG-08 修复：改为 failed 状态并记录错误，便于用户重试，而非 payment_pending 死状态
-            await prisma.task.update({
-              where: { id: task.id },
-              data: {
-                status: 'failed',
-                error: `积分扣除失败，请重试: ${pointsError instanceof Error ? pointsError.message : String(pointsError)}`,
-              },
-            });
-            // 通知用户任务失败
-            try {
-              const { websocketPushService } = await import('./websocket-push-service');
-              websocketPushService
-                .notifyTaskFailed(task.userId, task.id, '积分扣除失败，请重试')
-                .catch((e) => logger.error('[BackgroundPoller] WS notify failed:', e));
-            } catch (e) {
-              logger.error('[BackgroundPoller] WS import failed:', e);
-            }
-          }
-
           if (task.type === 'image') {
             const imageUrl = taskResult.result?.url || taskResult.result?.imageUrl;
             if (imageUrl) {

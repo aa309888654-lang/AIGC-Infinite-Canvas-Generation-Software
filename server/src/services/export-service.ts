@@ -63,9 +63,6 @@ class ExportService {
           username: true,
           email: true,
           role: true,
-          apiQuota: true,
-          usedQuota: true,
-          points: true,
           isActive: true,
           createdAt: true,
           lastLoginAt: true
@@ -85,8 +82,8 @@ class ExportService {
         return {
           success: true,
           data: this.arrayToCSV(formattedUsers, [
-            'id', 'username', 'email', 'role', 'apiQuota', 
-            'usedQuota', 'points', 'isActive', 'createdAt', 'lastLoginAt'
+            'id', 'username', 'email', 'role',
+            'isActive', 'createdAt', 'lastLoginAt'
           ]),
           filename: `${filename}.csv`,
           contentType: 'text/csv'
@@ -194,82 +191,6 @@ class ExportService {
     }
   }
 
-  async exportPayments(options: ExportOptions): Promise<ExportResult> {
-    try {
-      const where: any = {};
-      
-      if (options.userId) {
-        where.userId = options.userId;
-      }
-      
-      if (options.startDate || options.endDate) {
-        where.createdAt = {};
-        if (options.startDate) {
-          where.createdAt.gte = new Date(options.startDate);
-        }
-        if (options.endDate) {
-          where.createdAt.lte = new Date(options.endDate);
-        }
-      }
-
-      const payments = await prisma.payment.findMany({
-        where,
-        include: {
-          user: {
-            select: { username: true, email: true }
-          }
-        },
-        orderBy: { createdAt: 'desc' }
-      });
-
-      const formattedPayments = payments.map(payment => ({
-        id: payment.id,
-        orderNo: payment.orderNo,
-        username: payment.user.username,
-        email: payment.user.email,
-        amount: payment.amount,
-        channel: payment.channel,
-        status: payment.status,
-        createdAt: this.formatDate(payment.createdAt),
-        updatedAt: this.formatDate(payment.updatedAt)
-      }));
-
-      const filename = `payments_export_${Date.now()}`;
-
-      if (options.format === 'csv') {
-        return {
-          success: true,
-          data: this.arrayToCSV(formattedPayments, [
-            'id', 'orderNo', 'username', 'email', 'amount', 
-            'channel', 'status', 'createdAt', 'updatedAt'
-          ]),
-          filename: `${filename}.csv`,
-          contentType: 'text/csv'
-        };
-      } else if (options.format === 'json') {
-        return {
-          success: true,
-          data: JSON.stringify(formattedPayments, null, 2),
-          filename: `${filename}.json`,
-          contentType: 'application/json'
-        };
-      } else {
-        return {
-          success: true,
-          data: formattedPayments,
-          filename: `${filename}.json`,
-          contentType: 'application/json'
-        };
-      }
-    } catch (error) {
-      console.error('[Export] Payments export error:', error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : '导出失败'
-      };
-    }
-  }
-
   async exportLogs(options: ExportOptions): Promise<ExportResult> {
     try {
       const where: any = {};
@@ -369,16 +290,10 @@ class ExportService {
       const formattedQuotas = quotas.map(quota => ({
         username: quota.user.username,
         email: quota.user.email,
-        dailyLimit: quota.dailyLimit,
-        dailyUsed: quota.dailyUsed,
         dailyResetAt: quota.resetAt ? this.formatDate(quota.resetAt) : null,
-        monthlyLimit: quota.monthlyLimit,
-        monthlyUsed: quota.monthlyUsed,
         monthlyResetAt: quota.resetAt ? this.formatDate(quota.resetAt) : null,
         storageLimit: formatBytes(Number(quota.storageLimit)),
         fileLimit: quota.fileLimit,
-        concurrentLimit: quota.concurrentLimit,
-        concurrentUsed: quota.concurrentUsed,
         updatedAt: this.formatDate(quota.updatedAt)
       }));
 
@@ -388,8 +303,8 @@ class ExportService {
         return {
           success: true,
           data: this.arrayToCSV(formattedQuotas, [
-            'username', 'email', 'storageUsed', 'storageLimit', 
-            'fileCount', 'fileLimit', 'apiCallsUsed', 'apiCallsLimit', 'updatedAt'
+            'username', 'email', 'dailyResetAt', 'monthlyResetAt',
+            'storageLimit', 'fileLimit', 'updatedAt'
           ]),
           filename: `${filename}.csv`,
           contentType: 'text/csv'

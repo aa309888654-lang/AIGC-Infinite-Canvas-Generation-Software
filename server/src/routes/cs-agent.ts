@@ -2,7 +2,6 @@ import { Router, Request, Response, NextFunction } from 'express';
 import prisma from '../lib/prisma';
 import { selectProvider, reportSuccess, reportFailure } from '../services/promptSmart3/providerRegistry';
 import { callOpenAICompatible } from '../services/promptSmart3/openaiClient';
-import { creditService } from '../services/credit-service';
 import { AuthRequest, optionalAuth } from '../middleware/auth';
 export const csAgentRouter = Router();
 
@@ -441,21 +440,6 @@ csAgentRouter.post('/chat', optionalAuth, csAgentLimiter, async (req: AuthReques
       });
     }
 
-    const userId = req.userId;
-    const membershipLevel = req.membershipLevel || 'trial';
-
-    const creditCheck = await creditService.preCheck({
-      userId,
-      membershipLevel,
-      type: 'prompt',
-      customPoints: 3,
-      taskId: `cs_agent_${Date.now()}`,
-      reason: '智能客服预检查',
-    });
-    if (!creditCheck.allowed) {
-      return res.status(402).json({ success: false, error: creditCheck.reason });
-    }
-
     const messages: ChatMessage[] = [
       { role: 'system', content: LLM_SYSTEM_PROMPT },
       ...(history || []).slice(-10),
@@ -465,15 +449,6 @@ csAgentRouter.post('/chat', optionalAuth, csAgentLimiter, async (req: AuthReques
     try {
       const reply = await callLLM(messages);
       if (reply) {
-        // LLM调用成功，扣除积分
-        await creditService.consume({
-          userId,
-          membershipLevel,
-          type: 'prompt',
-          customPoints: 3,
-          taskId: `cs_agent_${Date.now()}`,
-          reason: '智能客服AI回答',
-        }).catch(err => console.error('[CSAgent] 积分扣除失败:', err.message));
         const needHuman = /人工|客服|投诉|退款|充值|付款|发票/.test(message);
         return res.json({
           success: true,

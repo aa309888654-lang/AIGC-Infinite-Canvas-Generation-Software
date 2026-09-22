@@ -1,14 +1,11 @@
 import { Router, Response } from 'express';
 import { requireAuth, type AuthRequest } from '../middleware/auth';
-import { creditService } from '../services/credit-service';
 import { logger } from '../utils/logger';
 
 /**
  * AICG Agent Skill HTTP API — 供 OpenClaw / 外部 Agent 调用画布能力（Sprint 4）
  */
 export const aicgSkillsRouter = Router();
-
-const DEFAULT_MEMBERSHIP_LEVEL = 'trial';
 
 const SKILLS = [
   {
@@ -210,17 +207,6 @@ aicgSkillsRouter.post('/image', async (req: AuthRequest, res: Response) => {
     return res.status(400).json({ success: false, error: 'prompt required' });
   }
 
-  const check = await creditService.preCheck({
-    userId: req.userId!,
-    membershipLevel: req.membershipLevel || DEFAULT_MEMBERSHIP_LEVEL,
-    type: 'image',
-    taskId: `skill_image_${Date.now()}`,
-    reason: 'AICG Skill 生图',
-  });
-  if (!check.allowed) {
-    return res.status(402).json({ success: false, error: check.reason });
-  }
-
   return res.json({
     success: true,
     jobId: `img_${Date.now()}_${req.userId!.slice(0, 8)}`,
@@ -236,17 +222,6 @@ aicgSkillsRouter.post('/video', async (req: AuthRequest, res: Response) => {
   const { prompt, modelId, modelProvider } = req.body || {};
   if (!prompt || typeof prompt !== 'string') {
     return res.status(400).json({ success: false, error: 'prompt required' });
-  }
-
-  const check = await creditService.preCheck({
-    userId: req.userId!,
-    membershipLevel: req.membershipLevel || DEFAULT_MEMBERSHIP_LEVEL,
-    type: 'video',
-    taskId: `skill_video_${Date.now()}`,
-    reason: 'AICG Skill 生视频',
-  });
-  if (!check.allowed) {
-    return res.status(402).json({ success: false, error: check.reason });
   }
 
   return res.json({

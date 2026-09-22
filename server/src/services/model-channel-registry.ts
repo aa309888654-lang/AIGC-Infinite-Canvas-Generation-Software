@@ -36,11 +36,20 @@ const videoGenerationModes = [
 ];
 
 const imageChannels: ModelChannel[] = [
-  imageChannel('minimax:image-01', 'image-01', 'minimax', 'image-01', [
-    'text-to-image',
-    'image-to-image',
-    'reference',
-  ]),
+  imageChannel(
+    'sensenova:sensenova-u1.5-lite',
+    'sensenova-u1.5-lite',
+    'sensenova',
+    'sensenova-u1.5-lite',
+    ['text-to-image', 'image-to-image', 'reference', 'infographic']
+  ),
+  imageChannel(
+    'sensenova:sensenova-u1-fast',
+    'sensenova-u1-fast',
+    'sensenova',
+    'sensenova-u1-fast',
+    ['text-to-image', 'image-to-image', 'reference', 'infographic']
+  ),
   imageChannel(
     'doubao:doubao-seedream-5-0-lite',
     'doubao-seedream-5-0-lite',
@@ -62,33 +71,6 @@ const imageChannels: ModelChannel[] = [
     }
   ),
   imageChannel(
-    'doubao:doubao-seedream-5-0-pro',
-    'doubao-seedream-5-0-pro',
-    'doubao',
-    'doubao-seedream-5-0-pro',
-    [
-      'text-to-image',
-      'image-to-image',
-      'reference',
-      'inpainting',
-      'outpainting',
-      'instruction-following',
-      'infographic',
-      'interactive-edit',
-      'precise-coordinate',
-      'arbitrary-marking',
-      'multi-image-fusion',
-    ],
-    {
-      aliases: [
-        'doubao-seedream-5-0-pro-260628',
-        'doubao-seedream-5.0-pro',
-        'seedream-5-0-pro',
-        'seedream-5.0-pro',
-      ],
-    }
-  ),
-  imageChannel(
     'doubao:doubao-seedream-4-5',
     'doubao-seedream-4-5',
     'doubao',
@@ -96,23 +78,6 @@ const imageChannels: ModelChannel[] = [
     ['text-to-image', 'image-to-image', 'reference'],
     {
       aliases: ['doubao-seedream-4-5-251128', 'doubao-seedream-4.5', 'seedream-4-5'],
-    }
-  ),
-  imageChannel(
-    'sensenova:sensenova-u1-fast',
-    'sensenova-u1-fast',
-    'sensenova',
-    'sensenova-u1-fast',
-    ['text-to-image', 'negative-prompt']
-  ),
-  imageChannel(
-    'stepfun:step-image-edit-2',
-    'step-image-edit-2',
-    'stepfun',
-    'step-image-edit-2',
-    ['text-to-image', 'image-to-image', 'image-edit'],
-    {
-      category: 'edit',
     }
   ),
   imageChannel(
@@ -125,22 +90,9 @@ const imageChannels: ModelChannel[] = [
       aliases: ['Wan2.6'],
     }
   ),
-  imageChannel(
-    'agnes:agnes-image-2.1-flash',
-    'agnes-image-2.1-flash',
-    'agnes',
-    'agnes-image-2.1-flash',
-    ['text-to-image', 'image-to-image', 'reference']
-  ),
 ];
 
 const videoChannels: ModelChannel[] = [
-  videoChannel('agnes:agnes-video-v2.0', 'agnes-video-v2.0', 'agnes', 'agnes-video-v2.0', [
-    'text-to-video',
-    'image-to-video',
-    'video-to-video',
-    'multi-reference',
-  ]),
   videoChannel('wuyinkeji:Wan2.6_video', 'Wan2.6_video', 'wuyinkeji', 'Wan2.6_video', [
     'text-to-video',
     'image-to-video',
@@ -229,24 +181,6 @@ const videoChannels: ModelChannel[] = [
       aliases: ['doubao-seedance-1-0-pro-250528'],
     }
   ),
-  videoChannel('vidu:viduq3-pro', 'viduq3-pro', 'vidu', 'viduq3-pro', [
-    'text-to-video',
-    'image-to-video',
-    'first-last-frame',
-    'reference-to-video',
-  ]),
-  videoChannel('vidu:viduq3-pro-fast', 'viduq3-pro-fast', 'vidu', 'viduq3-pro-fast', [
-    'image-to-video',
-  ]),
-  videoChannel('vidu:viduq3-turbo', 'viduq3-turbo', 'vidu', 'viduq3-turbo', [
-    'text-to-video',
-    'image-to-video',
-    'first-last-frame',
-  ]),
-  videoChannel('vidu:viduq3-mix', 'viduq3-mix', 'vidu', 'viduq3-mix', [
-    'reference-to-video',
-    'multi-reference',
-  ]),
   videoChannel('vidu:viduq2-pro', 'viduq2-pro', 'vidu', 'viduq2-pro', [
     'text-to-video',
     'image-to-video',
@@ -268,26 +202,6 @@ const videoChannels: ModelChannel[] = [
   videoChannel('vidu:vidu2-reference', 'vidu2-reference', 'vidu', 'vidu2-reference', [
     'reference-to-video',
   ]),
-  videoChannel(
-    'kling:kling-3.0-turbo',
-    'kling-3.0-turbo',
-    'kling',
-    'kling-3.0-turbo',
-    ['image-to-video'],
-    {
-      aliases: ['kling-3-0-turbo', 'kling-v3-turbo'],
-    }
-  ),
-  videoChannel(
-    'kling:kling-3.0',
-    'kling-3.0',
-    'kling',
-    'kling-3.0',
-    ['image-to-video', 'first-last-frame', 'audio-generation'],
-    {
-      aliases: ['kling-3.0-omni', 'kling-3-0-omni', 'kling-v3-omni'],
-    }
-  ),
 ];
 
 export const MODEL_CHANNELS: ModelChannel[] = [...imageChannels, ...videoChannels];

@@ -2,18 +2,16 @@ import { Router, Request, Response } from 'express';
 import axios from 'axios';
 import FormData from 'form-data';
 import { authenticate, AuthRequest } from '../middleware/auth';
-import { creditService } from '../services/credit-service';
 import { logger } from '../utils/logger';
 import { fetchRemoteBuffer, getRemoteImportAllowedHosts } from '../utils/safe-remote-fetch';
 
 const sam2Router = Router();
 
-// SAM2 模型路径（已嵌入软件 backend/models/sam2/）
+// SAM2 模型路径（已嵌入软件 server/models/sam2/）
 const SAM2_MODEL_DIR = process.env.SAM2_MODEL_DIR || '';
 const SAM2_MODEL_PATH = process.env.SAM2_MODEL_PATH || '';
 const SAM2_SERVER_URL = process.env.SAM2_SERVER_URL || 'http://127.0.0.1:7100';
 const SAM2_ENABLED = process.env.SAM2_ENABLED !== 'false';
-const SAM2_POINTS = parseInt(process.env.SAM2_POINTS || '10', 10);
 
 // 默认模型清单（嵌入路径优先，回退到环境变量）
 const SAM2_MODELS = [
@@ -61,21 +59,6 @@ sam2Router.post('/segment', authenticate, async (req: AuthRequest, res: Response
 
     if (!image_url && !image_base64) {
       return res.status(400).json({ success: false, error: '请提供 image_url 或 image_base64' });
-    }
-
-    // 积分预检查
-    const membershipLevel = req.membershipLevel || 'trial';
-    const creditCheck = await creditService.preCheck({
-      userId: req.userId!,
-      membershipLevel,
-      type: 'image',
-      customPoints: SAM2_POINTS,
-      taskId: `sam2_${Date.now()}`,
-      reason: 'SAM2交互式分割预检查',
-    });
-
-    if (!creditCheck.allowed) {
-      return res.status(402).json({ success: false, error: creditCheck.reason });
     }
 
     // 解析图片
@@ -129,22 +112,11 @@ sam2Router.post('/segment', authenticate, async (req: AuthRequest, res: Response
 
     const resultBase64 = Buffer.from(response.data).toString('base64');
 
-    // 扣除积分
-    await creditService.consume({
-      userId: req.userId!,
-      membershipLevel,
-      type: 'image',
-      customPoints: SAM2_POINTS,
-      taskId: `sam2_${Date.now()}`,
-      reason: 'SAM2交互式分割',
-    });
-
     return res.json({
       success: true,
       image: resultBase64,
       format: 'png',
       engine: 'sam2',
-      points: SAM2_POINTS,
     });
   } catch (error: unknown) {
     const err = error as any;

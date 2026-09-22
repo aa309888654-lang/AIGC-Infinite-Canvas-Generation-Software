@@ -424,7 +424,7 @@ adminGovernanceRouter.get('/cost-analysis', async (req, res) => {
     const days = Math.min(Math.max(Number(req.query.days) || 30, 1), 180);
     const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
-    const [apiSummary, providerCost, taskCreditSummary, dailyRows] = await Promise.all([
+    const [apiSummary, providerCost, taskSummary, dailyRows] = await Promise.all([
       prisma.apiCallLog.aggregate({
         where: { createdAt: { gte: since } },
         _count: { _all: true },
@@ -439,7 +439,6 @@ adminGovernanceRouter.get('/cost-analysis', async (req, res) => {
       prisma.task.aggregate({
         where: { createdAt: { gte: since } },
         _count: { _all: true },
-        _sum: { credits: true },
       }),
       prisma.apiCallLog.findMany({
         where: { createdAt: { gte: since } },
@@ -468,8 +467,7 @@ adminGovernanceRouter.get('/cost-analysis', async (req, res) => {
           outputTokens: apiSummary._sum.outputTokens || 0,
           totalCost: Number((apiSummary._sum.totalCost || 0).toFixed(4)),
           pointsCost: apiSummary._sum.pointsCost || 0,
-          taskCount: taskCreditSummary._count._all,
-          taskCredits: taskCreditSummary._sum.credits || 0,
+          taskCount: taskSummary._count._all,
         },
         providers: providerCost.map((item) => ({
           provider: item.provider || 'unknown',
@@ -538,7 +536,6 @@ adminGovernanceRouter.get('/exports', (_req, res) => {
       types: [
         { type: 'users', label: '用户列表', endpoint: '/export/users/all' },
         { type: 'tasks', label: '任务记录', endpoint: '/export/tasks/all' },
-        { type: 'payments', label: '支付记录', endpoint: '/export/payments/all' },
         { type: 'logs', label: '操作日志', endpoint: '/export/logs/all' },
         { type: 'quotas', label: '配额使用', endpoint: '/export/quotas/all' },
       ],

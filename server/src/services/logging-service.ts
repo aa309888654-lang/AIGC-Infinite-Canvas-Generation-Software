@@ -399,49 +399,11 @@ class LoggingService {
     page?: number;
     limit?: number;
   }): Promise<{ logs: any[]; pagination: { total: number; page: number; limit: number; totalPages: number } }> {
-    try {
-      const where: any = {};
-
-      if (params.userId) {
-        where.userId = params.userId;
-      }
-      if (params.status) {
-        where.status = params.status;
-      }
-      if (params.startDate || params.endDate) {
-        where.createdAt = {};
-        if (params.startDate) where.createdAt.gte = params.startDate;
-        if (params.endDate) where.createdAt.lte = params.endDate;
-      }
-
-      const page = params.page || 1;
-      const limit = params.limit || 20;
-      const skip = (page - 1) * limit;
-
-      const [logs, total] = await Promise.all([
-        prisma.paymentLog.findMany({
-          where,
-          orderBy: { createdAt: 'desc' },
-          skip,
-          take: limit,
-          include: { user: { select: { username: true, email: true } } }
-        }),
-        prisma.paymentLog.count({ where })
-      ]);
-
-      return {
-        logs,
-        pagination: {
-          total,
-          page,
-          limit,
-          totalPages: Math.ceil(total / limit)
-        }
-      };
-    } catch (error) {
-      this.error('Failed to get payment logs', { error });
-      return { logs: [], pagination: { total: 0, page: 1, limit: 20, totalPages: 0 } };
-    }
+    // PaymentLog 模型已移除，返回空数据以保持接口兼容（调用方：src/routes/logs.ts）
+    void params;
+    const page = params.page || 1;
+    const limit = params.limit || 20;
+    return { logs: [], pagination: { total: 0, page, limit, totalPages: 0 } };
   }
 
   async getLoginLogs(params: {
@@ -585,28 +547,6 @@ class LoggingService {
     } catch (error) {
       this.error('Failed to verify log integrity', { error });
       return { valid: false, total: 0, corrupted: 0 };
-    }
-  }
-
-  async logPayment(paymentId: string, userId: string, amount: number, status: string, details?: Record<string, any>): Promise<void> {
-    try {
-      const method = typeof details?.gateway === 'string' ? details.gateway : 'unknown';
-      const transactionId = typeof details?.transactionId === 'string' ? details.transactionId : null;
-      await prisma.paymentLog.create({
-        data: {
-          userId,
-          type: 'payment',
-          amount,
-          status,
-          orderNo: paymentId,
-          method,
-          transactionId,
-          metadata: details ? JSON.stringify(details) : null
-        }
-      });
-      this.info('Payment logged', { paymentId, userId, amount, status });
-    } catch (error) {
-      this.error('Failed to log payment', { error, paymentId, userId });
     }
   }
 

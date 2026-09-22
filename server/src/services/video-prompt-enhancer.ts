@@ -5,7 +5,6 @@
  * 即使用户未点击"提示词优化"按钮，也会在传送到模型前做轻量规则优化。
  *
  * 支持的视频模型分组：
- * - AGNES_VIDEO (agnes-video-v2.0): 高质量视频生成，支持 negative_prompt
  * - DOUBAO_SEEDANCE (doubao-seedance-*): 豆包视频，不支持 negative_prompt
  * - VIDU (viduq2/viduq3): Vidu 视频，不支持 negative_prompt
  * - WAN (Wan2.6/Wan2.7): 万象视频，支持 negative_prompt
@@ -27,8 +26,6 @@ export interface VideoEnhancedPrompt {
 // 模型专用负向提示词
 // ============================================================
 
-const NEG_AGNES_VIDEO = 'flickering, jittery motion, unnatural movement, morphing artifacts, warped faces, distorted bodies, extra limbs, missing limbs, deformed hands, bad anatomy, low quality, blurry frames, pixelated, noisy, grainy, watermark, text, logo, signature, copyright, overexposed, underexposed, bad lighting, inconsistent lighting, flickering shadows, duplicate frames, stuttering animation';
-
 const NEG_DOUBAO = 'flickering, jittery motion, morphing artifacts, warped faces, distorted bodies, extra limbs, deformed hands, bad anatomy, low quality, blurry frames, pixelated, noisy, watermark, text, logo, overexposed, underexposed, bad lighting, inconsistent lighting, stuttering animation';
 
 const NEG_VIDU = 'flickering, jittery motion, morphing artifacts, warped faces, distorted bodies, extra limbs, deformed hands, bad anatomy, low quality, blurry frames, pixelated, noisy, watermark, text, logo, overexposed, underexposed, bad lighting, stuttering animation';
@@ -45,7 +42,6 @@ const NEG_GENERIC = 'flickering, jittery motion, morphing artifacts, warped face
 // 模型专用正向质量后缀
 // ============================================================
 
-const SUFFIX_AGNES_VIDEO = 'cinematic motion, smooth camera movement, high quality video, professional cinematography, 4K resolution, detailed textures, natural motion blur, coherent scene continuity';
 const SUFFIX_DOUBAO = 'cinematic motion, smooth animation, high quality video, professional cinematography, detailed textures, natural motion, coherent scene continuity';
 const SUFFIX_VIDU = 'cinematic motion, smooth animation, high quality video, professional cinematography, detailed textures, natural motion, coherent lighting';
 const SUFFIX_WAN = 'cinematic motion, smooth camera movement, high quality video, professional cinematography, 4K resolution, detailed textures, natural motion blur, coherent scene continuity, rich color grading';
@@ -72,7 +68,6 @@ function appendIfMissing(original: string, suffix: string, checkKeywords: string
 // ============================================================
 
 type VideoModelGroup =
-  | 'agnes-video'
   | 'doubao-seedance'
   | 'vidu'
   | 'wan'
@@ -84,7 +79,6 @@ function resolveVideoModelGroup(model: string | undefined, provider: string | un
   const m = (model || '').toLowerCase();
   const p = (provider || '').toLowerCase();
 
-  if (m.includes('agnes-video') || p === 'agnes') return 'agnes-video';
   if (m.includes('seedance') || m.includes('seedream') || m.includes('doubao')) return 'doubao-seedance';
   if (m.startsWith('vidu') || p === 'vidu') return 'vidu';
   if (m.includes('wan2')) return 'wan';
@@ -95,7 +89,6 @@ function resolveVideoModelGroup(model: string | undefined, provider: string | un
 
 function getVideoNegativePrompt(group: VideoModelGroup): string {
   switch (group) {
-    case 'agnes-video': return NEG_AGNES_VIDEO;
     case 'doubao-seedance': return NEG_DOUBAO;
     case 'vidu': return NEG_VIDU;
     case 'wan': return NEG_WAN;
@@ -107,7 +100,6 @@ function getVideoNegativePrompt(group: VideoModelGroup): string {
 
 function getVideoQualitySuffix(group: VideoModelGroup): string {
   switch (group) {
-    case 'agnes-video': return SUFFIX_AGNES_VIDEO;
     case 'doubao-seedance': return SUFFIX_DOUBAO;
     case 'vidu': return SUFFIX_VIDU;
     case 'wan': return SUFFIX_WAN;
@@ -121,7 +113,7 @@ function getVideoQualitySuffix(group: VideoModelGroup): string {
 function videoSupportsNegativePrompt(group: VideoModelGroup): boolean {
   // Doubao V3、Vidu 官方 API 不支持 negative_prompt
   // 已删除 (2026-07-20): 国外模型 Google Omni / Sora 分支已下线
-  return group === 'agnes-video' || group === 'wan';
+  return group === 'wan';
 }
 
 // ============================================================

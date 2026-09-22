@@ -135,3 +135,14 @@ npm run dev
 ## 🙏 致谢
 
 感谢所有大模型服务商、第三方依赖和开源贡献者。
+
+---
+
+## 🧩 源码构建与安全
+
+- **本仓库就是完整源代码**：前端 `src/`、后端 `server/`、运行期素材 `public/` 全部为可读源码，未做变量混淆、字符串隐藏或压缩加密，也不含 source map。
+- **不含敏感内容**：没有真实 API Key、访问令牌、数据库、日志、`node_modules`、构建产物和用户上传文件。
+- **从源码构建**：根目录 `npm install` → `npm run build`；后端 `cd server && npm install && npx prisma generate && npx tsc`。
+- **密钥只放服务端**：复制 `server/.env.example` 为 `server/.env`，填写 `DATABASE_URL`、模型 API Key、`JWT_SECRET`，以及 32 字节随机的 `ENCRYPTION_KEY`（64 位十六进制）。不要把真实密钥提交进仓库。
+- **版本校验**：发布流程见 [`docs/GITHUB_PUBLISH_RULES.md`](./docs/GITHUB_PUBLISH_RULES.md)；单文件超过 100 MiB 的演示录像已在发布包中剔除，可用 `node scripts/publish-github-release.cjs` 复现并核对文件清单。
+- **第三方依赖**：`LICENSE` 与 `LICENSE-COMMERCIAL.md` 界定本项目授权范围；模型、素材、字体和 npm 依赖的许可协议由部署者自行核验。

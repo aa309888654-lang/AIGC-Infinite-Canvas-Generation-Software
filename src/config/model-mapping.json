@@ -1,0 +1,112 @@
+{
+  "models": {
+    "image": {
+      "doubao-seedream-5-0-lite": {
+        "name": "Seedream 5.0 轻量",
+        "description": "快速图片生成",
+        "version": "5.0",
+        "defaultParams": {
+          "quality": "standard",
+          "aspectRatio": "1:1"
+        }
+      },
+      "doubao-seedream-5-0-pro": {
+        "name": "Seedream 5.0 专业",
+        "description": "高质量图片生成",
+        "version": "5.0",
+        "defaultParams": {
+          "quality": "hd",
+          "aspectRatio": "1:1"
+        }
+      },
+      "jimeng-seedream-5-0-lite": {
+        "name": "即梦 5.0 轻量",
+        "description": "即梦图片生成轻量版",
+        "version": "5.0",
+        "defaultParams": {
+          "quality": "standard",
+          "aspectRatio": "1:1"
+        }
+      },
+      "jimeng-seedream-5-0-pro": {
+        "name": "即梦 5.0 专业",
+        "description": "即梦图片生成专业版",
+        "version": "5.0",
+        "defaultParams": {
+          "quality": "hd",
+          "aspectRatio": "1:1"
+        }
+      },
+      "hailuo-02": {
+        "name": "海螺 02",
+        "description": "MiniMax海螺图片生成",
+        "version": "2.0",
+        "defaultParams": {
+          "quality": "standard"
+        }
+      },
+      "doubao-seedream-5-0-pro": {
+        "name": "豆包 Seedream 5.0 Pro",
+        "description": "豆包 Seedream 5.0 Pro 图片生成",
+        "version": "2.0",
+        "defaultParams": {
+          "quality": "standard"
+        }
+      }
+    },
+    "video": {
+    "doubao-seedance-1-5-pro": {
+      "name": "Seedance 1.5 Pro",
+      "description": "标准视频生成",
+      "version": "1.5",
+      "defaultParams": {
+        "duration": 5,
+        "fps": 24,
+        "watermark": true
+      }
+    },
+    "doubao-seedance-1-5-pro-hd": {
+      "name": "Seedance 1.5 Pro HD",
+      "description": "高清视频生成",
+      "version": "1.5",
+      "defaultParams": {
+        "duration": 10,
+        "fps": 30,
+        "quality": "high"
+      }
+    },
+    "wanx-all-in-one": {
+      "name": "万相2.6 全能版",
+      "description": "阿里云万相2.6全能版，支持文生视频、图生视频、参考生视频多种模式",
+      "version": "2.6",
+      "defaultParams": {
+        "duration": 10,
+        "resolution": "720P",
+        "quality": "standard",
+        "modes": ["text_to_video", "image_to_video", "reference_to_video"]
+      },
+      "modeMapping": {
+        "text_to_video": "wan2.6-t2v",
+        "image_to_video": "wan2.6-i2v",
+        "reference_to_video": "wan2.6-r2v",
+        "text_to_video_flash": "wan2.6-t2v-flash",
+        "image_to_video_flash": "wan2.6-i2v-flash",
+        "reference_to_video_flash": "wan2.6-r2v-flash"
+      }
+    }
+  }
+  },
+  "defaultModels": {
+    "image": "doubao-seedream-5-0-lite",
+    "video": "doubao-seedance-2-0",
+    "wanx": "wanx-all-in-one",
+
+    "jimeng": "jimeng-seedream-5-0-lite",
+    "hailuo": "hailuo-02"
+  },
+  "modelIdFormat": {
+    "note": "使用连字符-，不是点号.",
+    "correct": "doubao-seedream-5-0-lite",
+    "incorrect": "doubao-seedream.5.0.lite"
+  }
+}

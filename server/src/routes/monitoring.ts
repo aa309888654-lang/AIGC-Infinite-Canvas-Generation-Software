@@ -29,16 +29,10 @@ router.get('/stats', authenticate, requireAdmin, async (req: Request, res: Respo
     const [
       userCount,
       taskCount,
-      paymentStats,
       quotaReport
     ] = await Promise.all([
       prisma.user.count(),
       prisma.task.count(),
-      prisma.payment.aggregate({
-        where: { status: 'SUCCESS' },
-        _sum: { amount: true },
-        _count: true
-      }),
       quotaService.getQuotaUsageReport()
     ]);
 
@@ -47,14 +41,11 @@ router.get('/stats', authenticate, requireAdmin, async (req: Request, res: Respo
       stats: {
         users: userCount,
         tasks: taskCount,
-        totalRevenue: paymentStats._sum.amount || 0,
-        totalPayments: paymentStats._count,
         storage: {
           used: quotaReport.totalStorageUsed,
           usedFormatted: formatBytes(quotaReport.totalStorageUsed)
         },
-        files: quotaReport.totalFiles,
-        apiCalls: quotaReport.totalApiCalls
+        files: quotaReport.totalFiles
       }
     });
   } catch (error: unknown) {

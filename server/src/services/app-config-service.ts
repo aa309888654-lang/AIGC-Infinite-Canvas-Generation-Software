@@ -1,26 +1,5 @@
 import prisma from '../lib/prisma';
-import {
-  type MembershipLevel,
-  normalizeMembershipLevel,
-  isProviderAllowedForMembership,
-  isModelAllowedForMembership,
-} from '../routes/ai-provider-membership';
 import { getModelChannels, type ModelChannel, type ModelMediaType } from './model-channel-registry';
-import {
-  CONFIG_DEFINITIONS,
-  DEFAULT_VALUES,
-  getInviteConfig,
-  getPointsConfig,
-  savePointsConfig,
-  invalidatePointsConfigCache,
-} from './points-config-service';
-import {
-  DEFAULT_RECHARGE_PACKAGES,
-  RechargePackage,
-  getRechargePackages,
-  saveRechargePackages,
-} from './points-packages-service';
-import { invalidatePricingCache, PricingRule } from './pricing-rules-service';
 
 const APP_SECTIONS_CONFIG_KEY = 'app_sections_config';
 const MODEL_PARAMETER_SCHEMA_CONFIG_KEY = 'model_parameter_schema_config';
@@ -83,7 +62,6 @@ export interface AppModelConfig {
   maxDuration?: number;
   defaultParams?: Record<string, unknown>;
   parameterSchema: ModelParameterSchema;
-  pricing?: PricingRule | null;
   isActive: boolean;
   disabledReason?: string;
   fallbackProvider?: string;
@@ -105,12 +83,6 @@ export interface AppBootstrapConfig {
     activeModelCount: number;
   }>;
   models: AppModelConfig[];
-  pointsPolicy: Record<string, number>;
-  pointsDefinitions: typeof CONFIG_DEFINITIONS;
-  pointsDefaults: typeof DEFAULT_VALUES;
-  inviteRewardPolicy: Awaited<ReturnType<typeof getInviteConfig>>;
-  rechargePackages: RechargePackage[];
-  pricingRules: PricingRule[];
 }
 
 interface ProviderRow {
@@ -224,16 +196,6 @@ const BUILTIN_PROVIDER_MODELS: Record<string, Array<Record<string, any>>> = {
     },
   ],
   stepfun: [
-    {
-      id: 'stepaudio-2.5-tts',
-      name: 'StepAudio 2.5 TTS',
-      description: 'StepFun 文本转语音默认配音通道',
-      type: 'audio',
-      supportedModes: ['text-to-audio', 'audio-generation'],
-      capabilities: AUDIO_TTS_CAPABILITIES,
-      requiredInputs: ['prompt'],
-      defaultParams: { voiceId: 'cixingnansheng', speed: 1, format: 'mp3' },
-    },
     {
       id: 'step-tts-mini',
       name: 'Step TTS Mini',
@@ -626,7 +588,6 @@ export async function saveAppSections(sections: AppSectionConfig[]): Promise<App
 export async function getFeatureFlags(): Promise<Record<string, boolean>> {
   return getSystemJson<Record<string, boolean>>(FEATURE_FLAGS_CONFIG_KEY, {
     backendDrivenModels: true,
-    backendDrivenRechargePackages: true,
     backendDrivenNodeParameters: true,
     hideDisabledModels: true,
   });
@@ -648,49 +609,9 @@ async function saveStoredParameterSchemas(schemas: Record<string, ModelParameter
   await bumpConfigVersion();
 }
 
-async function getPricingRules(): Promise<PricingRule[]> {
-  const providerConfig = await prisma.providerConfig.findUnique({
-    where: { provider: PRICING_RULES_PROVIDER },
-    select: { config: true },
-  });
-
-  const parsed = parseJson<{ pricingRules?: PricingRule[] }>(providerConfig?.config, {});
-  return Array.isArray(parsed.pricingRules) ? parsed.pricingRules : [];
-}
-
-async function savePricingRules(rules: PricingRule[]): Promise<void> {
-  await prisma.providerConfig.upsert({
-    where: { provider: PRICING_RULES_PROVIDER },
-    update: {
-      config: JSON.stringify({ pricingRules: rules }),
-      isActive: true,
-      name: '系统积分定价规则',
-      displayName: '系统积分定价规则',
-    },
-    create: {
-      provider: PRICING_RULES_PROVIDER,
-      name: '系统积分定价规则',
-      displayName: '系统积分定价规则',
-      config: JSON.stringify({ pricingRules: rules }),
-      isActive: true,
-    },
-  });
-  invalidatePricingCache();
-  await bumpConfigVersion();
-}
-
-function findPricingRule(rules: PricingRule[], type: ModelType | undefined, modelId: string, provider: string): PricingRule | null {
-  const taskType = type === 'audio' || type === 'music' || type === 'video' || type === 'text' ? type : 'image';
-  return rules.find((rule) => rule.taskType === taskType && rule.model === modelId && rule.provider === provider)
-    || rules.find((rule) => rule.taskType === taskType && rule.model === modelId && !rule.provider)
-    || null;
-}
-
 export async function getModelCatalog(options?: {
   includeInactive?: boolean;
-  membershipLevel?: string | null;
-}): Promise<{ providers: AppBootstrapConfig['providers']; models: AppModelConfig[]; pricingRules: PricingRule[] }> {
-  const membershipLevel = normalizeMembershipLevel(options?.membershipLevel) as MembershipLevel;
+}): Promise<{ providers: AppBootstrapConfig['providers']; models: AppModelConfig[] }> {
   const includeInactive = options?.includeInactive === true;
   const where = includeInactive ? { NOT: { provider: PRICING_RULES_PROVIDER } } : { isActive: true, NOT: { provider: PRICING_RULES_PROVIDER } };
   const providers = await prisma.providerConfig.findMany({
@@ -707,7 +628,6 @@ export async function getModelCatalog(options?: {
   });
   const activeProviderNames = new Set(providers.filter((provider) => provider.isActive).map((provider) => provider.provider));
   const parameterSchemas = await getStoredParameterSchemas();
-  const pricingRules = await getPricingRules();
   const models: AppModelConfig[] = [];
 
   for (const provider of providers as ProviderRow[]) {
@@ -716,17 +636,12 @@ export async function getModelCatalog(options?: {
     const configuredModels = Array.isArray(config.models) ? config.models : [];
     const modelList = mergeProviderModels(provider.provider, configuredModels);
 
-    if (!includeInactive && !isProviderAllowedForMembership(provider.provider, membershipLevel)) {
-      continue;
-    }
-
     for (const rawModel of modelList) {
       const modelObj = normalizeModel(rawModel);
       const modelId = String(modelObj.id || modelObj.modelId || '').trim();
       if (!modelId) continue;
       const modelActive = modelObj.isActive !== false && provider.isActive;
       if (!includeInactive && !modelActive) continue;
-      if (!includeInactive && !isModelAllowedForMembership(modelObj, membershipLevel)) continue;
 
       const explicitMediaType = getMediaType(modelObj.type);
       const channel = findCatalogChannel(provider.provider, modelId, explicitMediaType);
@@ -763,7 +678,6 @@ export async function getModelCatalog(options?: {
         maxDuration: modelObj.maxDuration,
         defaultParams: modelObj.defaultParams || {},
         parameterSchema: parameterSchemas[key] || parameterSchemas[modelId] || { version: '1.0', fields: [] },
-        pricing: findPricingRule(pricingRules, channel?.mediaType || modelType, modelId, routeProvider),
         isActive: modelActive && channel?.enabled !== false && routeProviderAvailable && !disabledReason,
         disabledReason,
         fallbackProvider: channel?.fallbackProvider || modelObj.fallbackProvider,
@@ -792,18 +706,15 @@ export async function getModelCatalog(options?: {
     };
   });
 
-  return { providers: providerSummaries, models, pricingRules };
+  return { providers: providerSummaries, models };
 }
 
-export async function getAppBootstrap(membershipLevel?: string | null): Promise<AppBootstrapConfig> {
-  const [configVersion, sections, featureFlags, modelCatalog, pointsPolicy, inviteRewardPolicy, rechargePackages] = await Promise.all([
+export async function getAppBootstrap(): Promise<AppBootstrapConfig> {
+  const [configVersion, sections, featureFlags, modelCatalog] = await Promise.all([
     getConfigVersion(),
     getAppSections(),
     getFeatureFlags(),
-    getModelCatalog({ membershipLevel }),
-    getPointsConfig(),
-    getInviteConfig(),
-    getRechargePackages(),
+    getModelCatalog(),
   ]);
 
   return {
@@ -813,12 +724,6 @@ export async function getAppBootstrap(membershipLevel?: string | null): Promise<
     featureFlags,
     providers: modelCatalog.providers,
     models: modelCatalog.models,
-    pointsPolicy,
-    pointsDefinitions: CONFIG_DEFINITIONS,
-    pointsDefaults: DEFAULT_VALUES,
-    inviteRewardPolicy,
-    rechargePackages,
-    pricingRules: modelCatalog.pricingRules,
   };
 }
 
@@ -867,7 +772,7 @@ export async function upsertModelInProvider(providerId: string, payload: Record<
   });
 
   await bumpConfigVersion();
-  const catalog = await getModelCatalog({ includeInactive: true, membershipLevel: 'enterprise' });
+  const catalog = await getModelCatalog({ includeInactive: true });
   return catalog.models.find((model) => model.configuredProvider === providerId && model.modelId === modelId) || null;
 }
 
@@ -899,48 +804,8 @@ export async function saveModelParameterSchema(providerId: string, modelId: stri
   return normalized;
 }
 
-export async function updateModelPricing(providerId: string, modelId: string, payload: {
-  taskType: PricingRule['taskType'];
-  pointsCost: number;
-  isActive?: boolean;
-  note?: string;
-}): Promise<PricingRule> {
-  const rules = await getPricingRules();
-  const existingIndex = rules.findIndex((rule) => rule.provider === providerId && rule.model === modelId && rule.taskType === payload.taskType);
-  const nextRule: PricingRule = {
-    id: existingIndex >= 0 ? rules[existingIndex].id : `pricing_${Date.now()}`,
-    taskType: payload.taskType,
-    provider: providerId,
-    model: modelId,
-    pointsCost: Math.max(0, Math.floor(payload.pointsCost)),
-    isActive: payload.isActive !== false,
-    effectiveAt: new Date().toISOString(),
-    note: payload.note,
-  };
-  if (existingIndex >= 0) {
-    rules[existingIndex] = nextRule;
-  } else {
-    rules.push(nextRule);
-  }
-  await savePricingRules(rules);
-  return nextRule;
-}
-
-export async function savePointsPolicy(values: Record<string, number>): Promise<Record<string, number>> {
-  await savePointsConfig(values);
-  invalidatePointsConfigCache();
-  await bumpConfigVersion();
-  return getPointsConfig();
-}
-
-export async function saveRechargePackageList(packages: RechargePackage[]): Promise<RechargePackage[]> {
-  await saveRechargePackages(packages);
-  await bumpConfigVersion();
-  return getRechargePackages();
-}
-
 export async function publishSnapshot(adminId: string): Promise<{ version: string; snapshotCount: number }> {
-  const snapshot = await getAppBootstrap('enterprise');
+  const snapshot = await getAppBootstrap();
   const currentSnapshots = await getSystemJson<Array<Record<string, unknown>>>(APP_CONFIG_SNAPSHOTS_KEY, []);
   const nextSnapshots = [
     { adminId, createdAt: new Date().toISOString(), snapshot },
@@ -949,10 +814,4 @@ export async function publishSnapshot(adminId: string): Promise<{ version: strin
   await saveSystemJson(APP_CONFIG_SNAPSHOTS_KEY, nextSnapshots, '应用配置发布快照');
   const version = await bumpConfigVersion();
   return { version, snapshotCount: nextSnapshots.length };
-}
-
-export async function resetRechargePackages(): Promise<RechargePackage[]> {
-  await saveRechargePackages(DEFAULT_RECHARGE_PACKAGES);
-  await bumpConfigVersion();
-  return DEFAULT_RECHARGE_PACKAGES;
 }

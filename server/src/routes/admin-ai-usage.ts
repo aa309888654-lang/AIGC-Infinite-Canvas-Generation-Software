@@ -155,7 +155,6 @@ adminAiUsageRouter.get('/overview', async (req, res) => {
         by: ['type'],
         where: { createdAt: { gte: since } },
         _count: { _all: true },
-        _sum: { credits: true },
       }),
       prisma.apiCallLog.aggregate({
         where: { createdAt: { gte: since } },
@@ -169,11 +168,10 @@ adminAiUsageRouter.get('/overview', async (req, res) => {
       }),
     ]);
 
-    const taskByType: Record<string, { count: number; credits: number }> = {};
+    const taskByType: Record<string, { count: number }> = {};
     for (const t of tasks) {
       taskByType[t.type] = {
         count: t._count._all,
-        credits: t._sum.credits || 0,
       };
     }
 
@@ -188,7 +186,6 @@ adminAiUsageRouter.get('/overview', async (req, res) => {
           videos: taskByType['video']?.count || 0,
           audio: taskByType['audio']?.count || 0,
           music: taskByType['music']?.count || 0,
-          totalCredits: Object.values(taskByType).reduce((a, b) => a + b.credits, 0),
         },
         apiCalls: {
           total: apiCalls._count._all,
@@ -222,7 +219,6 @@ adminAiUsageRouter.get('/by-provider', async (req, res) => {
           provider: { not: null },
         },
         _count: { _all: true },
-        _sum: { credits: true },
       }),
       prisma.apiCallLog.groupBy({
         by: ['provider', 'model'],
@@ -250,7 +246,6 @@ adminAiUsageRouter.get('/by-provider', async (req, res) => {
           videoCount: 0,
           audioCount: 0,
           musicCount: 0,
-          credits: 0,
           apiCalls: 0,
           inputTokens: 0,
           outputTokens: 0,
@@ -260,7 +255,6 @@ adminAiUsageRouter.get('/by-provider', async (req, res) => {
         };
       }
       providerMap[p].taskCount += t._count._all;
-      providerMap[p].credits += t._sum.credits || 0;
       const typeKey = `${t.type}Count` as keyof typeof providerMap[string];
       if (typeof providerMap[p][typeKey] === 'number') {
         (providerMap[p] as any)[typeKey] += t._count._all;
@@ -278,7 +272,6 @@ adminAiUsageRouter.get('/by-provider', async (req, res) => {
           videoCount: 0,
           audioCount: 0,
           musicCount: 0,
-          credits: 0,
           apiCalls: 0,
           inputTokens: 0,
           outputTokens: 0,
@@ -325,7 +318,6 @@ adminAiUsageRouter.get('/top-users', async (req, res) => {
       by: ['userId'],
       where: { createdAt: { gte: since } },
       _count: { _all: true },
-      _sum: { credits: true },
       orderBy: { _count: { userId: 'desc' } },
       take: limit,
     });
@@ -338,8 +330,6 @@ adminAiUsageRouter.get('/top-users', async (req, res) => {
         username: true,
         email: true,
         role: true,
-        points: true,
-        pointsBalance: true,
       },
     });
 
@@ -366,9 +356,7 @@ adminAiUsageRouter.get('/top-users', async (req, res) => {
         email: user?.email || '',
         role: user?.role || 'USER',
         membershipLevel: user?.role === 'ADMIN' ? 'admin' : 'user',
-        pointsBalance: user?.pointsBalance || 0,
         totalTasks: u._count._all,
-        totalCredits: u._sum.credits || 0,
         images: types['image'] || 0,
         videos: types['video'] || 0,
         audio: types['audio'] || 0,
@@ -442,7 +430,6 @@ adminAiUsageRouter.get('/records', async (req, res) => {
       prompt: t.prompt?.substring(0, 120) || '',
       outputUrl: t.outputUrl || '',
       thumbnailUrl: t.thumbnailUrl || '',
-      credits: t.credits,
       error: t.error?.substring(0, 100) || '',
       createdAt: t.createdAt.toISOString(),
       duration: Math.round((t.updatedAt.getTime() - t.createdAt.getTime()) / 1000),
@@ -477,7 +464,7 @@ adminAiUsageRouter.get('/daily-trend', async (req, res) => {
 
     const tasks = await prisma.task.findMany({
       where: { createdAt: { gte: since } },
-      select: { type: true, status: true, createdAt: true, credits: true },
+      select: { type: true, status: true, createdAt: true },
       orderBy: { createdAt: 'asc' },
     });
 
@@ -489,7 +476,6 @@ adminAiUsageRouter.get('/daily-trend', async (req, res) => {
       music: number;
       completed: number;
       failed: number;
-      credits: number;
     }> = {};
 
     for (const t of tasks) {
@@ -498,7 +484,7 @@ adminAiUsageRouter.get('/daily-trend', async (req, res) => {
         dayMap[dayKey] = {
           date: dayKey,
           images: 0, videos: 0, audio: 0, music: 0,
-          completed: 0, failed: 0, credits: 0,
+          completed: 0, failed: 0,
         };
       }
       const typeKey = `${t.type}s` as keyof typeof dayMap[string];
@@ -507,7 +493,6 @@ adminAiUsageRouter.get('/daily-trend', async (req, res) => {
       }
       if (t.status === 'completed') dayMap[dayKey].completed++;
       if (t.status === 'failed') dayMap[dayKey].failed++;
-      dayMap[dayKey].credits += t.credits || 0;
     }
 
     const result = Object.values(dayMap).sort((a, b) => a.date.localeCompare(b.date));

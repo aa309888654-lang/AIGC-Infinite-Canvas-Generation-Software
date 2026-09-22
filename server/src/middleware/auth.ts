@@ -87,11 +87,7 @@ const authMiddleware = async (
       });
     }
 
-    const revoked = await withRedisTimeout(
-      isTokenRevoked(token, resolvedUserId, decoded.iat),
-      REDIS_TIMEOUT_MS,
-      false
-    );
+    const revoked = await isTokenRevoked(token, resolvedUserId, decoded.iat);
     if (revoked) {
       return res.status(401).json({
         error: '令牌已失效，请重新登录',
@@ -209,11 +205,7 @@ const optionalAuthMiddleware = async (
     const resolvedUserId = decoded.userId || decoded.id;
     
     if (resolvedUserId) {
-      const revoked = await withRedisTimeout(
-        isTokenRevoked(token, resolvedUserId, decoded.iat),
-        REDIS_TIMEOUT_MS,
-        false
-      );
+      const revoked = await isTokenRevoked(token, resolvedUserId, decoded.iat);
       if (revoked) {
         return next();
       }
@@ -231,12 +223,9 @@ const optionalAuthMiddleware = async (
       if (!accessDecision.allowed) {
         return sendAccessDenied(res, accessDecision);
       }
-      
-      try {
-        req.membershipLevel = await getCachedMembershipLevel(resolvedUserId); // PERF-04 修复：使用缓存
-      } catch (e) {
-        req.membershipLevel = DEFAULT_MEMBERSHIP_LEVEL;
-      }
+
+      // 会员系统已移除：统一使用默认等级
+      req.membershipLevel = DEFAULT_MEMBERSHIP_LEVEL;
     }
     
     next();

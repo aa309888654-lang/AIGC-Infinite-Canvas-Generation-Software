@@ -18,8 +18,6 @@ model User {
   emailHash               String?
   password                String
   role                    String                    @default("user")
-  apiQuota                Int                       @default(100)
-  usedQuota               Int                       @default(0)
   isActive                Boolean                   @default(true)
   phone                   String?                   @unique
   phoneCipher             String?
@@ -30,10 +28,6 @@ model User {
   avatar                  String?
   lastLoginAt             DateTime?                 @map("last_login_at")
   lastLoginIp             String?                   @map("last_login_ip")
-  points                  Int                       @default(0)
-  pointsBalance           Float                     @default(0)
-  rechargePointsBalance   Float                     @default(0)
-  frozenPoints            Float                     @default(0)
   createdAt               DateTime                  @default(now())
   updatedAt               DateTime                  @updatedAt
   apiCallLogs             ApiCallLog[]
@@ -49,17 +43,9 @@ model User {
   communityPostLikes      CommunityPostLike[]
   communityPosts          CommunityPost[]
   favorites               Favorite[]
-  ipPointsGrants          IpPointsGrant[]
   loginLogs               LoginLog[]
-  manualRequests          ManualMembershipRequest[]
-  membershipOrders        MembershipOrder[]
   notifications           Notification[]
-  paymentLogs             PaymentLog[]
-  payments                Payment[]
   playHistory             PlayHistory[]
-  pointsAlerts            PointsAlert?
-  pointsOrders            PointsOrder[]
-  pointsTransactions      PointsTransaction[]
   songs                   Song[]
   tasks                   Task[]
   tickets                 Ticket[]
@@ -67,13 +53,10 @@ model User {
   userApiKeys             UserApiKey[]
   modelCredentialVault    UserModelCredentialVault?
   UserFile                UserFile[]
-  userMemberships         UserMembership[]
   notificationSettings    UserNotificationSetting?
   quota                   UserQuota?
   rateLimits              UserRateLimit[]
-  registrations           UserRegistration[]
   voiceChatMessages       VoiceChatMessage[]
-  posterProjects          PosterProject[]
 
   @@map("users")
 }
@@ -177,29 +160,6 @@ model Ticket {
   @@index([userId])
   @@index([status])
   @@map("tickets")
-}
-
-model UserMembership {
-  id           String     @id @default(uuid())
-  userId       String
-  membershipId String
-  level        String     @default("free")
-  status       String     @default("active")
-  startAt      DateTime?
-  endAt        DateTime?
-  nextGrantAt  DateTime?
-  grantPolicy  String?
-  autoRenew    Boolean    @default(false)
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
-  membership   Membership @relation(fields: [membershipId], references: [id])
-  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([membershipId])
-  @@index([status])
-  @@index([userId, status, endAt]) // CFG-06 修复：添加复合索引优化认证路径高频查询
-  @@map("user_memberships")
 }
 
 model CharacterLibrary {
@@ -359,182 +319,14 @@ model Task {
   outputUrl      String?
   cosUrl         String?
   thumbnailUrl   String?
-  credits        Int      @default(0)
-  reviewStatus   String   @default("pending")
-  reviewedAt     DateTime?
-  reviewedBy     String?
-  reviewNote     String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
   user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([status])
-  @@index([reviewStatus])
   @@index([createdAt])
   @@map("tasks")
-}
-
-/// 服务端权威海报项目。浏览器存储仅缓存 project id，不再承载会话事实。
-model PosterProject {
-  id              String                @id
-  userId          String
-  name            String                @default("未命名海报")
-  status          String                @default("draft")
-  textRenderMode  String                @default("native")
-  messages        String                @default("[]")
-  brief           String?
-  compiledPrompt  String?
-  referenceImages String                @default("[]")
-  createdAt       DateTime              @default(now())
-  updatedAt       DateTime              @updatedAt
-  user            User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  briefVersions   PosterBriefVersion[]
-  generationRuns  PosterGenerationRun[]
-
-  @@index([userId, updatedAt(sort: Desc)])
-  @@index([status])
-  @@map("poster_projects")
-}
-
-model PosterBriefVersion {
-  id        String        @id @default(uuid())
-  projectId String
-  version   Int
-  brief     String
-  createdAt DateTime      @default(now())
-  project   PosterProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
-
-  @@unique([projectId, version])
-  @@map("poster_brief_versions")
-}
-
-model PosterGenerationRun {
-  id                 String            @id @default(uuid())
-  projectId          String
-  idempotencyKey     String            @unique
-  status             String            @default("queued")
-  model              String            @default("gpt-image-2")
-  provider           String?
-  textRenderMode     String            @default("native")
-  prompt             String
-  requestPayload     String?
-  templateId         String?
-  promptVersion      String            @default("gpt-image-2-native-text-v1")
-  layoutRuleVersion  String            @default("poster-layout-v1")
-  qualityRuleVersion String            @default("poster-three-gates-v1")
-  refinementVersion  String            @default("gpt-image-2-native-refine-v1")
-  providerTaskId     String?
-  error              String?
-  createdAt          DateTime          @default(now())
-  updatedAt          DateTime          @updatedAt
-  project            PosterProject     @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  candidates         PosterCandidate[]
-
-  @@index([projectId, createdAt])
-  @@index([status])
-  @@index([templateId])
-  @@map("poster_generation_runs")
-}
-
-model PosterCandidate {
-  id              String                @id @default(uuid())
-  generationRunId String
-  imageUrl        String
-  status          String                @default("generated")
-  rank            Int?
-  qualityStatus   String?
-  createdAt       DateTime              @default(now())
-  generationRun   PosterGenerationRun   @relation(fields: [generationRunId], references: [id], onDelete: Cascade)
-  qualityReports  PosterQualityReport[]
-
-  @@index([generationRunId, rank])
-  @@map("poster_candidates")
-}
-
-model PosterQualityReport {
-  id          String          @id @default(uuid())
-  candidateId String
-  status      String          @default("completed")
-  engine      String?
-  report      String
-  degraded    Boolean         @default(false)
-  createdAt   DateTime        @default(now())
-  candidate   PosterCandidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
-
-  @@index([candidateId, createdAt])
-  @@index([degraded])
-  @@map("poster_quality_reports")
-}
-
-model PaymentLog {
-  id            String    @id @default(uuid())
-  userId        String
-  type          String
-  amount        Float
-  currency      String    @default("CNY")
-  status        String    @default("pending")
-  method        String?
-  orderNo       String?   @unique
-  transactionId String?
-  metadata      String?
-  createdAt     DateTime  @default(now())
-  paidAt        DateTime?
-  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([status])
-  @@index([createdAt])
-  @@map("payment_logs")
-}
-
-model Payment {
-  id            String    @id @default(uuid())
-  userId        String
-  membershipId  String
-  orderNo       String    @unique
-  amount        Float
-  currency      String    @default("CNY")
-  status        String    @default("pending")
-  paymentMethod String?
-  channel       String?
-  transactionId String?
-  tradeNo       String?
-  qrCodeImage   String?
-  refundAmount  Float?
-  refundStatus  String?
-  refundNo      String?
-  refundReason  String?
-  refundedAt    DateTime?
-  refundedBy    String?
-  paidAt        DateTime?
-  expiredAt     DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([status])
-  @@index([refundStatus])
-  @@map("payments")
-}
-
-model ManualMembershipRequest {
-  id           String    @id @default(uuid())
-  userId       String
-  membershipId String
-  duration     String    @default("monthly")
-  amount       Float
-  status       String    @default("pending")
-  paymentProof String?
-  paidAt       DateTime?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([status])
-  @@map("manual_membership_requests")
 }
 
 model LoginLog {
@@ -573,88 +365,14 @@ model UsageLog {
 model UserQuota {
   id              String   @id @default(uuid())
   userId          String   @unique
-  dailyLimit      Int      @default(100)
-  dailyUsed       Int      @default(0)
-  monthlyLimit    Int      @default(1000)
-  monthlyUsed     Int      @default(0)
-  concurrentLimit Int      @default(3)
-  concurrentUsed  Int      @default(0)
   storageLimit    BigInt?
   fileLimit       Int?
-  apiCallsLimit   Int?
   resetAt         DateTime @default(now())
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("user_quotas")
-}
-
-model MembershipOrder {
-  id           String    @id @default(uuid())
-  userId       String
-  orderNo      String    @unique
-  membershipId String
-  duration     String    @default("monthly")
-  amount       Float
-  status       String    @default("pending")
-  paymentProof String?
-  paidAt       DateTime?
-  expiresAt    DateTime?
-  refundAmount Float     @default(0)
-  refundStatus String?
-  refundNo     String?
-  refundReason String?
-  refundedAt   DateTime?
-  refundedBy   String?
-  metadata     String?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([status])
-  @@index([createdAt])
-  @@index([refundStatus])
-  @@map("membership_orders")
-}
-
-model ProcessedPaymentCallback {
-  id          String   @id @default(uuid())
-  outTradeNo  String   @unique
-  tradeNo     String?
-  totalFee    Float
-  processedAt DateTime @default(now())
-  status      String   @default("success")
-  error       String?
-  metadata    String?
-
-  @@index([processedAt])
-  @@map("processed_payment_callbacks")
-}
-
-model Membership {
-  id                String           @id @default(uuid())
-  name              String           @unique
-  displayName       String?
-  description       String?
-  price             Float
-  monthlyPrice      Float?
-  quarterlyPrice    Float?
-  yearlyPrice       Float?
-  duration          String           @default("monthly")
-  quota             Int              @default(0)
-  monthlyGiftPoints Int              @default(0)
-  features          String           @default("[]")
-  limits            String?
-  grantPolicy       String?
-  isActive          Boolean          @default(true)
-  sortOrder         Int              @default(0)
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @updatedAt
-  userMemberships   UserMembership[]
-
-  @@map("memberships")
 }
 
 model ProviderConfig {
@@ -705,44 +423,6 @@ model ProviderApiKey {
   @@map("provider_api_keys")
 }
 
-model UserRegistration {
-  id                 String    @id @default(uuid())
-  userId             String
-  username           String
-  email              String
-  phone              String?
-  passwordHash       String
-  status             String    @default("pending")
-  registrationMethod String    @default("email")
-  referralCode       String?
-  metadata           String?
-  approvalAdminId    String?
-  approvalNote       String?
-  approvedAt         DateTime?
-  createdAt          DateTime  @default(now())
-  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@map("user_registrations")
-}
-
-model IpPointsGrant {
-  id        String    @id @default(uuid())
-  userId    String?
-  ip        String
-  points    Int
-  reason    String?
-  adminId   String?
-  expiresAt DateTime?
-  createdAt DateTime  @default(now())
-  user      User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([ip])
-  @@index([createdAt])
-  @@map("ip_points_grants")
-}
-
 model UserRateLimit {
   id              String   @id @default(uuid())
   userId          String
@@ -762,20 +442,6 @@ model UserRateLimit {
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("user_rate_limits")
-}
-
-model PointsAlert {
-  id          String    @id @default(uuid())
-  userId      String    @unique
-  threshold   Int       @default(100)
-  isEnabled   Boolean   @default(true)
-  lastAlertAt DateTime?
-  alertCount  Int       @default(0)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("points_alerts")
 }
 
 model FrontendSession {
@@ -930,24 +596,6 @@ model FrontendError {
   @@map("frontend_errors")
 }
 
-model DailyUsage {
-  id                      String   @id @default(uuid())
-  userId                  String
-  date                    String
-  musicCount              Int      @default(0)
-  imageCount              Int      @default(0)
-  audioMinutes            Float    @default(0)
-  promptOptimizationCount Int      @default(0)
-  videoCount              Int      @default(0)
-  createdAt               DateTime @default(now())
-  updatedAt               DateTime @updatedAt
-
-  @@unique([userId, date])
-  @@index([userId])
-  @@index([date])
-  @@map("daily_usage")
-}
-
 model ApiCallLog {
   id           String     @id @default(uuid())
   userApiKeyId String
@@ -1021,58 +669,6 @@ model UserModelCredentialVault {
   @@map("user_model_credential_vaults")
 }
 
-model PointsTransaction {
-  id             String    @id @default(uuid())
-  userId         String
-  idempotencyKey String?   @unique
-  type           String
-  amount         Float
-  balanceBefore  Float
-  balanceAfter   Float
-  rechargeAmount Float     @default(0)
-  pointsCost     Int       @default(0)
-  reason         String?
-  relatedType    String?
-  relatedId      String?
-  adminId        String?
-  adminUsername  String?
-  orderNo        String?
-  expiresAt      DateTime?
-  createdAt      DateTime  @default(now())
-  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([type])
-  @@index([createdAt])
-  @@index([expiresAt])
-  @@map("points_transactions")
-}
-
-model PointsOrder {
-  id            String    @id @default(uuid())
-  userId        String
-  orderNo       String    @unique
-  points        Int
-  amount        Float
-  paymentMethod String
-  status        String    @default("pending")
-  transactionId String?
-  qrCodeImage   String?
-  qrCode        String?
-  paidAt        DateTime?
-  expiredAt     DateTime?
-  refundAmount  Float     @default(0)
-  metadata      String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([status])
-  @@index([createdAt])
-  @@map("points_orders")
-}
-
 model AdminOperationLog {
   id            String   @id @default(uuid())
   adminId       String
@@ -1108,63 +704,6 @@ model SystemConfig {
   updatedAt   DateTime @updatedAt
 
   @@map("system_configs")
-}
-
-model EmailSendLog {
-  id           String   @id @default(uuid())
-  email        String
-  type         String
-  status       String   @default("pending")
-  messageId    String?
-  errorMessage String?
-  ipAddress    String?
-  createdAt    DateTime @default(now())
-
-  @@index([email])
-  @@index([type])
-  @@index([status])
-  @@index([createdAt])
-  @@index([ipAddress])
-  @@map("email_send_logs")
-}
-
-model SmsVerification {
-  id          String    @id @default(uuid())
-  phone       String
-  countryCode String    @default("86")
-  code        String
-  type        String    @default("login")
-  status      String    @default("pending")
-  attempts    Int       @default(0)
-  ipAddress   String?
-  expiresAt   DateTime
-  verifiedAt  DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  @@index([phone])
-  @@index([status])
-  @@index([expiresAt])
-  @@map("sms_verifications")
-}
-
-model EmailVerification {
-  id         String    @id @default(uuid())
-  email      String
-  ipAddress  String?
-  code       String
-  type       String    @default("register")
-  status     String    @default("pending")
-  attempts   Int       @default(0)
-  expiresAt  DateTime
-  verifiedAt DateTime?
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-
-  @@index([email])
-  @@index([status])
-  @@index([expiresAt])
-  @@map("email_verifications")
 }
 
 model EnhancedAuditLog {

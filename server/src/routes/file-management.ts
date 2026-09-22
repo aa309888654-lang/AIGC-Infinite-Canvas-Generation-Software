@@ -7,12 +7,12 @@ import crypto from 'crypto';
 import axios from 'axios';
 import { z } from 'zod';
 import { AuthRequest, requireAuth } from '../middleware/auth';
+import { fetchRemoteBuffer, getRemoteImportAllowedHosts } from '../utils/safe-remote-fetch';
 import { NotFoundError, ValidationError } from '../middleware/errorHandler';
 import prisma from '../lib/prisma';
 import { quotaService } from '../services/quota-service';
 import storageService from '../services/storage-service';
 import { minioPublicStorageService } from '../services/minio-public-storage-service';
-import { AuthRequest, requireAuth } from '../middleware/auth';
 
 interface MulterRequest extends AuthRequest {
   file?: Express.Multer.File;

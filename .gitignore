@@ -1,62 +1,13 @@
-# dependencies
+.env
+.env.*
+!.env.example
 node_modules/
-.pnp/
-.pnp.js
-
-# builds
 dist/
-build/
-*.tsbuildinfo
-
-# local databases (含用户数据，不入库)
-backend/prisma/dev.db
-backend/prisma/prod.db
+uploads/
+logs/
+backups/
 *.db
-*.db-journal
 *.sqlite
 *.sqlite3
-
-# env files (真实密钥不入库；仅保留 .env.example)
-.env
-.env.local
-.env.*.local
-backend/.env
-frontend/.env
-frontend/.env.cloud
-frontend/.env.development
-frontend/.env.production
-!.env.example
-
-# 本地运行产物
-.uploads/
-uploads/
-local-storage/
-backend/uploads/
-backend/public/audio/
-backend/public/mimomi-audio-cache/
-backend/logs/
-logs/
-
-# 商业支付网关（独立仓库，不入库）
-aicgxt-payment-gateway/
-
-# OS / editor
+*.log
 .DS_Store
-Thumbs.db
-.idea/
-.vscode/
-*.swp
-
-# MiniMax Code / IDE 运行时状态（含会话数据，不入库）
-.mimosa/
-.joycode/
-.zcode/
-.agents/
-
-# npm / misc
-npm-debug.log*
-yarn-error.log*
-coverage/
-
-# Large sample videos (exceed GitHub 100 MB/file limit; use external CDN)
-web/public/sample-videos/

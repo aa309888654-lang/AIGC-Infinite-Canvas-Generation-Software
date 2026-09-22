@@ -1,7 +1,6 @@
 import { Router, Request, Response } from 'express';
 import axios from 'axios';
 import jwt from 'jsonwebtoken';
-import { creditService } from '../services/credit-service';
 import { config } from '../types/env';
 import prisma from '../lib/prisma';
 import { redisService } from '../services/redis-service'; // P2 修复 #22：访客限流改用 Redis
@@ -227,12 +226,12 @@ async function incrementGuestTrial(identifier: string): Promise<void> {
   }
 }
 
-async function resolveAuthUserId(req: Request): Promise<{ userId: string | null; membershipLevel: string } | null> {
+async function resolveAuthUserId(req: Request): Promise<{ userId: string | null } | null> {
   const { token } = getRequestAuthToken(req);
   if (!token) return null;
   try {
     const payload = jwt.verify(token, config.jwt.secret) as any; // SEC-09 修复：使用统一的 config.jwt.secret 而非 process.env.JWT_SECRET || 'default-secret'
-    return { userId: payload.userId || payload.id, membershipLevel: payload.membershipLevel || 'trial' };
+    return { userId: payload.userId || payload.id };
   } catch {
     return null;
   }
@@ -247,27 +246,11 @@ function stripThinkingTags(text: string): string {
 publicChatRouter.post('/', async (req: Request, res: Response) => {
   const providerConfig = selectProvider();
 
-  // 认证检测：登录用户走积分扣除，访客走试用限制
+  // 认证检测：登录用户直接放行，访客走试用限制
   const authInfo = await resolveAuthUserId(req);
-  const isGuest = !authInfo;
   let guestId = '';
-  let membershipLevel = 'trial';
 
-  if (authInfo) {
-    membershipLevel = authInfo.membershipLevel || 'trial';
-    // 登录用户积分预检查
-    const creditCheck = await creditService.preCheck({
-      userId: authInfo.userId,
-      membershipLevel,
-      type: 'prompt',
-      customPoints: 5,
-      taskId: `public_chat_${Date.now()}`,
-      reason: '公开对话预检查',
-    });
-    if (!creditCheck.allowed) {
-      return res.status(402).json({ success: false, error: creditCheck.reason });
-    }
-  } else {
+  if (!authInfo) {
     // 访客试用限制
     guestId = getGuestIdentifier(req);
     const trialCheck = await checkGuestTrial(guestId);
@@ -278,9 +261,6 @@ publicChatRouter.post('/', async (req: Request, res: Response) => {
       });
     }
   }
-
-  // P1 修复：生成唯一 chatSessionId 供 consume 和 refund 幂等使用（需在 try 外声明，catch 中可访问）
-  const chatSessionId = `public_chat_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
 
   try {
     const { message, systemPrompt, history, enableThinking, model } = req.body;
@@ -307,26 +287,6 @@ publicChatRouter.post('/', async (req: Request, res: Response) => {
     }
 
     messages.push({ role: 'user', content: message });
-
-    // 风险修复：积分扣除移到 AI 处理之前，避免用户等待 AI 后才发现积分不足
-    if (authInfo) {
-      try {
-        await creditService.consume({
-          userId: authInfo.userId,
-          membershipLevel,
-          type: 'prompt',
-          customPoints: 5,
-          taskId: chatSessionId,
-          reason: '公开对话',
-        });
-      } catch (creditErr) {
-        logger.error('[Public Chat] 积分扣除失败:', creditErr);
-        return res.status(402).json({
-          success: false,
-          error: '积分不足，请充值后重试',
-        });
-      }
-    }
 
     let chatResult: { content: string; reasoning_content?: string; model?: string; usage?: any } | null = null;
     const requestedModel = typeof model === 'string' ? model.trim() : '';
@@ -463,7 +423,7 @@ publicChatRouter.post('/', async (req: Request, res: Response) => {
       }
     }
 
-    // 风险修复：积分已在 AI 处理前扣除，此处仅需处理访客试用计数
+    // 成功后处理访客试用计数
     if (!authInfo) {
       await incrementGuestTrial(guestId);
     }
@@ -479,28 +439,9 @@ publicChatRouter.post('/', async (req: Request, res: Response) => {
       console.error('[Public Chat] API Response Status:', errAxios.response.status);
       console.error('[Public Chat] API Response Data:', JSON.stringify(errAxios.response.data).substring(0, 500));
     }
-    // 风险修复：AI 处理失败时退还已扣除的积分
-    // P1 修复：传入 chatSessionId 供幂等检查，refund 失败时告知用户
-    if (authInfo) {
-      try {
-        await creditService.refund({
-          userId: authInfo.userId,
-          type: 'prompt',
-          customPoints: 5,
-          taskId: chatSessionId,
-          reason: '公开对话AI处理失败',
-        });
-      } catch (refundErr) {
-        logger.error('[Public Chat] 积分退还失败:', refundErr);
-        return res.status(500).json({
-          success: false,
-          error: 'AI服务不可用，积分退还失败请联系客服',
-        });
-      }
-    }
     return res.status(500).json({
       success: false,
-      error: 'AI服务暂时不可用，积分已退还',
+      error: 'AI服务暂时不可用，请稍后重试',
     });
   }
 });

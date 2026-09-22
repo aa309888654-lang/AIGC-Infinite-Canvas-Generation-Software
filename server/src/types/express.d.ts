@@ -1,6 +1,4 @@
 import { UserInfo } from '../services/permission-service';
-import type { PreCheckResult } from '../services/credit-service';
-import type { CreditDeductionConfig } from '../middleware/credit-deduction';
 
 declare global {
   namespace Express {
@@ -10,8 +8,6 @@ declare global {
       userRole?: string;
       user?: UserInfo;
       membershipLevel?: string;
-      creditCheck?: PreCheckResult;
-      creditConfig?: CreditDeductionConfig;
       adminId?: string;
       adminUser?: { id: string; username: string; role: string };
       // 从 requestLogger.ts 迁移

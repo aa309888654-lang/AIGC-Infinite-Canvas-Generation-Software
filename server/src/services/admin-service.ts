@@ -16,8 +16,6 @@ export interface DashboardStats {
   totalRevenue: number;
   todayRevenue: number;
   weekRevenue: number;
-  totalQuota: number;
-  usedQuota: number;
   systemHealth: {
     uptime: number;
     avgResponseTime: number;
@@ -32,40 +30,11 @@ export interface UserManagement {
   email: string;
   phone?: string;
   role: string;
-  apiQuota: number;
-  usedQuota: number;
   isActive: boolean;
   createdAt: Date;
   lastLogin?: Date;
   totalOrders: number;
   totalSpent: number;
-}
-
-export interface OrderManagement {
-  id: string;
-  orderNo: string;
-  userId: string;
-  username: string;
-  email: string;
-  amount: number;
-  currency: string;
-  paymentMethod: string;
-  status: string;
-  transactionId?: string;
-  createdAt: Date;
-  completedAt?: Date;
-}
-
-export interface EmailLog {
-  id: string;
-  email: string;
-  type: string;
-  code: string;
-  status: string;
-  ipAddress?: string;
-  expiresAt: Date;
-  verifiedAt?: Date;
-  createdAt: Date;
 }
 
 export interface SystemSettings {
@@ -88,58 +57,33 @@ class AdminService {
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-    const [
-      totalUsers,
-      activeUsers,
-      newUsersToday,
-      newUsersThisWeek,
-      orders,
-      totalQuota,
-      usedQuota,
-    ] = await Promise.all([
-      prisma.user.count(),
-      prisma.user.count({ where: { isActive: true } }),
-      prisma.user.count({ where: { createdAt: { gte: today } } }),
-      prisma.user.count({ where: { createdAt: { gte: weekAgo } } }),
-      prisma.paymentLog.findMany({
-        select: {
-          status: true,
-          amount: true,
-          createdAt: true,
-        },
-        orderBy: { createdAt: 'desc' },
-        take: 1000,
-      }),
-      prisma.user.aggregate({ _sum: { apiQuota: true } }),
-      prisma.user.aggregate({ _sum: { usedQuota: true } }),
-    ]);
+    const [totalUsers, activeUsers, newUsersToday, newUsersThisWeek] =
+      await Promise.all([
+        prisma.user.count(),
+        prisma.user.count({ where: { isActive: true } }),
+        prisma.user.count({ where: { createdAt: { gte: today } } }),
+        prisma.user.count({ where: { createdAt: { gte: weekAgo } } }),
+      ]);
 
-    const completedOrders = orders.filter((o) => o.status === 'completed');
-    const pendingOrders = orders.filter(
-      (o) => o.status === 'pending' || o.status === 'processing'
-    );
-
-    const totalRevenue = completedOrders.reduce((sum, o) => sum + o.amount, 0);
-    const todayRevenue = completedOrders
-      .filter((o) => o.createdAt >= today)
-      .reduce((sum, o) => sum + o.amount, 0);
-    const weekRevenue = completedOrders
-      .filter((o) => o.createdAt >= weekAgo)
-      .reduce((sum, o) => sum + o.amount, 0);
+    // 订单/收入统计依赖已移除的 PaymentLog 模型，统一归零
+    const totalOrders = 0;
+    const completedOrders = 0;
+    const pendingOrders = 0;
+    const totalRevenue = 0;
+    const todayRevenue = 0;
+    const weekRevenue = 0;
 
     return {
       totalUsers,
       activeUsers,
       newUsersToday,
       newUsersThisWeek,
-      totalOrders: orders.length,
-      completedOrders: completedOrders.length,
-      pendingOrders: pendingOrders.length,
+      totalOrders,
+      completedOrders,
+      pendingOrders,
       totalRevenue,
       todayRevenue,
       weekRevenue,
-      totalQuota: totalQuota._sum.apiQuota || 0,
-      usedQuota: usedQuota._sum.usedQuota || 0,
       systemHealth: {
         uptime: process.uptime(),
         avgResponseTime: 0,
@@ -184,15 +128,6 @@ class AdminService {
         skip: (page - 1) * limit,
         take: limit,
         orderBy: { [sortBy]: sortOrder },
-        include: {
-          _count: {
-            select: { payments: true },
-          },
-          payments: {
-            where: { status: 'completed' },
-            select: { amount: true },
-          },
-        },
       }),
       prisma.user.count({ where }),
     ]);
@@ -203,12 +138,11 @@ class AdminService {
       email: user.email,
       phone: (user as any).phone,
       role: user.role,
-      apiQuota: user.apiQuota,
-      usedQuota: user.usedQuota,
       isActive: user.isActive,
       createdAt: user.createdAt,
-      totalOrders: user._count.payments,
-      totalSpent: user.payments.reduce((sum, p) => sum + p.amount, 0),
+      // Payment 模型已移除，订单/消费统计归零
+      totalOrders: 0,
+      totalSpent: 0,
     }));
 
     return {
@@ -230,7 +164,6 @@ class AdminService {
       phone?: string;
       password?: string;
       role?: string;
-      apiQuota?: number;
       isActive?: boolean;
     }
   ): Promise<UserManagement> {
@@ -244,12 +177,6 @@ class AdminService {
     const user = await prisma.user.update({
       where: { id: userId },
       data: updateData,
-      include: {
-        payments: {
-          where: { status: 'completed' },
-          select: { amount: true },
-        },
-      },
     });
 
     return {
@@ -258,12 +185,11 @@ class AdminService {
       email: user.email,
       phone: (user as any).phone,
       role: user.role,
-      apiQuota: user.apiQuota,
-      usedQuota: user.usedQuota,
       isActive: user.isActive,
       createdAt: user.createdAt,
-      totalOrders: user.payments.length,
-      totalSpent: user.payments.reduce((sum, p) => sum + p.amount, 0),
+      // Payment 模型已移除，订单/消费统计归零
+      totalOrders: 0,
+      totalSpent: 0,
     };
   }
 
@@ -282,278 +208,6 @@ class AdminService {
       data,
     });
     return result.count;
-  }
-
-  async getOrders(params: {
-    page?: number;
-    limit?: number;
-    userId?: string;
-    status?: string;
-    paymentMethod?: string;
-    startDate?: Date;
-    endDate?: Date;
-    minAmount?: number;
-    maxAmount?: number;
-    search?: string;
-  }): Promise<{ orders: OrderManagement[]; pagination: any }> {
-    const {
-      page = 1,
-      limit = 20,
-      userId,
-      status,
-      paymentMethod,
-      startDate,
-      endDate,
-      minAmount,
-      maxAmount,
-      search,
-    } = params;
-
-    const where: any = {};
-    if (userId) where.userId = userId;
-    if (status) where.status = status;
-    if (paymentMethod) where.paymentMethod = paymentMethod;
-    if (startDate || endDate) {
-      where.createdAt = {};
-      if (startDate) where.createdAt.gte = startDate;
-      if (endDate) where.createdAt.lte = endDate;
-    }
-    if (minAmount || maxAmount) {
-      where.amount = {};
-      if (minAmount) where.amount.gte = minAmount;
-      if (maxAmount) where.amount.lte = maxAmount;
-    }
-
-    let userFilter = {};
-    if (search) {
-      const users = await prisma.user.findMany({
-        where: {
-          OR: [
-            { username: { contains: search } },
-            { email: { contains: search } },
-          ],
-        },
-        select: { id: true },
-      });
-      userFilter = { userId: { in: users.map((u) => u.id) } };
-    }
-
-    const [orders, total] = await Promise.all([
-      prisma.paymentLog.findMany({
-        where: { ...where, ...userFilter },
-        skip: (page - 1) * limit,
-        take: limit,
-        orderBy: { createdAt: 'desc' },
-        include: {
-          user: {
-            select: { username: true, email: true },
-          },
-        },
-      }),
-      prisma.paymentLog.count({ where: { ...where, ...userFilter } }),
-    ]);
-
-    const formattedOrders: OrderManagement[] = orders.map((order) => ({
-      id: order.id,
-      orderNo: order.orderNo,
-      userId: order.userId,
-      username: order.user.username,
-      email: order.user.email,
-      amount: order.amount,
-      currency: order.currency,
-      paymentMethod: order.method || undefined,
-      status: order.status,
-      transactionId: order.transactionId || undefined,
-      createdAt: order.createdAt,
-      completedAt: order.paidAt || undefined,
-    }));
-
-    return {
-      orders: formattedOrders,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-      },
-    };
-  }
-
-    async getOrderStats(): Promise<any> {
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-
-    const [todayCount, todayCompletedCount, todayRevenue, weekCount, weekCompletedCount, weekRevenue, allCount, allCompletedCount, allRevenue] = await Promise.all([
-      prisma.paymentLog.count({ where: { createdAt: { gte: today } } }),
-      prisma.paymentLog.count({ where: { createdAt: { gte: today }, status: 'completed' } }),
-      prisma.paymentLog.aggregate({ _sum: { amount: true }, where: { createdAt: { gte: today }, status: 'completed' } }),
-      prisma.paymentLog.count({ where: { createdAt: { gte: weekAgo } } }),
-      prisma.paymentLog.count({ where: { createdAt: { gte: weekAgo }, status: 'completed' } }),
-      prisma.paymentLog.aggregate({ _sum: { amount: true }, where: { createdAt: { gte: weekAgo }, status: 'completed' } }),
-      prisma.paymentLog.count(),
-      prisma.paymentLog.count({ where: { status: 'completed' } }),
-      prisma.paymentLog.aggregate({ _sum: { amount: true }, where: { status: 'completed' } }),
-    ]);
-
-    const todayRev = todayRevenue._sum.amount || 0;
-    const weekRev = weekRevenue._sum.amount || 0;
-    const allRev = allRevenue._sum.amount || 0;
-
-    return {
-      today: {
-        count: todayCount,
-        revenue: todayRev,
-        avgAmount: todayCompletedCount > 0 ? todayRev / todayCompletedCount : 0,
-      },
-      week: {
-        count: weekCount,
-        revenue: weekRev,
-        avgAmount: weekCompletedCount > 0 ? weekRev / weekCompletedCount : 0,
-      },
-      total: {
-        count: allCount,
-        revenue: allRev,
-        avgAmount: allCompletedCount > 0 ? allRev / allCompletedCount : 0,
-      },
-    };
-  }
-
-  async exportOrders(params: any): Promise<string> {
-    const { orders } = await this.getOrders({ ...params, limit: 10000 });
-    
-    const headers = [
-      '订单号',
-      '用户名',
-      '邮箱',
-      '金额',
-      '货币',
-      '支付方式',
-      '状态',
-      '交易ID',
-      '创建时间',
-      '完成时间',
-    ];
-
-    const rows = orders.map((o) => [
-      o.orderNo,
-      o.username,
-      o.email,
-      o.amount.toString(),
-      o.currency,
-      o.paymentMethod,
-      o.status,
-      o.transactionId || '',
-      o.createdAt.toISOString(),
-      o.completedAt?.toISOString() || '',
-    ]);
-
-    const csv = [
-      headers.join(','),
-      ...rows.map((row) =>
-        row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(',')
-      ),
-    ].join('\n');
-
-    return csv;
-  }
-
-  async getEmailLogs(params: {
-    page?: number;
-    limit?: number;
-    email?: string;
-    type?: string;
-    status?: string;
-    startDate?: Date;
-    endDate?: Date;
-  }): Promise<{ logs: EmailLog[]; pagination: any }> {
-    const { page = 1, limit = 20, email, type, status, startDate, endDate } =
-      params;
-
-    const where: any = {};
-    if (email) where.email = { contains: email };
-    if (type) where.type = type;
-    if (status) where.status = status;
-    if (startDate || endDate) {
-      where.createdAt = {};
-      if (startDate) where.createdAt.gte = startDate;
-      if (endDate) where.createdAt.lte = endDate;
-    }
-
-    const [logs, total] = await Promise.all([
-      prisma.emailVerification.findMany({
-        where,
-        skip: (page - 1) * limit,
-        take: limit,
-        orderBy: { createdAt: 'desc' },
-      }),
-      prisma.emailVerification.count({ where }),
-    ]);
-
-    const formattedLogs: EmailLog[] = logs.map((log) => ({
-      id: log.id,
-      email: log.email,
-      type: log.type,
-      code: log.code,
-      status: log.status,
-      ipAddress: log.ipAddress || undefined,
-      expiresAt: log.expiresAt,
-      verifiedAt: log.verifiedAt || undefined,
-      createdAt: log.createdAt,
-    }));
-
-    return {
-      logs: formattedLogs,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-      },
-    };
-  }
-
-    async getEmailStats(): Promise<any> {
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-
-    const [todayCount, todayVerified, todayFailed, todayExpired, weekCount, weekVerified, weekFailed, weekExpired, allCount, allVerified, allFailed, allExpired] = await Promise.all([
-      prisma.emailVerification.count({ where: { createdAt: { gte: today } } }),
-      prisma.emailVerification.count({ where: { createdAt: { gte: today }, status: 'verified' } }),
-      prisma.emailVerification.count({ where: { createdAt: { gte: today }, status: 'failed' } }),
-      prisma.emailVerification.count({ where: { createdAt: { gte: today }, status: 'expired' } }),
-      prisma.emailVerification.count({ where: { createdAt: { gte: weekAgo } } }),
-      prisma.emailVerification.count({ where: { createdAt: { gte: weekAgo }, status: 'verified' } }),
-      prisma.emailVerification.count({ where: { createdAt: { gte: weekAgo }, status: 'failed' } }),
-      prisma.emailVerification.count({ where: { createdAt: { gte: weekAgo }, status: 'expired' } }),
-      prisma.emailVerification.count(),
-      prisma.emailVerification.count({ where: { status: 'verified' } }),
-      prisma.emailVerification.count({ where: { status: 'failed' } }),
-      prisma.emailVerification.count({ where: { status: 'expired' } }),
-    ]);
-
-    return {
-      today: {
-        sent: todayCount,
-        verified: todayVerified,
-        failed: todayFailed,
-        expired: todayExpired,
-      },
-      week: {
-        sent: weekCount,
-        verified: weekVerified,
-        failed: weekFailed,
-        expired: weekExpired,
-      },
-      total: {
-        sent: allCount,
-        verified: allVerified,
-        failed: allFailed,
-        expired: allExpired,
-      },
-      verificationRate: allCount > 0 ? ((allVerified / allCount) * 100).toFixed(2) : '0.00',
-    };
   }
 
   async getSystemSettings(): Promise<SystemSettings> {
@@ -767,25 +421,17 @@ class AdminService {
     totalUsers: number;
     totalTasks: number;
     totalApiKeys: number;
-    totalQuota: number;
-    usedQuota: number;
   }> {
-    const [totalUsers, totalTasks, totalApiKeys, totalDailyLimit, totalDailyUsed] = await Promise.all([
+    const [totalUsers, totalTasks, totalApiKeys] = await Promise.all([
       prisma.user.count(),
       prisma.task.count(),
       prisma.userApiKey.count(),
-      prisma.userQuota.aggregate({ _sum: { dailyLimit: true } }),
-      prisma.userQuota.aggregate({ _sum: { dailyUsed: true } }),
     ]);
-
-    const usedQuota = await prisma.user.aggregate({ _sum: { usedQuota: true } });
 
     return {
       totalUsers,
       totalTasks,
       totalApiKeys,
-      totalQuota: totalDailyLimit._sum.dailyLimit || 0,
-      usedQuota: (usedQuota._sum.usedQuota || 0) + (totalDailyUsed._sum.dailyUsed || 0),
     };
   }
 

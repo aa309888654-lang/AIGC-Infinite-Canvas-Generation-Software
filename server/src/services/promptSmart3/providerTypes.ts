@@ -10,6 +10,7 @@ export interface ProviderConfig {
   timeout?: number;
   apiKey?: string;
   authType?: 'bearer' | 'appid-key';
+  protocol?: 'openai' | 'anthropic';
   temperature?: number;
   topP?: number;
   maxTokens?: number;

@@ -1,5 +1,6 @@
 import { ProviderConfig } from './providerTypes';
 import { callOpenAICompatible } from './openaiClient';
+import { callAnthropicCompatible } from './anthropicClient';
 
 interface RouteResult {
   content: string;
@@ -33,10 +34,10 @@ export async function routeRequest(
     const start = Date.now();
     try {
       console.log(`[PromptSmart3] Attempt ${attempt + 1}: using provider "${selected.name}"`);
-      const content = await callOpenAICompatible(
-        selected.config,
-        messages as Array<{ role: 'system' | 'user' | 'assistant'; content: string }>,
-      );
+      const typedMessages = messages as Array<{ role: 'system' | 'user' | 'assistant'; content: string }>;
+      const content = selected.config.protocol === 'anthropic'
+        ? await callAnthropicCompatible(selected.config, typedMessages)
+        : await callOpenAICompatible(selected.config, typedMessages);
       const latencyMs = Date.now() - start;
       reportSuccess(selected.name);
       return { content, provider: selected.name, latencyMs };

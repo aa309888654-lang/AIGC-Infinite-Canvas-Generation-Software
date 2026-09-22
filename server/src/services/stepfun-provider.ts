@@ -12,7 +12,7 @@ import { logger } from '../utils/logger';
 const DEFAULT_ENDPOINT = 'https://api.stepfun.com/step_plan/v1';
 const STANDARD_ENDPOINT = 'https://api.stepfun.com/v1';
 const DEFAULT_IMAGE_MODEL = 'step-image-edit-2';
-const DEFAULT_TTS_MODEL = 'stepaudio-2.5-tts';
+const DEFAULT_TTS_MODEL = 'step-tts-2';
 const DEFAULT_TTS_VOICE = 'cixingnansheng';
 const DEFAULT_ASR_MODEL = 'stepaudio-2.5-asr';
 
@@ -23,12 +23,11 @@ type StepFunImageData = {
   seed?: number;
 };
 
-type StepFunTTSModel = 'step-tts-mini' | 'step-tts-2' | 'stepaudio-2.5-tts';
+type StepFunTTSModel = 'step-tts-mini' | 'step-tts-2';
 
 const STEPFUN_TTS_MODELS = new Set<string>([
   'step-tts-mini',
   'step-tts-2',
-  'stepaudio-2.5-tts',
 ]);
 
 const MIME_TO_AUDIO_EXT: Record<string, string> = {
@@ -118,9 +117,6 @@ export async function transcodeAudioBufferToWav(
 export class StepFunProvider extends BaseProvider {
   readonly name = 'stepfun';
   readonly supportedModes = [
-    'text_to_image',
-    'image_to_image',
-    'image_edit',
     'text_to_audio',
     'audio-generation',
     'asr',
@@ -163,9 +159,7 @@ export class StepFunProvider extends BaseProvider {
   }
 
   private getTTSBaseEndpoint(model: StepFunTTSModel, config: ApiProviderConfig): string {
-    return model === 'stepaudio-2.5-tts'
-      ? this.getStepPlanEndpoint(config)
-      : this.getStandardEndpoint(config);
+    return this.getStandardEndpoint(config);
   }
 
   private resolveSize(params: ImageParams): string | undefined {
@@ -320,10 +314,6 @@ export class StepFunProvider extends BaseProvider {
     };
 
     const instruction = String(raw.instruction || params.prompt || '').trim();
-    if (model === 'stepaudio-2.5-tts' && instruction) {
-      body.instruction = instruction.slice(0, 200);
-    }
-
     if (params.pronunciationDict?.tone?.length) {
       body.pronunciation_map = {
         tone: params.pronunciationDict.tone,
@@ -644,6 +634,8 @@ export class StepFunProvider extends BaseProvider {
   }
 
   async generateImage(params: ImageParams, config: ApiProviderConfig): Promise<GenerationResult> {
+    return this.makeFailedTaskResult('', new Error('StepFun 图片编辑模型已下线，请选择当前可用的图片模型'));
+    /* istanbul ignore next */
     try {
       // StepFun 图片生成 API 仅在标准 /v1 端点可用（非 step_plan/v1）
       const baseEndpoint = this.getStandardEndpoint(config);

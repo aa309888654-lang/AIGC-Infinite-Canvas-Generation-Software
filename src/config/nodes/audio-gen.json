@@ -1,0 +1,42 @@
+{
+  "id": "audioGen",
+  "name": "音频节点",
+  "category": "input",
+  "description": "AI 音频生成 — 语音合成 / 音乐生成 / 音效",
+  "icon": "🎵",
+  "color": "#9C27B0",
+  "ports": {
+    "inputs": [
+      { "id": "textInput", "name": "文本输入", "type": "string", "optional": true }
+    ],
+    "outputs": [{ "id": "audioOutput", "name": "音频输出", "type": "audio" }]
+  },
+  "ui": {
+    "shell": "glass",
+    "promptPanel": true,
+    "resultRenderer": "audio",
+    "toolbar": "default"
+  },
+  "execution": {
+    "executable": true,
+    "handler": "audio-gen",
+    "mode": "async",
+    "maxRetries": 1,
+    "timeout": 120000,
+    "requiredParams": [
+      { "key": "prompt", "type": "string", "required": true, "minLength": 1, "label": "文本" },
+      { "key": "modelId", "type": "string", "required": true, "label": "模型" },
+      { "key": "modelProvider", "type": "string", "required": true, "label": "提供商" }
+    ]
+  },
+  "models": {
+    "mediaType": "audio",
+    "allowedProviders": ["stepfun", "minimax"],
+    "defaultModelId": "step-tts-2",
+    "fallbackModels": [
+      { "modelId": "step-tts-mini", "provider": "stepfun" },
+      { "modelId": "step-tts-2", "provider": "stepfun" },
+      { "modelId": "speech-2.8-hd", "provider": "minimax" }
+    ]
+  }
+}

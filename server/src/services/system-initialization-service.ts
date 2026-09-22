@@ -117,14 +117,12 @@ async function initProviderConfigs() {
   const minimaxConfig = {
     voiceModels: ['speech-2.8-hd', 'speech-2-turbo'],
     musicModels: ['music-2.6', 'lyrics_generation', 'music-cover'],
-    imageModels: ['image-01'],
     models: [
       'speech-2.8-hd',
       'speech-2-turbo',
       'music-2.6',
       'lyrics_generation',
       'music-cover',
-      'image-01',
     ],
     supportedModes: [
       'text-to-audio',
@@ -179,21 +177,15 @@ async function initProviderConfigs() {
 
   await syncProviderConfig('wuyinkeji', '小天API (小天AICG2)', wuyinkejiConfig, true);
 
-  // Agnes 独立 provider 配置（XT 模型 agnes-video-v2.0 走独立链路，不经过 wuyinkeji）
+  // Agnes 保留 provider 兼容性，但已移除图片/视频模型，不再作为媒体生成通道。
   const agnesConfig = {
-    supportedModes: [
-      'text-to-video',
-      'image-to-video',
-      'video-to-video',
-      'text-to-image',
-      'image-to-image',
-    ],
+    supportedModes: [],
     features: {
-      videoGeneration: true,
-      imageGeneration: true,
-      referenceImage: true,
+      videoGeneration: false,
+      imageGeneration: false,
+      referenceImage: false,
     },
-    models: ['agnes-video-v2.0', 'agnes-image-2.1-flash'],
+    models: [],
     authType: 'bearer-token',
     endpoint: process.env.AGNES_BASE_URL || 'https://apihub.agnes-ai.com/v1',
   };
@@ -201,7 +193,7 @@ async function initProviderConfigs() {
   await syncProviderConfig('agnes', 'Agnes 生成专用池 (XT模型)', agnesConfig, true);
 
   const sensenovaConfig = {
-    supportedModes: ['text-to-image', 'chat', 'text', 'text-generation', 'reasoning'],
+    supportedModes: ['chat', 'text', 'text-generation', 'reasoning', 'image-generation'],
     features: {
       imageGeneration: true,
       promptOptimization: true,
@@ -210,26 +202,6 @@ async function initProviderConfigs() {
       reasoning: true,
     },
     models: [
-      {
-        id: 'sensenova-u1-fast',
-        name: 'SenseNova U1 Fast',
-        description: '2K 信息图生成，11 种比例，海报推荐模型',
-        maxResolution: '2K',
-        supportedAspectRatios: [
-          '9:21',
-          '9:16',
-          '16:9',
-          '21:9',
-          '4:3',
-          '1:1',
-          '3:4',
-          '2:3',
-          '3:2',
-          '4:5',
-          '5:4',
-        ],
-        supportedModes: ['text-to-image'],
-      },
       {
         id: 'sensenova-6.7-flash-lite',
         name: 'SenseNova 6.7 Flash Lite',
@@ -242,6 +214,27 @@ async function initProviderConfigs() {
         description: 'DeepSeek V4 Flash 高性能对话模型，1M超长上下文，支持思考模式与工具调用',
         supportedModes: ['chat', 'text-generation', 'reasoning', 'function-calling'],
       },
+      {
+        id: 'sensenova-6.8-flash-lite',
+        name: 'SenseNova 6.8 Flash Lite',
+        description: '新版轻量多模态文本模型，高速对话与推理',
+        type: 'text',
+        supportedModes: ['chat', 'text-generation', 'reasoning'],
+      },
+      {
+        id: 'sensenova-u1.5-lite',
+        name: 'SenseNova U1.5 Lite',
+        description: 'SenseNova U1.5 Lite 图片生成模型（信息图/海报）',
+        type: 'image',
+        supportedModes: ['image-generation', 'text-to-image', 'infographic'],
+      },
+      {
+        id: 'sensenova-u1-fast',
+        name: 'SenseNova U1 Fast',
+        description: 'SenseNova U1 Fast 图片生成模型（信息图/海报）',
+        type: 'image',
+        supportedModes: ['image-generation', 'text-to-image', 'infographic'],
+      },
     ],
     authType: 'bearer',
     endpoint: process.env.SENSENOVA_BASE_URL || 'https://token.sensenova.cn/v1',
@@ -251,9 +244,6 @@ async function initProviderConfigs() {
 
   const stepfunConfig = {
     supportedModes: [
-      'text-to-image',
-      'image-to-image',
-      'image-edit',
       'text-to-audio',
       'speech-to-text',
       'audio-chat',
@@ -265,9 +255,9 @@ async function initProviderConfigs() {
       'video-understanding',
     ],
     features: {
-      imageGeneration: true,
-      imageEdit: true,
-      referenceImage: true,
+      imageGeneration: false,
+      imageEdit: false,
+      referenceImage: false,
       textToSpeech: true,
       speechToText: true,
       audioChat: true,
@@ -278,21 +268,6 @@ async function initProviderConfigs() {
       visionUnderstanding: true,
     },
     models: [
-      {
-        id: 'step-image-edit-2',
-        name: 'StepFun Image Edit 2',
-        description: '高质量图片生成与编辑模型，支持文生图、图生图和图片编辑',
-        maxResolution: '1360x768',
-        supportedAspectRatios: ['1:1', '16:9', '9:16', '4:3', '3:4'],
-        supportedModes: ['text-to-image', 'image-to-image', 'image-edit', 'reference'],
-        defaultParams: {
-          aspectRatio: '1:1',
-          imageSize: '1024x1024',
-          imageCount: 1,
-          cfgScale: 1,
-          steps: 8,
-        },
-      },
       {
         id: 'step-3.7-flash',
         name: 'Step 3.7 Flash',
@@ -313,17 +288,6 @@ async function initProviderConfigs() {
         description:
           '长上下文纯文本推理模型，专为智能体构建，256K上下文，稳定可靠的工具调用与长程任务执行',
         supportedModes: ['chat', 'text-generation', 'reasoning', 'function-calling'],
-      },
-      {
-        id: 'stepaudio-2.5-tts',
-        name: 'StepAudio 2.5 TTS',
-        description: '新一代 Contextual TTS，支持全局语境和文中语境控制',
-        supportedModes: ['text-to-speech', 'tts', 'instruction'],
-        defaultParams: {
-          voiceId: 'cixingnansheng',
-          responseFormat: 'mp3',
-          sampleRate: 24000,
-        },
       },
       {
         id: 'step-tts-mini',
@@ -405,27 +369,6 @@ async function initProviderConfigs() {
           'sequential-image-generation',
           'streaming-output',
           'web-search',
-        ],
-      },
-      {
-        id: 'doubao-seedream-5-0-pro',
-        name: 'Seedream 5.0 Pro',
-        description:
-          '豆包图片生成模型 5.0 Pro，支持点选和框选交互编辑、精准坐标、任意标记、多图融合、图层分离与原生多语种文字生成',
-        maxResolution: '2K',
-        supportedAspectRatios: ['16:9', '9:16', '4:3', '1:1', '3:2', '2:3', '21:9'],
-        capabilities: [
-          'text-to-image',
-          'image-to-image',
-          'reference',
-          'inpainting',
-          'outpainting',
-          'instruction-following',
-          'infographic',
-          'interactive-edit',
-          'precise-coordinate',
-          'arbitrary-marking',
-          'multi-image-fusion',
         ],
       },
       {

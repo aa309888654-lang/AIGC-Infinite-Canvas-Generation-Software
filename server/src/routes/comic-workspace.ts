@@ -1,16 +1,12 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { authenticate, AuthRequest } from '../middleware/auth';
-import { AppError } from '../middleware/errorHandler';
-import { creditService } from '../services/credit-service';
 import { comicGenerationService } from '../services/comic-generation-service';
 import { buildExpressionPrompt } from '../services/comic-prompt-builder';
 import prisma from '../lib/prisma';
 import crypto from 'crypto';
 
 const router = Router();
-
-const DEFAULT_MEMBERSHIP_LEVEL = 'trial';
 
 router.use(authenticate);
 
@@ -25,21 +21,6 @@ router.post('/generate-character', async (req: AuthRequest, res, next) => {
     });
     const validatedData = characterSchema.parse(req.body);
     const { name, description, style, gender, age } = validatedData;
-    const userId = req.userId!;
-    const membershipLevel = req.membershipLevel || DEFAULT_MEMBERSHIP_LEVEL;
-
-    const checkResult = await creditService.preCheck({
-      userId,
-      membershipLevel,
-      type: 'image',
-      taskId: 'temp',
-      reason: '漫剧角色图生成预检查',
-      provider: 'image-01',
-    });
-
-    if (!checkResult.allowed) {
-      throw new AppError(checkResult.reason, 402);
-    }
 
     const imageUrl = await comicGenerationService.generateCharacterImage({
       character: {
@@ -52,19 +33,6 @@ router.post('/generate-character', async (req: AuthRequest, res, next) => {
       },
       style,
     });
-
-    try {
-      await creditService.consume({
-        userId,
-        membershipLevel,
-        type: 'image',
-        taskId: `comic-char-${Date.now()}`,
-        reason: '漫剧角色图生成',
-        provider: 'image-01',
-      });
-    } catch (pointsError: unknown) {
-      console.error(`[CREDIT_AUDIT] userId=${req.userId} 积分扣除失败:`, pointsError);
-    }
 
     return res.json({
       success: true,
@@ -90,21 +58,6 @@ router.post('/generate-scene', async (req: AuthRequest, res, next) => {
     });
     const validatedData = sceneSchema.parse(req.body);
     const { type, timeOfDay, weather, description, style } = validatedData;
-    const userId = req.userId!;
-    const membershipLevel = req.membershipLevel || DEFAULT_MEMBERSHIP_LEVEL;
-
-    const checkResult = await creditService.preCheck({
-      userId,
-      membershipLevel,
-      type: 'image',
-      taskId: 'temp',
-      reason: '漫剧场景图生成预检查',
-      provider: 'image-01',
-    });
-
-    if (!checkResult.allowed) {
-      throw new AppError(checkResult.reason, 402);
-    }
 
     const imageUrl = await comicGenerationService.generateSceneImage({
       scene: {
@@ -117,19 +70,6 @@ router.post('/generate-scene', async (req: AuthRequest, res, next) => {
       },
       style,
     });
-
-    try {
-      await creditService.consume({
-        userId,
-        membershipLevel,
-        type: 'image',
-        taskId: `comic-scene-${Date.now()}`,
-        reason: '漫剧场景图生成',
-        provider: 'image-01',
-      });
-    } catch (pointsError: unknown) {
-      console.error(`[CREDIT_AUDIT] userId=${req.userId} 积分扣除失败:`, pointsError);
-    }
 
     return res.json({
       success: true,
@@ -153,21 +93,6 @@ router.post('/generate-expression', async (req: AuthRequest, res, next) => {
     });
     const validatedData = expressionSchema.parse(req.body);
     const { characterId, expression, style } = validatedData;
-    const userId = req.userId!;
-    const membershipLevel = req.membershipLevel || DEFAULT_MEMBERSHIP_LEVEL;
-
-    const checkResult = await creditService.preCheck({
-      userId,
-      membershipLevel,
-      type: 'image',
-      taskId: 'temp',
-      reason: '漫剧表情图生成预检查',
-      provider: 'image-01',
-    });
-
-    if (!checkResult.allowed) {
-      throw new AppError(checkResult.reason, 402);
-    }
 
     let characterDescription = 'character';
     if (characterId) {
@@ -197,19 +122,6 @@ router.post('/generate-expression', async (req: AuthRequest, res, next) => {
       style,
     });
 
-    try {
-      await creditService.consume({
-        userId,
-        membershipLevel,
-        type: 'image',
-        taskId: `comic-expr-${Date.now()}`,
-        reason: '漫剧表情图生成',
-        provider: 'image-01',
-      });
-    } catch (pointsError: unknown) {
-      console.error(`[CREDIT_AUDIT] userId=${req.userId} 积分扣除失败:`, pointsError);
-    }
-
     return res.json({
       success: true,
       data: { expressionImage: imageUrl, expression },
@@ -234,21 +146,6 @@ router.post('/generate-voice', async (req: AuthRequest, res, next) => {
     });
     const validatedData = voiceSchema.parse(req.body);
     const { text, characterId, emotion, speed = 1.0, pitch = 1.0 } = validatedData;
-    const userId = req.userId!;
-    const membershipLevel = req.membershipLevel || DEFAULT_MEMBERSHIP_LEVEL;
-
-    const checkResult = await creditService.preCheck({
-      userId,
-      membershipLevel,
-      type: 'audio',
-      taskId: 'temp',
-      reason: '漫剧语音合成预检查',
-      provider: 'minimax',
-    });
-
-    if (!checkResult.allowed) {
-      throw new AppError(checkResult.reason, 402);
-    }
 
     const audioUrl = await comicGenerationService.generateDialogueAudio({
       dialogue: {
@@ -262,20 +159,6 @@ router.post('/generate-voice', async (req: AuthRequest, res, next) => {
     });
 
     const duration = Math.ceil(text.length / 3.5);
-
-    try {
-      await creditService.consume({
-        userId,
-        membershipLevel,
-        type: 'audio',
-        taskId: `comic-voice-${Date.now()}`,
-        reason: '漫剧语音合成',
-        provider: 'minimax',
-        durationSeconds: duration,
-      });
-    } catch (pointsError: unknown) {
-      console.error(`[CREDIT_AUDIT] userId=${req.userId} 积分扣除失败:`, pointsError);
-    }
 
     return res.json({
       success: true,
@@ -312,22 +195,6 @@ router.post('/generate-panels-ai', async (req: AuthRequest, res, next) => {
     });
     const validatedData = panelsSchema.parse(req.body);
     const { panels, style } = validatedData;
-    const userId = req.userId!;
-    const membershipLevel = req.membershipLevel || DEFAULT_MEMBERSHIP_LEVEL;
-
-    const checkResult = await creditService.preCheck({
-      userId,
-      membershipLevel,
-      type: 'image',
-      amount: panels?.length || 1,
-      taskId: 'temp',
-      reason: '漫剧面板批量生成预检查',
-      provider: 'image-01',
-    });
-
-    if (!checkResult.allowed) {
-      throw new AppError(checkResult.reason, 402);
-    }
 
     const results = [];
 
@@ -360,21 +227,6 @@ router.post('/generate-panels-ai', async (req: AuthRequest, res, next) => {
     }
 
     const successCount = results.filter(r => r.success).length;
-    if (successCount > 0) {
-      try {
-        await creditService.consume({
-          userId,
-          membershipLevel,
-          type: 'image',
-          amount: successCount,
-          taskId: `comic-panels-${Date.now()}`,
-          reason: `漫剧面板批量生成(${successCount}张)`,
-          provider: 'image-01',
-        });
-      } catch (pointsError: unknown) {
-        console.error(`[CREDIT_AUDIT] userId=${req.userId} 积分扣除失败:`, pointsError);
-      }
-    }
 
     return res.json({
       success: true,
@@ -400,22 +252,6 @@ router.post('/batch-voice', async (req: AuthRequest, res, next) => {
     });
     const validatedData = batchVoiceSchema.parse(req.body);
     const { dialogues } = validatedData;
-    const userId = req.userId!;
-    const membershipLevel = req.membershipLevel || DEFAULT_MEMBERSHIP_LEVEL;
-
-    const checkResult = await creditService.preCheck({
-      userId,
-      membershipLevel,
-      type: 'audio',
-      amount: dialogues?.length || 1,
-      taskId: 'temp',
-      reason: '漫剧批量语音合成预检查',
-      provider: 'minimax',
-    });
-
-    if (!checkResult.allowed) {
-      throw new AppError(checkResult.reason, 402);
-    }
 
     const results = [];
 
@@ -446,21 +282,6 @@ router.post('/batch-voice', async (req: AuthRequest, res, next) => {
     }
 
     const successCount = results.filter(r => r.success).length;
-    if (successCount > 0) {
-      try {
-        await creditService.consume({
-          userId,
-          membershipLevel,
-          type: 'audio',
-          amount: successCount,
-          taskId: `comic-batch-voice-${Date.now()}`,
-          reason: `漫剧批量语音合成(${successCount}条)`,
-          provider: 'minimax',
-        });
-      } catch (pointsError: unknown) {
-        console.error(`[CREDIT_AUDIT] userId=${req.userId} 积分扣除失败:`, pointsError);
-      }
-    }
 
     return res.json({
       success: true,

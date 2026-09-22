@@ -6,7 +6,6 @@ import { z } from 'zod';
 import prisma from '../lib/prisma';
 import axios from 'axios';
 import { comicGenerationService, ComicDialogue, ComicCharacterInput, ComicSceneInput, ComicAssetInput } from '../services/comic-generation-service';
-import { withCreditDeduction, executeCreditDeduction } from '../middleware/credit-deduction';
 import { parseTaskResult } from '../utils/task-result-helper';
 import { websocketPushService } from '../services/websocket-push-service';
 import { videoTaskBindingService } from '../services/video-task-binding-service';
@@ -210,7 +209,6 @@ comicRouter.get('/video-models', authenticate, async (req, res, next) => {
 comicRouter.post(
   '/generate-content',
   authenticate,
-  withCreditDeduction({ type: 'prompt', reason: '漫剧内容生成' }),
   async (req, res, next) => {
   try {
     const schema = z.object({
@@ -343,14 +341,6 @@ ${validatedData.prompt}
       throw new AppError('Failed to parse generated content', 500);
     }
 
-    try {
-      await executeCreditDeduction(req, `comic_content_${Date.now()}`);
-    } catch (deductionError) {
-      // 积分扣除失败：资源已生成无法回滚，记录审计日志以便对账
-      console.error(`[CREDIT_AUDIT] userId=${req.userId} 积分扣除失败:`, deductionError);
-      logger.error(`[Comic] 用户 ${req.userId} 积分扣除失败:`, deductionError);
-    }
-
     res.json({
       success: true,
       type: validatedData.type,
@@ -374,7 +364,6 @@ ${validatedData.prompt}
 comicRouter.post(
   '/generate-character-image',
   authenticate,
-  withCreditDeduction((req) => ({ type: 'image', reason: '漫剧角色图片生成', provider: req.body?.imageProvider || 'default', model: req.body?.imageModel })),
   async (req, res, next) => {
   try {
     const schema = z.object({
@@ -412,7 +401,6 @@ comicRouter.post(
         imageProvider: validatedData.imageProvider,
         userId: req.userId!,
       });
-      if (status === 'completed') await executeCreditDeduction(req, taskId);
       res.json({ success: true, taskId, status, imageUrl: url });
       return;
     }
@@ -428,14 +416,6 @@ comicRouter.post(
       imageModel: validatedData.imageModel,
       imageProvider: validatedData.imageProvider,
     });
-
-    try {
-      await executeCreditDeduction(req, `comic_char_${Date.now()}`);
-    } catch (deductionError) {
-      // 积分扣除失败：资源已生成无法回滚，记录审计日志以便对账
-      console.error(`[CREDIT_AUDIT] userId=${req.userId} 积分扣除失败:`, deductionError);
-      logger.error(`[Comic] 用户 ${req.userId} 积分扣除失败:`, deductionError);
-    }
 
     res.json({
       success: true,
@@ -454,7 +434,6 @@ comicRouter.post(
 comicRouter.post(
   '/generate-scene-image',
   authenticate,
-  withCreditDeduction((req) => ({ type: 'image', reason: '漫剧场景图片生成', provider: req.body?.imageProvider || 'default', model: req.body?.imageModel })),
   async (req, res, next) => {
   try {
     const schema = z.object({
@@ -493,7 +472,6 @@ comicRouter.post(
         imageProvider: validatedData.imageProvider,
         userId: req.userId!,
       });
-      if (status === 'completed') await executeCreditDeduction(req, taskId);
       res.json({ success: true, taskId, status, imageUrl: url });
       return;
     }
@@ -509,14 +487,6 @@ comicRouter.post(
       imageModel: validatedData.imageModel,
       imageProvider: validatedData.imageProvider,
     });
-
-    try {
-      await executeCreditDeduction(req, `comic_scene_${Date.now()}`);
-    } catch (deductionError) {
-      // 积分扣除失败：资源已生成无法回滚，记录审计日志以便对账
-      console.error(`[CREDIT_AUDIT] userId=${req.userId} 积分扣除失败:`, deductionError);
-      logger.error(`[Comic] 用户 ${req.userId} 积分扣除失败:`, deductionError);
-    }
 
     res.json({
       success: true,
@@ -535,7 +505,6 @@ comicRouter.post(
 comicRouter.post(
   '/generate-asset-image',
   authenticate,
-  withCreditDeduction((req) => ({ type: 'image', reason: '漫剧资产图片生成', provider: req.body?.imageProvider || 'default', model: req.body?.imageModel })),
   async (req, res, next) => {
   try {
     const schema = z.object({
@@ -572,7 +541,6 @@ comicRouter.post(
         imageProvider: validatedData.imageProvider,
         userId: req.userId!,
       });
-      if (status === 'completed') await executeCreditDeduction(req, taskId);
       res.json({ success: true, taskId, status, imageUrl: url });
       return;
     }
@@ -588,14 +556,6 @@ comicRouter.post(
       imageModel: validatedData.imageModel,
       imageProvider: validatedData.imageProvider,
     });
-
-    try {
-      await executeCreditDeduction(req, `comic_asset_${Date.now()}`);
-    } catch (deductionError) {
-      // 积分扣除失败：资源已生成无法回滚，记录审计日志以便对账
-      console.error(`[CREDIT_AUDIT] userId=${req.userId} 积分扣除失败:`, deductionError);
-      logger.error(`[Comic] 用户 ${req.userId} 积分扣除失败:`, deductionError);
-    }
 
     res.json({
       success: true,
@@ -614,13 +574,6 @@ comicRouter.post(
 comicRouter.post(
   '/generate-scene-video',
   authenticate,
-  withCreditDeduction((req) => ({
-    type: 'video',
-    reason: '漫剧视频生成',
-    provider: req.body?.videoProvider || 'doubao',
-    model: req.body?.videoModel,
-    durationSeconds: req.body?.duration || 6,
-  })),
   async (req, res, next) => {
   try {
     const schema = z.object({
@@ -648,9 +601,6 @@ comicRouter.post(
     });
 
     const validatedData = schema.parse(req.body);
-
-    (req as any).creditConfig.provider = validatedData.videoProvider;
-    (req as any).creditConfig.durationSeconds = validatedData.duration;
 
     if (COMIC_ASYNC_ENABLED) {
       const { taskId, status } = await comicGenerationService.submitSceneVideo({
@@ -688,14 +638,6 @@ comicRouter.post(
       ipAdapterStrength: validatedData.ipAdapterStrength,
     });
 
-    try {
-      await executeCreditDeduction(req, `comic_video_${Date.now()}`);
-    } catch (deductionError) {
-      // 积分扣除失败：资源已生成无法回滚，记录审计日志以便对账
-      console.error(`[CREDIT_AUDIT] userId=${req.userId} 积分扣除失败:`, deductionError);
-      logger.error(`[Comic] 用户 ${req.userId} 积分扣除失败:`, deductionError);
-    }
-
     res.json({
       success: true,
       videoUrl,
@@ -713,7 +655,6 @@ comicRouter.post(
 comicRouter.post(
   '/generate-dialogue-audio',
   authenticate,
-  withCreditDeduction({ type: 'audio', reason: '漫剧对话音频' }),
   async (req, res, next) => {
   try {
     const schema = z.object({
@@ -731,22 +672,12 @@ comicRouter.post(
 
     const validatedData = schema.parse(req.body);
 
-    (req as any).creditConfig.reason = `漫剧对话音频 - ${validatedData.dialogue.text.substring(0, 20)}`;
-
     const audioUrl = await comicGenerationService.generateDialogueAudio({
       dialogue: validatedData.dialogue as ComicDialogue,
       voiceId: validatedData.voiceId,
       audioModel: validatedData.audioModel,
       audioProvider: validatedData.audioProvider,
     });
-
-    try {
-      await executeCreditDeduction(req, `comic_audio_${Date.now()}`);
-    } catch (deductionError) {
-      // 积分扣除失败：资源已生成无法回滚，记录审计日志以便对账
-      console.error(`[CREDIT_AUDIT] userId=${req.userId} 积分扣除失败:`, deductionError);
-      logger.error(`[Comic] 用户 ${req.userId} 积分扣除失败:`, deductionError);
-    }
 
     res.json({
       success: true,
@@ -765,7 +696,6 @@ comicRouter.post(
 comicRouter.post(
   '/parse-script',
   authenticate,
-  withCreditDeduction({ type: 'prompt', reason: '漫剧剧本解析' }),
   async (req, res, next) => {
   try {
     const schema = z.object({
@@ -830,14 +760,6 @@ ${validatedData.script}
       throw new AppError('Failed to parse generated content', 500);
     }
 
-    try {
-      await executeCreditDeduction(req, `comic_script_${Date.now()}`);
-    } catch (deductionError) {
-      // 积分扣除失败：资源已生成无法回滚，记录审计日志以便对账
-      console.error(`[CREDIT_AUDIT] userId=${req.userId} 积分扣除失败:`, deductionError);
-      logger.error(`[Comic] 用户 ${req.userId} 积分扣除失败:`, deductionError);
-    }
-
     res.json({
       success: true,
       data: jsonContent,
@@ -860,7 +782,6 @@ ${validatedData.script}
 comicRouter.post(
   '/analyze-story',
   authenticate,
-  withCreditDeduction({ type: 'prompt', reason: 'AI漫剧剧本导演拆解' }),
   async (req, res, next) => {
   try {
     const schema = z.object({
@@ -977,14 +898,6 @@ JSON 字段：
     }
 
     const jsonContent = parseLLMJsonObject(responseContent);
-
-    try {
-      await executeCreditDeduction(req, `comic_story_director_${Date.now()}`);
-    } catch (deductionError) {
-      // 积分扣除失败：资源已生成无法回滚，记录审计日志以便对账
-      console.error(`[CREDIT_AUDIT] userId=${req.userId} 积分扣除失败:`, deductionError);
-      logger.error(`[Comic] 用户 ${req.userId} 积分扣除失败:`, deductionError);
-    }
 
     res.json({
       success: true,

@@ -2,7 +2,6 @@ import { Router, Request, Response } from 'express';
 import axios from 'axios';
 import FormData from 'form-data';
 import { authenticate, AuthRequest } from '../middleware/auth';
-import { creditService } from '../services/credit-service';
 import { fetchRemoteBuffer, getRemoteImportAllowedHosts } from '../utils/safe-remote-fetch';
 
 const rembgRouter = Router();
@@ -10,7 +9,6 @@ const rembgRouter = Router();
 const REMBG_SERVER_URL = process.env.REMBG_SERVER_URL || 'http://127.0.0.1:7000';
 const REMBG_ENABLED = process.env.REMBG_ENABLED !== 'false';
 const REMBG_BUILTIN_ENABLED = process.env.REMBG_BUILTIN_ENABLED === 'true';
-const REMBG_POINTS = parseInt(process.env.REMBG_POINTS || '10', 10);
 
 let imglyRemoveBackground: typeof import('@imgly/background-removal').removeBackground | null = null;
 let imglyLoaded = false;
@@ -95,22 +93,6 @@ rembgRouter.post('/remove-background', authenticate, async (req: AuthRequest, re
       return res.status(400).json({ success: false, error: '请提供 image_url 或 image_base64' });
     }
 
-    // 积分预检查
-    const membershipLevel = req.membershipLevel || 'trial';
-    const creditTaskId = `rembg_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-    const creditCheck = await creditService.preCheck({
-      userId: req.userId!,
-      membershipLevel,
-      type: 'image',
-      customPoints: REMBG_POINTS,
-      taskId: creditTaskId,
-      reason: 'AI背景移除预检查',
-    });
-
-    if (!creditCheck.allowed) {
-      return res.status(402).json({ success: false, error: creditCheck.reason });
-    }
-
     let imageBuffer: Buffer;
     let imageMimeType = 'image/png';
 
@@ -163,18 +145,7 @@ rembgRouter.post('/remove-background', authenticate, async (req: AuthRequest, re
         const resultBase64 = Buffer.from(response.data).toString('base64');
         engine = 'python-rembg';
 
-        // 扣除积分
-        await creditService.consume({
-          userId: req.userId!,
-          membershipLevel,
-          type: 'image',
-          customPoints: REMBG_POINTS,
-          taskId: creditTaskId,
-          reason: 'AI背景移除',
-          directDeduction: true,
-        });
-
-        return res.json({ success: true, image: resultBase64, format: 'png', engine, points: REMBG_POINTS });
+        return res.json({ success: true, image: resultBase64, format: 'png', engine });
       } catch (pyError: unknown) {
         const pyErr = pyError as any;
         console.warn('[Rembg] Python Rembg 调用失败，回退到内置引擎:', pyErr.message);
@@ -192,18 +163,7 @@ rembgRouter.post('/remove-background', authenticate, async (req: AuthRequest, re
       const resultBase64 = resultBuffer.toString('base64');
       engine = 'imgly-built-in';
 
-      // 扣除积分
-      await creditService.consume({
-        userId: req.userId!,
-        membershipLevel,
-        type: 'image',
-        customPoints: REMBG_POINTS,
-        taskId: creditTaskId,
-        reason: 'AI背景移除(内置引擎)',
-        directDeduction: true,
-      });
-
-      return res.json({ success: true, image: resultBase64, format: 'png', engine, points: REMBG_POINTS });
+      return res.json({ success: true, image: resultBase64, format: 'png', engine });
     } catch (builtInError: unknown) {
       const biErr = builtInError as any;
       console.error('[Rembg] 内置引擎也失败:', biErr.message);
@@ -232,8 +192,8 @@ rembgRouter.post('/remove-background', authenticate, async (req: AuthRequest, re
 
 rembgRouter.get('/models', async (_req: Request, res: Response) => {
   // 模型来源：
-  // - Python Rembg 服务：通过 U2NET_HOME 环境变量指向嵌入路径 backend/models/rembg/ 或外部路径
-  // - 内置 @imgly 引擎：使用 frontend/public/ai-models/background-removal/models/ 下的 isnet 系列
+  // - Python Rembg 服务：通过 U2NET_HOME 环境变量指向嵌入路径 server/models/rembg/ 或外部路径
+  // - 内置 @imgly 引擎：使用 web/public/ai-models/background-removal/models/ 下的 isnet 系列
   const models = [
     { id: 'birefnet-general', name: 'BiRefNet 通用', desc: '最新SOTA通用分割（推荐）' },
     { id: 'birefnet-portrait', name: 'BiRefNet 人像', desc: '最新SOTA人像分割' },

@@ -1,7 +1,12 @@
 import express, { Router } from 'express';
+import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import { authenticate } from '../middleware/auth';
 import { AppError } from '../middleware/errorHandler';
+import prisma from '../lib/prisma';
 import { encryptForStorage, maskApiKey, hashForLookup, normalizeEmail } from '../utils/encryption';
+
+const syncRouter: Router = Router();
 
 // SEC M-2 修复：sync 路由接收 workflows 等较大负载，单独放宽 body 限制。
 // 全局限制已降到 2mb，此处显式放宽到 20mb 以容纳工作流数据。
@@ -16,20 +21,8 @@ interface FrontendUserProfile {
   userId?: string;
   username: string;
   email: string;
-  membershipLevel: 'free' | 'vip' | 'premium';
-  membershipExpiry: string | null;
-  permanentPoints: number;
-  bonusPoints: number;
-  bonusExpiry: string | null;
   concurrentTasks: number;
   role?: string;
-}
-
-interface FrontendPointsTransaction {
-  type: 'earn' | 'spend' | 'bonus' | 'expire' | 'refund' | 'admin' | 'purchase' | 'daily' | 'register' | 'invite';
-  amount: number;
-  reason?: string;
-  createdAt: string;
 }
 
 interface FrontendTaskRecord {
@@ -97,7 +90,6 @@ interface FrontendNodeFile {
 
 interface SyncPayload {
   userProfile: FrontendUserProfile;
-  pointsTransactions?: FrontendPointsTransaction[];
   tasks?: FrontendTaskRecord[];
   usageLogs?: FrontendUsageLog[];
   generationHistory?: FrontendGenerationRecord[];
@@ -128,7 +120,6 @@ interface SyncResult {
   userId: string;
   summary: {
     userCreatedOrUpdated: boolean;
-    pointsSynced: number;
     tasksSynced: number;
     usageLogsSynced: number;
     generationRecordsSynced: number;
@@ -152,12 +143,6 @@ async function ensureUserQuota(userId: string): Promise<void> {
     await prisma.userQuota.create({
       data: {
         userId,
-        dailyLimit: 1000,
-        dailyUsed: 0,
-        monthlyLimit: 10000,
-        monthlyUsed: 0,
-        concurrentLimit: 3,
-        concurrentUsed: 0,
         storageLimit: DEFAULT_STORAGE_LIMIT,
         fileLimit: DEFAULT_FILE_LIMIT,
       },
@@ -194,7 +179,6 @@ syncRouter.post('/full', async (req, res, next) => {
     userId: '',
     summary: {
       userCreatedOrUpdated: false,
-      pointsSynced: 0,
       tasksSynced: 0,
       usageLogsSynced: 0,
       generationRecordsSynced: 0,
@@ -237,10 +221,6 @@ syncRouter.post('/full', async (req, res, next) => {
           }
         }
       }
-      if (payload.userProfile.permanentPoints !== undefined) {
-        updateData.pointsBalance = payload.userProfile.permanentPoints + (payload.userProfile.bonusPoints || 0);
-        updateData.points = payload.userProfile.permanentPoints;
-      }
       // SEC-01 修复：禁止客户端通过 sync 接口覆盖 role 字段，防止权限提升
 
       if (Object.keys(updateData).length > 0) {
@@ -254,12 +234,6 @@ syncRouter.post('/full', async (req, res, next) => {
     } else {
       const hashedPassword = await bcrypt.hash('synced_from_frontend_' + Date.now(), 10);
 
-      const membershipLevelToRole: Record<string, string> = {
-        free: 'user',
-        vip: 'vip',
-        premium: 'premium',
-      };
-
       const normalizedEmail = normalizeEmail(payload.userProfile.email);
       const emailHash = hashForLookup(normalizedEmail);
       const emailCipher = encryptForStorage(normalizedEmail);
@@ -272,10 +246,7 @@ syncRouter.post('/full', async (req, res, next) => {
           emailCipher,
           emailHash,
           password: hashedPassword,
-          role: membershipLevelToRole[payload.userProfile.membershipLevel] || 'user',
-          points: payload.userProfile.permanentPoints || 100,
-          pointsBalance: (payload.userProfile.permanentPoints || 100) + (payload.userProfile.bonusPoints || 0),
-          frozenPoints: 0,
+          role: 'user',
           isActive: true,
         },
       });
@@ -287,42 +258,6 @@ syncRouter.post('/full', async (req, res, next) => {
     }
 
     await ensureUserQuota(dbUser!.id);
-
-    if (payload.pointsTransactions && payload.pointsTransactions.length > 0) {
-      for (const tx of payload.pointsTransactions) {
-        try {
-          const currentPoints = await prisma.user.findUnique({
-            where: { id: dbUser!.id },
-            select: { points: true },
-          });
-
-          const balanceBefore = currentPoints?.points || 0;
-          const amount = tx.type === 'spend' || tx.type === 'expire' ? -Math.abs(tx.amount) : Math.abs(tx.amount);
-          const balanceAfter = balanceBefore + amount;
-
-          await prisma.pointsTransaction.create({
-            data: {
-              userId: dbUser!.id,
-              type: tx.type,
-              amount,
-              balanceBefore,
-              balanceAfter,
-              reason: tx.reason || `前端同步: ${tx.type}`,
-              createdAt: new Date(tx.createdAt),
-            },
-          });
-
-          await prisma.user.update({
-            where: { id: dbUser!.id },
-            data: { points: balanceAfter },
-          });
-
-          result.summary.pointsSynced++;
-        } catch (err: unknown) {
-          result.summary.errors.push(`积分交易同步失败: ${(err instanceof Error ? err.message : String(err))}`);
-        }
-      }
-    }
 
     if (payload.tasks && payload.tasks.length > 0) {
       for (const task of payload.tasks) {
@@ -532,16 +467,13 @@ syncRouter.post('/status', async (req, res, next) => {
   try {
     const userId = req.userId!;
 
-    const [user, taskCount, usageLogCount, pointsTxCount, storageUsed, userQuota] = await Promise.all([
+    const [user, taskCount, usageLogCount, storageUsed, userQuota] = await Promise.all([
       prisma.user.findUnique({
         where: { id: userId },
         select: {
           id: true,
           username: true,
           email: true,
-          points: true,
-          pointsBalance: true,
-          frozenPoints: true,
           role: true,
           createdAt: true,
           updatedAt: true,
@@ -549,7 +481,6 @@ syncRouter.post('/status', async (req, res, next) => {
             select: {
               tasks: true,
               usageLogs: true,
-              pointsTransactions: true,
               apiKeys: true,
               UserFile: true,
             },
@@ -558,7 +489,6 @@ syncRouter.post('/status', async (req, res, next) => {
       }),
       prisma.task.count({ where: { userId } }),
       prisma.usageLog.count({ where: { userId } }),
-      prisma.pointsTransaction.count({ where: { userId } }),
       getStorageUsed(userId),
       prisma.userQuota.findUnique({ where: { userId } }),
     ]);
@@ -574,7 +504,6 @@ syncRouter.post('/status', async (req, res, next) => {
         stats: {
           tasks: taskCount,
           usageLogs: usageLogCount,
-          pointsTransactions: pointsTxCount,
           files: fileCount,
         },
         storageQuota: {
@@ -649,7 +578,7 @@ syncRouter.get('/export/:userId', async (req: any, res, next) => {
       throw new AppError('无权访问此数据', 403);
     }
 
-    const [user, tasks, usageLogs, pointsTxs, apiKeys, files] = await Promise.all([
+    const [user, tasks, usageLogs, apiKeys, files] = await Promise.all([
       prisma.user.findUnique({
         where: { id: targetUserId },
         select: {
@@ -657,9 +586,6 @@ syncRouter.get('/export/:userId', async (req: any, res, next) => {
           username: true,
           email: true,
           role: true,
-          points: true,
-          pointsBalance: true,
-          frozenPoints: true,
           isActive: true,
           createdAt: true,
           updatedAt: true,
@@ -674,11 +600,6 @@ syncRouter.get('/export/:userId', async (req: any, res, next) => {
         where: { userId: targetUserId },
         orderBy: { createdAt: 'desc' },
         take: 500,
-      }),
-      prisma.pointsTransaction.findMany({
-        where: { userId: targetUserId },
-        orderBy: { createdAt: 'desc' },
-        take: 200,
       }),
       prisma.apiKey.findMany({
         where: { userId: targetUserId },
@@ -698,7 +619,6 @@ syncRouter.get('/export/:userId', async (req: any, res, next) => {
       user,
       tasks,
       usageLogs,
-      pointsTransactions: pointsTxs,
       apiKeys: apiKeys.map(k => ({
         ...k,
         apiKey: k.key ? maskApiKey(k.key) : null,
@@ -720,3 +640,5 @@ syncRouter.get('/export/:userId', async (req: any, res, next) => {
     next(error);
   }
 });
+
+export { syncRouter };

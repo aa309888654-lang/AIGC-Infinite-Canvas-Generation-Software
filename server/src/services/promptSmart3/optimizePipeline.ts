@@ -49,7 +49,9 @@ export async function optimizePrompt(
   category?: string,
   models?: string[],
   preferredProvider?: string,
-  prePrompt?: string
+  prePrompt?: string,
+  fixedProvider?: ProviderConfig,
+  cacheScope?: string
 ): Promise<OptimizePromptResult> {
   const culturalRule = getCulturalDefaultRule(prompt);
   let fullPrompt = `【用户原始提示词】\n${prompt}`;
@@ -93,7 +95,9 @@ export async function optimizePrompt(
   }
 
   const modelProfile = resolvePromptModelProfile(scenario, models);
-  const cached = await getCachedResult(fullPrompt, scenario, category);
+  const cached = fixedProvider
+    ? null
+    : await getCachedResult(fullPrompt, scenario, category, cacheScope);
   if (cached) {
     return {
       optimizedPrompt: cached,
@@ -125,6 +129,10 @@ export async function optimizePrompt(
         { role: 'user', content: fullPrompt },
       ],
       (tried) => {
+        if (fixedProvider) {
+          if (tried.has(fixedProvider.name)) return null;
+          return { config: fixedProvider, name: fixedProvider.name };
+        }
         if (preferredProvider && !tried.has(preferredProvider)) {
           const preferred = selectProviderByName(preferredProvider);
           if (preferred && !preferred.circuitBreaker.isOpen) {
@@ -149,7 +157,9 @@ export async function optimizePrompt(
     }
 
     await recordProviderCall(optimizationResult.provider, true, Date.now() - startTime);
-    await setCachedResult(fullPrompt, sanitizedContent, scenario, category);
+    if (!fixedProvider) {
+      await setCachedResult(fullPrompt, sanitizedContent, scenario, category, undefined, cacheScope);
+    }
 
     return {
       optimizedPrompt: sanitizedContent,

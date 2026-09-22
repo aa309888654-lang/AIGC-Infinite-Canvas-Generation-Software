@@ -5,7 +5,6 @@ import { MinimaxProvider } from './minimax-provider';
 import { SeedreamProvider } from './seedream-provider';
 import { OpenAICompatibleProvider } from './openai-compatible-provider';
 import { WuyinkejiProvider } from './wuyinkeji-provider';
-import { AgnesProvider } from './agnes-provider';
 import { ViduProvider } from './vidu-provider';
 import { KlingProvider } from './kling-provider';
 import { SenseNovaProvider } from './sensenova-provider';
@@ -23,17 +22,7 @@ import {
   checkPromptSafetyForImageGeneration,
 } from './prompt-firewall';
 
-function getSingleImageRequestLimit(providerName: string, modelName?: string): number {
-  const normalizedProvider = providerName.toLowerCase();
-  const normalizedModel = (modelName || '').toLowerCase();
-  if (
-    normalizedProvider === 'sensenova' ||
-    normalizedProvider === 'stepfun' ||
-    normalizedModel.startsWith('sensenova-u1') ||
-    normalizedModel === 'step-image-edit-2'
-  ) {
-    return 1;
-  }
+function getSingleImageRequestLimit(_providerName: string, _modelName?: string): number {
   return Number.POSITIVE_INFINITY;
 }
 
@@ -195,7 +184,6 @@ export class UnifiedApiService {
     this.registerProvider(new ResilientProvider(new SeedreamProvider()));
     this.registerProvider(new ResilientProvider(new OpenAICompatibleProvider()));
     this.registerProvider(new ResilientProvider(new WuyinkejiProvider()));
-    this.registerProvider(new ResilientProvider(new AgnesProvider()));
     this.registerProvider(new ResilientProvider(new ViduProvider()));
     this.registerProvider(new ResilientProvider(new KlingProvider()));
     this.registerProvider(new ResilientProvider(new SenseNovaProvider()));

@@ -10,32 +10,15 @@ import { ImageParams, ApiProviderConfig } from '../types/api';
 import { decryptProviderSecrets } from './ai-provider';
 import { autoSaveService } from '../services/auto-save-service';
 import { minioPublicStorageService } from '../services/minio-public-storage-service';
-import { withCreditDeduction, executeCreditDeduction } from '../middleware/credit-deduction';
-import { creditService } from '../services/credit-service';
-import { getBalance } from '../services/points-service';
 import storageService from '../services/storage-service';
 import { ProviderKeyManager } from '../services/provider-key-manager';
 import { getUserModelCredential } from '../services/user-model-credential-service';
 import { promptLogService } from '../services/prompt-log-service';
 import {
-  enforcePosterGenerationPolicy,
-} from '../services/poster-generation-policy';
-import { posterAgentOptimize } from '../services/poster-agent-service';
-import { getRequestAuthToken } from '../middleware/security-session';
-import {
   fetchRemoteBuffer,
   fetchSafeRemoteResponse,
   isAllowedRemoteHostname,
 } from '../utils/safe-remote-fetch';
-
-function enforcePosterGenerationRequest(
-  req: AuthRequest,
-  _res: Response,
-  next: NextFunction
-): void {
-  req.body = enforcePosterGenerationPolicy(req.body || {});
-  next();
-}
 
 /** 移除 AI 响应中的 &lt;think&gt;...&lt;/think&gt; 推理标签 */
 function stripThinkingTags(text: string): string {
@@ -47,17 +30,9 @@ import axios from 'axios';
 import { getApiProviderConfig } from './ai-provider';
 import { logger } from '../utils/logger';
 import { config } from '../types/env';
-import {
-  resolveSensenovaApiKey,
-  resolveSensenovaBackupApiKey,
-  resolveStepfunApiKey,
-  resolveStepfunBackupApiKeys,
-} from '../utils/provider-env-keys';
 import { enhancePromptForModel } from '../services/prompt-enhancer';
 import { checkPromptSafetyForImageGeneration } from '../services/prompt-firewall';
 import { resolveImageModelChannel } from '../services/model-channel-registry';
-import { resolvePosterImageRequestPoints } from '../services/poster-image-pricing';
-import { resolveCustomImagePoints } from '../services/custom-model-points';
 import {
   buildGenerationIdempotencyKey,
   buildReusedGenerationResponse,
@@ -74,7 +49,6 @@ import {
   resolveWatermarkEnabled,
   safelyApplyImageWatermark,
 } from '../services/watermark-service';
-import { isContentReviewEnabled, isTaskAwaitingReview } from '../services/content-review-service';
 // SEC-AUDIT 修复：导入会员等级模型白名单校验，防止前端绕过会员等级限制调用 Pro 专属模型
 import {
   isModelAllowedForMembership,
@@ -116,10 +90,6 @@ export const imageRouter = Router();
 // 图生图等接口可能接收 base64 data URL 作为 referenceImage，单独放宽 body 限制到 20mb
 imageRouter.use(express.json({ limit: '20mb' }));
 const MAX_IMAGE_GENERATION_COUNT = 10;
-const HOME_PHOTO_GENERATION_POINTS = 30;
-const XIAOTIAN4_IMAGE_NODE_POINTS = 30;
-const POSTER_GENERATION_POINTS = 60;
-const MOBILE_POSTER_GENERATION_POINTS = 20;
 const IMAGE_PROXY_ALLOWED_HOSTS = [
   'volces.com',
   'aliyuncs.com',
@@ -150,98 +120,6 @@ const IMAGE_PROXY_ALLOWED_HOSTS = [
 ] as const;
 const IMAGE_PROXY_MAX_BYTES = 250 * 1024 * 1024;
 
-function normalizeImageCount(value: unknown, fallback: unknown = 1): number {
-  const parsed = Number(value ?? fallback ?? 1);
-  if (!Number.isFinite(parsed)) return 1;
-  return Math.min(MAX_IMAGE_GENERATION_COUNT, Math.max(1, Math.floor(parsed)));
-}
-
-function normalizePointKey(value: unknown): string {
-  return String(value || '')
-    .trim()
-    .toLowerCase();
-}
-
-export function resolveImageRequestFixedPoints(options: {
-  source?: string;
-  model: string;
-  resolvedModel: string;
-  imageCount: number;
-  isPoster: boolean;
-}): number | undefined {
-  const count = normalizeImageCount(options.imageCount);
-  const source = normalizePointKey(options.source);
-
-  // 首页海报固定按页面公示价计费，包含海报方案与一次豆包 Seedream 出图。
-  if (options.isPoster) {
-    return POSTER_GENERATION_POINTS * count;
-  }
-
-  // AI 图片节点公示价：模型在路由到实际渠道前后都必须得到相同的扣费结果。
-  const modelKey = normalizePointKey(options.resolvedModel || options.model);
-  if (modelKey === 'wan2.7_image' || modelKey === 'wan2.6') {
-    return 60 * count;
-  }
-  if (modelKey.includes('seedream-5-0-pro')) {
-    return 80 * count;
-  }
-  if (modelKey.includes('seedream-5-0-lite') || modelKey === 'seedream-5.0-lite') {
-    return 60 * count;
-  }
-
-  if (source === 'home-image' || source === 'photo' || source === 'image') {
-    return HOME_PHOTO_GENERATION_POINTS * count;
-  }
-
-  return undefined;
-}
-
-async function resolveImageRequestCustomPoints(
-  req: AuthRequest,
-  options: {
-    provider: string;
-    model: string;
-    resolvedProvider: string;
-    resolvedModel: string;
-    imageCount: number;
-    isPoster: boolean;
-  }
-): Promise<number | undefined> {
-  // 自定义模型按每张图片 1 积分计费。
-  // 只读取配置标识，不读取或记录 API Key。
-  const customProvider = await prisma.providerConfig
-    .findFirst({
-      where: {
-        provider: {
-          in: Array.from(new Set([options.provider, options.resolvedProvider])).filter(Boolean),
-        },
-        isActive: true,
-      },
-      select: { config: true },
-    })
-    .catch(() => null);
-  if (customProvider?.config) {
-    try {
-      const config =
-        typeof customProvider.config === 'string'
-          ? JSON.parse(customProvider.config)
-          : customProvider.config;
-      if (config?.isCustomModel === true && config?.mediaType === 'image') {
-        return resolveCustomImagePoints(options.imageCount);
-      }
-    } catch {
-      // 配置异常时回退到既有积分规则，避免错误放行。
-    }
-  }
-  return resolveImageRequestFixedPoints({
-    source: req.body?.source,
-    model: options.model,
-    resolvedModel: options.resolvedModel,
-    imageCount: options.imageCount,
-    isPoster: options.isPoster,
-  });
-}
-
 function getConfiguredPublicAssetHosts(): string[] {
   return [process.env.MINIO_PUBLIC_URL, process.env.BASE_URL, process.env.APP_BASE_URL]
     .map((value) => {
@@ -257,54 +135,6 @@ function getConfiguredPublicAssetHosts(): string[] {
 const WUYIN_ENDPOINT =
   process.env.WUYIN_BASE_URL || process.env.WUYINKEJI_BASE_URL || 'https://api.wuyinkeji.com';
 const WUYIN_API_KEY = process.env.WUYIN_API_KEY || '';
-const MINIMAX_ENDPOINT = process.env.MINIMAX_BASE_URL || 'https://api.minimax.chat/v1';
-const MINIMAX_API_KEY = process.env.MINIMAX_API_KEY || '';
-const SENSENOVA_ENDPOINT = process.env.SENSENOVA_BASE_URL || 'https://token.sensenova.cn/v1';
-const STEPFUN_ENDPOINT = process.env.STEPFUN_BASE_URL || 'https://api.stepfun.com/step_plan/v1';
-const ALLOW_CHARGEABLE_MODEL_RETRY = process.env.ALLOW_CHARGEABLE_MODEL_RETRY === 'true';
-
-type AiImageNodeFailoverCandidate = {
-  provider: 'wuyinkeji' | 'doubao';
-  model: string;
-  label: string;
-  orderedKeys?: boolean;
-};
-
-/** Only the four consolidated AI-image-node choices use this route plan. */
-function resolveAiImageNodeFailoverCandidates(
-  provider: string,
-  model: string,
-  _source?: string
-): AiImageNodeFailoverCandidate[] | null {
-  if (provider !== 'ai-node-router') return null;
-  switch (model) {
-    case 'ai-node-nano-banana-2':
-    case 'ai-node-nano-banana-pro':
-      return [
-        {
-          provider: 'doubao',
-          model: 'doubao-seedream-5-0-pro',
-          label: '豆包 Seedream 5.0 Pro',
-        },
-      ];
-    case 'doubao-seedream-5-0-pro':
-      // 海报与故事版统一走豆包 Seedream 5.0 Pro 单通道
-      return [
-        {
-          provider: 'doubao',
-          model: 'doubao-seedream-5-0-pro',
-          label: '豆包 Seedream 5.0 Pro',
-        },
-      ];
-    default:
-      return null;
-  }
-}
-
-function getAiImageNodeFailoverEnvKey(candidate: AiImageNodeFailoverCandidate): string | undefined {
-  if (candidate.provider === 'doubao') return process.env.DOUBAO_API_KEY || '';
-  return WUYIN_API_KEY;
-}
 
 /** Apply the capability contract saved with a custom API model before any provider call. */
 function normalizeCustomImageCapabilities(
@@ -346,48 +176,15 @@ function normalizeCustomImageCapabilities(
   request.imageSize = selectedSize;
 }
 
-function getAiImageNodeFailoverEndpoint(candidate: AiImageNodeFailoverCandidate): string {
-  if (candidate.provider === 'doubao')
-    return process.env.DOUBAO_BASE_URL || 'https://ark.cn-beijing.volces.com/api/v3';
-  return WUYIN_ENDPOINT;
-}
-
-async function getAiImageNodeFailoverCredentials(candidate: AiImageNodeFailoverCandidate) {
-  const providerConfig = await prisma.providerConfig.findUnique({
-    where: { provider: candidate.provider },
-  });
-  const secrets = providerConfig?.isActive ? decryptProviderSecrets(providerConfig) : null;
-  const modelKeys = candidate.orderedKeys
-    ? await ProviderKeyManager.getActiveKeysForModel(candidate.provider, candidate.model)
-    : await ProviderKeyManager.getBalancedActiveKeysForModel(candidate.provider, candidate.model);
-  const seen = new Set<string>();
-  const credentials: Array<{ apiKey: string; keyId?: string; label: string }> = [];
-  const add = (apiKey: string | undefined, label: string, keyId?: string) => {
-    const value = String(apiKey || '').trim();
-    if (!value || seen.has(value)) return;
-    seen.add(value);
-    credentials.push({ apiKey: value, keyId, label });
-  };
-  modelKeys.forEach((key) => add(key.apiKey, key.keyLabel || key.id, key.id));
-  add(secrets?.apiKey, 'ProviderConfig');
-  add(getAiImageNodeFailoverEnvKey(candidate), 'ENV');
-  return { providerConfig, apiSecret: secrets?.apiSecret || undefined, credentials };
-}
-
 const WUYIN_MODELS = [
   'Wan2.7_image',
   'Wan2.6',
 ];
 
-const STEPFUN_MODELS = ['step-image-edit-2'];
 
 function resolveApiyiProvider(model: string, requestedProvider?: string): string {
   if (requestedProvider === 'wuyinkeji') return 'wuyinkeji';
-  if (requestedProvider === 'agnes') return 'agnes';
-
   const m = (model || '').toLowerCase();
-  if (m === 'agnes-image-2.1-flash') return 'agnes';
-  if (STEPFUN_MODELS.some((s) => m === s.toLowerCase())) return 'stepfun';
   if (WUYIN_MODELS.some((w) => m === w.toLowerCase())) return 'wuyinkeji';
   return 'wuyinkeji';
 }
@@ -425,34 +222,7 @@ export function resolveImageProviderModelPair(
     }
   }
 
-  const normalizedModel = cleanModel.toLowerCase();
-  if (normalizedModel === 'sensenova-u1-fast' || normalizedModel.startsWith('sensenova-u1')) {
-    return { provider: 'sensenova', model: cleanModel || 'sensenova-u1-fast' };
-  }
-  if (normalizedModel === 'step-image-edit-2') {
-    return { provider: 'stepfun', model: 'step-image-edit-2' };
-  }
-  if (provider === 'sensenova' && !cleanModel) {
-    return { provider: 'sensenova', model: 'sensenova-u1-fast' };
-  }
-  if (provider === 'stepfun' && !cleanModel) {
-    return { provider: 'stepfun', model: 'step-image-edit-2' };
-  }
   return { provider, model: cleanModel };
-}
-
-export function resolvePosterImagePoints(
-  provider: string,
-  model: string,
-  imageCount: number,
-  candidateCount?: unknown
-): number | undefined {
-  return resolvePosterImageRequestPoints({
-    provider,
-    model,
-    imageCount,
-    candidateCount,
-  });
 }
 
 function resolveImagePixelResolution(
@@ -757,11 +527,6 @@ const generateImageSchema = z
     vipSize: z.string().optional(),
     watermark: z.boolean().optional(),
     source: z.string().optional(),
-    posterQualityTier: z.string().optional(),
-    posterWorkflowMode: z.string().optional(),
-    posterCandidateCount: z.coerce.number().int().min(1).max(MAX_IMAGE_GENERATION_COUNT).optional(),
-    posterCandidateIndex: z.number().optional(),
-    posterCreditMultiplier: z.number().optional(),
     promptEnhancer: z.boolean().optional(),
     gptImageQuality: z.enum(['auto', 'low', 'medium', 'high']).optional(),
     gptImageStyle: z.string().optional(),
@@ -852,89 +617,31 @@ const generateImageSchema = z
 imageRouter.post(
   '/generate',
   authenticate,
-  enforcePosterGenerationRequest,
-  withCreditDeduction(async (req) => {
-    const model = String(req.body?.model || '');
-    const provider = String(req.body?.provider || '');
-    const isPoster = req.body?.source === 'poster';
-    const isMobilePoster = isPoster && req.body?.clientSurface === 'mobile';
-    const imageCount = normalizeImageCount(req.body?.imageCount, req.body?.n);
-    const resolvedPair = resolveImageProviderModelPair(provider, model);
-    const requestCustomPoints = await resolveImageRequestCustomPoints(req, {
-      provider,
-      model,
-      resolvedProvider: resolvedPair.provider,
-      resolvedModel: resolvedPair.model,
-      imageCount,
-      isPoster,
-    });
-    const posterPoints = isPoster
-      ? resolvePosterImagePoints(
-          resolvedPair.provider || provider,
-          resolvedPair.model || model,
-          imageCount,
-          req.body?.posterCandidateCount
-        )
-      : undefined;
-    const senxt1Points =
-      resolvedPair.model === 'sensenova-u1-fast' || resolvedPair.provider === 'sensenova'
-        ? 5 * imageCount
-        : undefined;
-    const stext2Points =
-      resolvedPair.model === 'step-image-edit-2' || resolvedPair.provider === 'stepfun'
-        ? 5 * imageCount
-        : undefined;
-    const isMinimaxImage =
-      model === 'image-01' || model.startsWith('image-0') || provider === 'minimax';
-    const image01Points = isMinimaxImage ? HOME_PHOTO_GENERATION_POINTS * imageCount : undefined;
-
-    return {
-      type: 'image',
-      amount: imageCount,
-      reason: isPoster ? 'AI海报生成' : '图片生成',
-      provider: resolvedPair.provider || provider || 'default',
-      model: resolvedPair.model || model || undefined,
-      customPoints:
-        requestCustomPoints ??
-        (isMobilePoster ? MOBILE_POSTER_GENERATION_POINTS * imageCount : posterPoints) ??
-        senxt1Points ??
-        stext2Points ??
-        image01Points,
-    };
-  }),
   async (req, res, next) => {
     let activeImageTaskId: string | undefined;
     try {
       const validatedData = generateImageSchema.parse(req.body);
-
-      // Poster workflows that provide a mode already send a compiled prompt.
-      // Only raw legacy requests without a workflow marker need one server-side optimization pass.
-      if (validatedData.source === 'poster' && !validatedData.posterWorkflowMode) {
-        try {
-          const { token: authToken } = getRequestAuthToken(req);
-          const reasoningResult = await posterAgentOptimize(validatedData.prompt, {
-            model: 'auto',
-            aspectRatio: validatedData.aspectRatio,
-            authToken,
-          });
-          const optimizedPrompt = reasoningResult.content.trim();
-          if (optimizedPrompt) validatedData.prompt = optimizedPrompt;
-          logger.info(`[Image] 海报文字推理完成: model=${reasoningResult.usedModel}`);
-        } catch (error) {
-          logger.warn(
-            `[Image] 海报文字推理不可用，保留原始提示词继续生图: ${error instanceof Error ? error.message : String(error)}`
-          );
-        }
+      const removedImageModelIds = new Set([
+        'sensenova-u1-fast',
+        'step-image-edit-2',
+        'agnes-image-2.1-flash',
+      ]);
+      const requestedModelId = String(validatedData.model || '').trim().toLowerCase();
+      const requestedProviderId = String(validatedData.provider || '').trim().toLowerCase();
+      if (
+        removedImageModelIds.has(requestedModelId) ||
+        ['agnes', 'sensenova', 'stepfun'].includes(requestedProviderId)
+      ) {
+        return res.status(400).json({
+          success: false,
+          error: '所选图片模型已下线，请选择当前可用的图片模型',
+          code: 'MODEL_REMOVED',
+        });
       }
 
       // SEC-AUDIT 修复：会员等级模型白名单校验，防止前端绕过调用 Pro 专属模型
       const membershipLevel = (req.membershipLevel || 'trial') as MembershipLevel;
-      // 海报是可下载的交付成品，默认不叠加系统品牌水印；Logo 与二维码只由用户显式上传后合成。
-      // 其他图片生成入口仍保留原有的会员水印策略。
-      const watermarkEnabled =
-        validatedData.source === 'poster'
-          ? false
-          : resolveWatermarkEnabled(validatedData.watermark, membershipLevel);
+      const watermarkEnabled = resolveWatermarkEnabled(validatedData.watermark, membershipLevel);
       // 固化本次任务的水印选择，避免任务执行期间会员等级变化导致结果不一致。
       validatedData.watermark = watermarkEnabled;
       const requestModel = validatedData.model || '';
@@ -1026,57 +733,15 @@ imageRouter.post(
 
       let providerName = validatedData.provider || 'minimax';
       let modelName = validatedData.model || '';
-      const aiNodeFailoverCandidates = resolveAiImageNodeFailoverCandidates(
-        providerName,
-        modelName,
-        String(validatedData.source || '')
-      );
-      const aiNodeFailoverErrors: string[] = [];
-      let aiNodePrimaryCredential: { apiKey: string; keyId?: string; label: string } | null = null;
-      if (aiNodeFailoverCandidates) {
-        const availableRoutes: Array<{
-          candidate: AiImageNodeFailoverCandidate;
-          credential: { apiKey: string; keyId?: string; label: string };
-        }> = [];
-        for (const candidate of aiNodeFailoverCandidates) {
-          const credentials = await getAiImageNodeFailoverCredentials(candidate);
-          if (credentials.credentials.length > 0) {
-            availableRoutes.push({ candidate, credential: credentials.credentials[0] });
-          } else {
-            aiNodeFailoverErrors.push(`${candidate.label}：未配置可用密钥`);
-          }
-        }
-        if (availableRoutes.length === 0) {
-          throw new AppError(`所选模型没有可用通道：${aiNodeFailoverErrors.join('；')}`, 400);
-        }
-        const useStrictPriority = aiNodeFailoverCandidates.every(
-          (candidate) => candidate.orderedKeys
-        );
-        const selectedRoute = useStrictPriority
-          ? availableRoutes[0]
-          : availableRoutes[
-              await ProviderKeyManager.getRoundRobinIndex(
-                `ai-node-router:${modelName}`,
-                availableRoutes.length
-              )
-            ];
-        providerName = selectedRoute.candidate.provider;
-        modelName = selectedRoute.candidate.model;
-        aiNodePrimaryCredential = selectedRoute.credential;
-        validatedData.provider = providerName;
-        validatedData.model = modelName;
-        logger.info(
-          `[Image] AI图片节点合并模型路由: ${selectedRoute.candidate.label}, key=${selectedRoute.credential.label}`
-        );
+      if (providerName === 'ai-node-router') {
+        throw new AppError('智能轮换已下线，请选择当前可用的图片模型', 400);
       }
-      // `source` is set by the dedicated storyboard generator.  Enforce the
-      // restriction server-side so a stale or modified browser client cannot
-      // select a different image model for this workflow.
+      // Storyboard requests use the single retained Doubao image model.
       const forceStoryboardDoubaoSeedreamOnly =
         validatedData.source === 'storyboard-maker-single-sheet';
       if (forceStoryboardDoubaoSeedreamOnly) {
         providerName = 'doubao';
-        modelName = 'doubao-seedream-5-0-pro';
+        modelName = 'doubao-seedream-5-0-lite';
         validatedData.provider = providerName;
         validatedData.model = modelName;
       }
@@ -1118,15 +783,8 @@ imageRouter.post(
       );
       void hasReferenceInput;
 
-      // liblib 平台已下线，统一迁移到 SenseNova (U1 Fast)
       if (providerName === 'liblib') {
-        providerName = 'sensenova';
-        if (!modelName || modelName === 'lib-navo-pro') {
-          validatedData.model = 'sensenova-u1-fast';
-          modelName = validatedData.model;
-        }
-        logger.info('[Image] liblib provider 已下线，请求转发到 sensenova-u1-fast');
-        markProviderFallback('liblib provider migrated to sensenova');
+        throw new AppError('图片模型通道已下线，请选择当前可用的图片模型', 400);
       }
 
       const needsCharacterConsistency = validatedData.generationMode === 'character_reference';
@@ -1157,11 +815,6 @@ imageRouter.post(
             400
           );
         }
-      }
-
-      if (modelName === 'step-image-edit-2') {
-        providerName = 'stepfun';
-        logger.info('[Image] StepFun 图片模型: step-image-edit-2，使用 stepfun provider');
       }
 
       if (providerName === 'doubao') {
@@ -1200,60 +853,6 @@ imageRouter.post(
           supportedModes: JSON.stringify(['text_to_image', 'image_to_image', 'inpainting']),
           models: JSON.stringify(WUYIN_MODELS),
           config: null,
-          rateLimit: null,
-          priority: 0,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        } as unknown as typeof providerConfig;
-      }
-
-      if (
-        (!providerConfig || !providerConfig.isActive) &&
-        providerName === 'sensenova' &&
-        resolveSensenovaApiKey()
-      ) {
-        providerConfig = {
-          id: 'sensenova-env',
-          provider: 'sensenova',
-          name: 'sensenova',
-          displayName: 'SenseNova',
-          description: 'SenseNova U1 Fast 信息图生成',
-          apiKey: resolveSensenovaApiKey(),
-          apiSecret: null,
-          endpoint: SENSENOVA_ENDPOINT,
-          isActive: true,
-          supportedModes: JSON.stringify(['text_to_image']),
-          models: JSON.stringify(['sensenova-u1-fast']),
-          config: null,
-          rateLimit: null,
-          priority: 0,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        } as unknown as typeof providerConfig;
-      }
-
-      if (
-        (!providerConfig || !providerConfig.isActive) &&
-        providerName === 'stepfun' &&
-        resolveStepfunApiKey()
-      ) {
-        providerConfig = {
-          id: 'stepfun-env',
-          provider: 'stepfun',
-          name: 'stepfun',
-          displayName: 'StepFun',
-          description: 'StepFun step-image-edit-2 图片生成与编辑',
-          apiKey: resolveStepfunApiKey(),
-          apiSecret: null,
-          endpoint: STEPFUN_ENDPOINT,
-          isActive: true,
-          supportedModes: JSON.stringify(['text_to_image', 'image_to_image', 'image_edit']),
-          models: JSON.stringify(['step-image-edit-2']),
-          config: JSON.stringify({
-            supportedModes: ['text-to-image', 'image-to-image', 'image-edit'],
-            models: ['step-image-edit-2'],
-            authType: 'bearer',
-          }),
           rateLimit: null,
           priority: 0,
           createdAt: new Date(),
@@ -1348,15 +947,8 @@ imageRouter.post(
       let activeKeyId: string | undefined;
       if (isCustomImageProvider) {
         apiKey = personalCredential?.apiKey || personalCredential?.accessKey;
-      } else if (providerName === 'agnes') {
-        // agnes 独立通道：4 个密钥轮询共用，避免单 key 打满
-        const activeKeyResult = await ProviderKeyManager.getActiveKey(providerName);
-        apiKey = activeKeyResult?.key ?? secrets.apiKey;
-        activeKeyId = activeKeyResult?.keyId;
-      } else if (aiNodePrimaryCredential) {
-        apiKey = aiNodePrimaryCredential.apiKey;
-        activeKeyId = aiNodePrimaryCredential.keyId;
       } else {
+
         const modelScopedKeys = await ProviderKeyManager.getActiveKeysForModel(
           providerName,
           validatedData.model || modelName || providerName
@@ -1564,22 +1156,6 @@ imageRouter.post(
           )
         : undefined;
       const referenceImageUrl = normalizedReferenceImages[0];
-      const hasLockedSubjectReference =
-        validatedData.source === 'poster' &&
-        validatedData.lockReferenceSubject === true &&
-        (normalizedReferenceImages.length > 0 || normalizedEditSourceImages.length > 0);
-
-      if (hasLockedSubjectReference) {
-        validatedData.generationMode = 'character_reference';
-        validatedData.characterConsistency = 1;
-        validatedData.useEditEndpointWhenReferenceExists = true;
-        validatedData.prompt = `${validatedData.prompt}\n\nMANDATORY SUBJECT IDENTITY LOCK: The supplied reference image is the only permitted source for the main person. Preserve the exact real person's facial identity, hairstyle, skin tone, body proportions, clothing, and visible accessories. Do not replace, blend, beautify into, stylize into, or add any virtual/generated person.`;
-        validatedData.negativePrompt =
-          `${validatedData.negativePrompt || ''}, virtual person, invented portrait, different face, face swap, identity change, extra person`.replace(
-            /^,\s*/,
-            ''
-          );
-      }
 
       // 构建生成参数
       const effectiveMode = (() => {
@@ -1601,17 +1177,12 @@ imageRouter.post(
       );
 
       // 模型专用提示词增强: 为 SENXT1/STEXT2/AG3 自动优化提示词与负向提示词
-      const preservePosterInImageText =
-        validatedData.source === 'poster' &&
-        /in-image|directly inside the image|Render all supplied Chinese copy|Chinese typography|完整含字海报|模型直出文字/i.test(
-          validatedData.prompt
-        );
       const enhanced = enhancePromptForModel(
         validatedData.prompt,
         validatedData.negativePrompt,
         validatedData.model,
         providerName,
-        { preserveText: preservePosterInImageText }
+        {}
       );
       if (enhanced.enhanced) {
         logger.info(
@@ -1696,186 +1267,6 @@ imageRouter.post(
       // 调用 AI 服务图像分析服务暂不可用，请配置至少一个视觉模型API
       let result = await unifiedApiService.generateImage(imageParams, apiConfig);
 
-      // AI 图片节点的合并模型：候选通道失败后在同能力组内轮换，
-      // 包含控制器中配置的小天6 4K 与多个 2K 通道，不会切换到其它图片模型。
-      if (aiNodeFailoverCandidates && result.status === 'failed') {
-        const primaryIndex = aiNodeFailoverCandidates.findIndex(
-          (candidate) => candidate.provider === providerName && candidate.model === modelName
-        );
-        aiNodeFailoverErrors.push(
-          `${aiNodeFailoverCandidates[Math.max(primaryIndex, 0)]?.label || '首选通道'}：${result.error || '生成失败'}`
-        );
-        const orderedCandidates =
-          primaryIndex >= 0
-            ? [
-                ...aiNodeFailoverCandidates.slice(primaryIndex),
-                ...aiNodeFailoverCandidates.slice(0, primaryIndex),
-              ]
-            : aiNodeFailoverCandidates;
-
-        for (const candidate of orderedCandidates) {
-          const fallback = await getAiImageNodeFailoverCredentials(candidate);
-          if (fallback.credentials.length === 0) {
-            aiNodeFailoverErrors.push(`${candidate.label}：未配置可用密钥`);
-            continue;
-          }
-
-          const fallbackParams = {
-            ...imageParams,
-            provider: candidate.provider,
-            model: candidate.model,
-          };
-          for (const credential of fallback.credentials) {
-            if (
-              candidate.provider === providerName &&
-              candidate.model === modelName &&
-              (credential.keyId === activeKeyId || credential.apiKey === apiKey)
-            ) {
-              continue;
-            }
-            const fallbackResult = await unifiedApiService.generateImage(fallbackParams, {
-              apiKey: credential.apiKey,
-              apiSecret: fallback.apiSecret,
-              endpoint:
-                fallback.providerConfig?.endpoint || getAiImageNodeFailoverEndpoint(candidate),
-            });
-            if (fallbackResult.status !== 'failed') {
-              result = fallbackResult;
-              providerName = candidate.provider;
-              modelName = candidate.model;
-              imageParams.provider = candidate.provider;
-              imageParams.model = candidate.model;
-              validatedData.provider = candidate.provider;
-              validatedData.model = candidate.model;
-              activeKeyId = credential.keyId;
-              markProviderFallback(`AI图片节点自动轮换至 ${candidate.label}`);
-              logger.info(`[Image] AI图片节点自动轮换成功: ${candidate.label}/${credential.label}`);
-              break;
-            }
-            const message = fallbackResult.error || '生成失败';
-            aiNodeFailoverErrors.push(`${candidate.label}/${credential.label}：${message}`);
-            if (credential.keyId) {
-              ProviderKeyManager.reportFailure(candidate.provider, credential.keyId, message).catch(
-                () => {}
-              );
-            }
-          }
-          if (result.status !== 'failed') break;
-        }
-
-        if (result.status === 'failed') {
-          result = {
-            ...result,
-            error: `所选模型的全部通道均不可用：${aiNodeFailoverErrors.join('；')}`,
-          };
-        }
-      }
-
-      // SenseNova 多密钥重试: 当前秘钥失败自动切换备用秘钥
-      const sensenovaBackupKey = resolveSensenovaBackupApiKey(apiKey);
-      if (
-        !forceStoryboardDoubaoSeedreamOnly &&
-        !aiNodeFailoverCandidates &&
-        ALLOW_CHARGEABLE_MODEL_RETRY &&
-        result.status === 'failed' &&
-        providerName === 'sensenova' &&
-        sensenovaBackupKey
-      ) {
-        const errLower = String(result.error || '').toLowerCase();
-        const isQuotaError =
-          errLower.includes('quota') ||
-          errLower.includes('insufficient') ||
-          errLower.includes('余额') ||
-          errLower.includes('额度') ||
-          errLower.includes('unauthorized') ||
-          errLower.includes('invalid api key') ||
-          errLower.includes('exceeded') ||
-          errLower.includes('401') ||
-          errLower.includes('402') ||
-          errLower.includes('403') ||
-          errLower.includes('429');
-        if (isQuotaError) {
-          logger.warn(`[Image] SenseNova 当前秘钥失败，切换到备用秘钥重试: ${result.error}`);
-          const retryConfig: ApiProviderConfig = { ...apiConfig, apiKey: sensenovaBackupKey };
-          const retryResult = await unifiedApiService.generateImage(imageParams, retryConfig);
-          if (retryResult.status !== 'failed') {
-            result = retryResult;
-            apiKey = sensenovaBackupKey;
-            logger.info('[Image] SenseNova 备用秘钥重试成功');
-          } else {
-            logger.error(`[Image] SenseNova 备用秘钥也失败: ${retryResult.error}`);
-          }
-        }
-      }
-
-      if (
-        !forceStoryboardDoubaoSeedreamOnly &&
-        !aiNodeFailoverCandidates &&
-        ALLOW_CHARGEABLE_MODEL_RETRY &&
-        result.status === 'failed' &&
-        providerName === 'stepfun'
-      ) {
-        const errLower = String(result.error || '').toLowerCase();
-        const isRecoverableKeyError =
-          errLower.includes('quota') ||
-          errLower.includes('insufficient') ||
-          errLower.includes('余额') ||
-          errLower.includes('额度') ||
-          errLower.includes('unauthorized') ||
-          errLower.includes('invalid api key') ||
-          errLower.includes('exceeded') ||
-          errLower.includes('401') ||
-          errLower.includes('402') ||
-          errLower.includes('403') ||
-          errLower.includes('429') ||
-          errLower.includes('rate limit') ||
-          errLower.includes('invalid request format');
-        const retryKeys = resolveStepfunBackupApiKeys(apiKey);
-        if (isRecoverableKeyError && retryKeys.length > 0) {
-          for (const retryKey of retryKeys) {
-            logger.warn(`[Image] StepFun 当前秘钥失败，切换备用秘钥重试: ${result.error}`);
-            const retryConfig: ApiProviderConfig = { ...apiConfig, apiKey: retryKey };
-            const retryResult = await unifiedApiService.generateImage(imageParams, retryConfig);
-            if (retryResult.status !== 'failed') {
-              result = retryResult;
-              apiKey = retryKey;
-              logger.info('[Image] StepFun 备用秘钥重试成功');
-              break;
-            }
-            logger.error(`[Image] StepFun 备用秘钥也失败: ${retryResult.error}`);
-          }
-        }
-
-        // StepFun 所有密钥均失败时，回退到 SenseNova U1 Fast
-        if (result.status === 'failed') {
-          const sensenovaKey = resolveSensenovaApiKey();
-          if (sensenovaKey) {
-            logger.warn(`[Image] StepFun 所有密钥失败，回退到 SenseNova U1 Fast: ${result.error}`);
-            const sensenovaConfig: ApiProviderConfig = {
-              apiKey: sensenovaKey,
-              endpoint: SENSENOVA_ENDPOINT,
-            };
-            const fallbackParams = {
-              ...imageParams,
-              provider: 'sensenova',
-              model: 'sensenova-u1-fast',
-            };
-            const fallbackResult = await unifiedApiService.generateImage(
-              fallbackParams,
-              sensenovaConfig
-            );
-            if (fallbackResult.status !== 'failed') {
-              result = fallbackResult;
-              providerName = 'sensenova';
-              apiKey = sensenovaKey;
-              logger.info('[Image] StepFun 回退到 SenseNova 成功');
-            } else {
-              logger.error(`[Image] SenseNova 回退也失败: ${fallbackResult.error}`);
-            }
-          }
-        }
-      }
-
       const isRateLimitedResult = (value: unknown): boolean => {
         const lower = String(value || '').toLowerCase();
         return (
@@ -1911,45 +1302,6 @@ imageRouter.post(
             break;
           }
           result = retryResult;
-        }
-      }
-
-      // wuyinkeji 失败时回退到 SenseNova U1 Fast
-      // 已删除 (2026-07-20): 国外 apipaths 失败回退已下线
-      if (
-        !forceStoryboardDoubaoSeedreamOnly &&
-        ALLOW_CHARGEABLE_MODEL_RETRY &&
-        result.status === 'failed' &&
-        (providerName === 'wuyinkeji')
-      ) {
-        const sensenovaKey = resolveSensenovaApiKey();
-        if (sensenovaKey) {
-          logger.warn(
-            `[Image] ${providerName} 失败，回退到 SenseNova U1 Fast: ${result.error}`
-          );
-          const failedProvider = providerName;
-          const sensenovaConfig: ApiProviderConfig = {
-            apiKey: sensenovaKey,
-            endpoint: SENSENOVA_ENDPOINT,
-          };
-          const fallbackParams = {
-            ...imageParams,
-            provider: 'sensenova',
-            model: 'sensenova-u1-fast',
-          };
-          const fallbackResult = await unifiedApiService.generateImage(
-            fallbackParams,
-            sensenovaConfig
-          );
-          if (fallbackResult.status !== 'failed') {
-            result = fallbackResult;
-            providerName = 'sensenova';
-            apiKey = sensenovaKey;
-            markProviderFallback(`${failedProvider} failed, fallback to SenseNova`);
-            logger.info(`[Image] ${failedProvider} 回退到 SenseNova 成功`);
-          } else {
-            logger.error(`[Image] SenseNova 回退也失败: ${fallbackResult.error}`);
-          }
         }
       }
 
@@ -2042,31 +1394,8 @@ imageRouter.post(
 
       let savedPrimaryResultUrl: string | undefined;
 
-      // 如果生成成功，原子化扣除积分
+      // 如果生成成功，保存素材并通知
       if (result.status === 'completed') {
-        try {
-          await executeCreditDeduction(req, task.id);
-        } catch (pointsError) {
-          console.error('[Image] 积分扣除失败:', pointsError);
-          logger.error(`[Image] 用户 ${req.userId} 任务 ${task.id} 积分扣除失败:`, pointsError);
-          await prisma.task
-            .update({
-              where: { id: task.id },
-              data: {
-                status: 'failed',
-                error: '积分扣除失败，图片已生成但未扣费，请充值后重试或联系客服',
-              },
-            })
-            .catch((updateError) =>
-              logger.error('[Image] 积分扣除失败后标记任务失败异常:', updateError)
-            );
-          return res.status(402).json({
-            success: false,
-            error: '积分扣除失败，请充值后重试',
-            taskId: task.id,
-          });
-        }
-
         if (!isCustomImageProvider) {
           ProviderKeyManager.recordUsage(providerName, 1, activeKeyId).catch((err) =>
             console.error('[Image] 秘钥使用记录失败:', err)
@@ -2180,15 +1509,6 @@ imageRouter.post(
         result.result?.url ||
         result.result?.imageUrl ||
         (safeResultUrls.length > 0 ? safeResultUrls[0] : undefined);
-      let pointsBalance: number | undefined;
-      if (result.status === 'completed') {
-        try {
-          const balance = await getBalance(req.userId!);
-          pointsBalance = Math.floor(balance.pointsBalance);
-        } catch (balanceError) {
-          logger.warn('[Image] 读取扣费后积分余额失败', balanceError);
-        }
-      }
       if (!effectiveResultUrl) {
         if (result.status === 'pending' || result.status === 'processing') {
           return res.status(202).json({
@@ -2197,8 +1517,6 @@ imageRouter.post(
               taskId: task.id,
               status: result.status,
               progress: updateData.progress ?? task.progress ?? 0,
-              points: (req as any).creditCheck?.pointsNeeded,
-              pointsBalance,
               actualProvider: providerName,
               actualModel: modelName,
               providerFallback,
@@ -2211,30 +1529,20 @@ imageRouter.post(
           data: {
             taskId: task.id,
             status: result.status,
-            pointsBalance,
             actualProvider: providerName,
             actualModel: modelName,
             providerFallback,
           },
         });
       }
-      const reviewPending = isTaskAwaitingReview(
-        { type: 'image', status: result.status, reviewStatus: task.reviewStatus },
-        await isContentReviewEnabled(),
-      );
       res.json({
         success: true,
         data: {
           taskId: task.id,
           status: result.status,
-          reviewStatus: task.reviewStatus,
-          resultAvailable: !reviewPending,
-          resultUrl: reviewPending ? undefined : effectiveResultUrl,
-          resultUrls: reviewPending ? undefined : (safeResultUrls.length > 1 ? safeResultUrls : undefined),
+          resultUrl: effectiveResultUrl,
+          resultUrls: safeResultUrls.length > 1 ? safeResultUrls : undefined,
           error: userError,
-          points: (req as any).creditCheck?.pointsNeeded,
-          pointsBalance,
-          remainingQuota: pointsBalance,
           actualProvider: providerName,
           actualModel: modelName,
           providerFallback,
@@ -2273,21 +1581,6 @@ imageRouter.get('/query/:taskId', authenticate, async (req, res, next) => {
 
     if (task.userId !== req.userId) {
       throw new AppError('无权访问此任务', 403);
-    }
-
-    const reviewPending = isTaskAwaitingReview(task, await isContentReviewEnabled());
-    if (reviewPending) {
-      return res.json({
-        success: true,
-        data: {
-          taskId: task.id,
-          status: task.status,
-          reviewStatus: task.reviewStatus,
-          resultAvailable: false,
-          progress: task.progress,
-          error: task.error,
-        },
-      });
     }
 
     const parsedOutput = parseImageTaskOutput(task.result);
@@ -2385,21 +1678,6 @@ imageRouter.post('/image-to-prompt', authenticate, async (req, res, next) => {
   try {
     const { imageUrl, model } = imageToPromptSchema.parse(req.body);
 
-    // 积分预检
-    const membershipLevel = req.membershipLevel || 'trial';
-    const creditCheck = await creditService.preCheck({
-      userId: req.userId!,
-      membershipLevel,
-      type: 'prompt',
-      customPoints: 80,
-      taskId: `img2prompt_${Date.now()}`,
-      reason: '图生提示词预检',
-    });
-
-    if (!creditCheck.allowed) {
-      return res.status(402).json({ success: false, error: creditCheck.reason });
-    }
-
     const base64Image = await fetchImageAsBase64(imageUrl);
 
     let promptResult: { prompt: string; model: string } | null = null;
@@ -2445,21 +1723,10 @@ imageRouter.post('/image-to-prompt', authenticate, async (req, res, next) => {
       });
     }
 
-    // 成功生成，扣除积分
-    await creditService.consume({
-      userId: req.userId!,
-      membershipLevel,
-      type: 'prompt',
-      customPoints: 80,
-      taskId: `img2prompt_${Date.now()}`,
-      reason: '图生提示词',
-    });
-
     return res.json({
       success: true,
       prompt: promptResult.prompt,
       model: promptResult.model,
-      points: 80,
     });
   } catch (error: unknown) {
     if (error instanceof z.ZodError) {
@@ -2604,19 +1871,6 @@ const advancedImageSchema = z.object({
 imageRouter.post(
   '/generate-advanced',
   authenticate,
-  withCreditDeduction((req) => {
-    const model = String(req.body?.model || 'image-01');
-    const provider = String(req.body?.provider || 'minimax');
-    const imageCount = normalizeImageCount(req.body?.imageCount);
-    const isMinimaxImage = model.startsWith('image-0') || provider === 'minimax';
-    return {
-      type: 'image' as const,
-      amount: imageCount,
-      reason: '高级图片生成',
-      provider: provider || model || 'minimax',
-      customPoints: isMinimaxImage ? 10 * imageCount : undefined,
-    };
-  }),
   async (req, res, next) => {
     try {
       const validatedData = advancedImageSchema.parse(req.body);
@@ -3109,50 +2363,19 @@ imageRouter.post(
         console.error('[AdvancedImage] 自动保存素材失败:', saveErr);
       }
 
-      try {
-        await executeCreditDeduction(req, task.id);
-      } catch (pointsError) {
-        console.error('[AdvancedImage] 积分扣除失败:', pointsError);
-        logger.error(
-          `[AdvancedImage] 用户 ${req.userId} 任务 ${task.id} 积分扣除失败:`,
-          pointsError
-        );
-        await prisma.task
-          .update({
-            where: { id: task.id },
-            data: {
-              status: 'failed',
-              error: '积分扣除失败，图片已生成但未扣费，请充值后重试或联系客服',
-            },
-          })
-          .catch((updateError) =>
-            logger.error('[AdvancedImage] 积分扣除失败后标记任务失败异常:', updateError)
-          );
-        return res.status(402).json({
-          success: false,
-          error: '积分扣除失败，请充值后重试',
-          taskId: task.id,
-        });
-      }
-
       websocketPushService.notifyTaskComplete(req.userId!, task.id, { url: resultUrl }, {
         type: 'image',
         provider: task.provider || undefined,
         prompt: task.prompt,
       }).catch(() => {});
 
-      const reviewPending = isTaskAwaitingReview(
-        { type: 'image', status: 'completed', reviewStatus: task.reviewStatus },
-        await isContentReviewEnabled(),
-      );
       res.json({
         success: true,
         data: {
           taskId: task.id,
           status: 'completed',
-          reviewStatus: task.reviewStatus,
-          resultAvailable: !reviewPending,
-          resultUrl: reviewPending ? undefined : resultUrl,
+          resultAvailable: true,
+          resultUrl,
         },
       });
     } catch (error: any) {
@@ -3195,21 +2418,6 @@ imageRouter.post('/analyze', authenticate, async (req, res, next) => {
     const validatedData = imageAnalyzeSchema.parse(req.body);
     const { websocketPushService } = await import('../services/websocket-push-service');
     websocketPushService.notifyTaskProgress(req.userId!, 'pending', 0).catch(() => {});
-
-    // 积分预检
-    const membershipLevel = req.membershipLevel || 'trial';
-    const creditCheck = await creditService.preCheck({
-      userId: req.userId!,
-      membershipLevel,
-      type: 'prompt',
-      customPoints: 80,
-      taskId: `analyze_${Date.now()}`,
-      reason: '图片分析预检',
-    });
-
-    if (!creditCheck.allowed) {
-      return res.status(402).json({ success: false, error: creditCheck.reason });
-    }
 
     // 构建分析提示
     let analysisPrompt = ANALYSIS_PROMPTS[validatedData.analysisMode] || ANALYSIS_PROMPTS.describe;
@@ -3320,34 +2528,6 @@ imageRouter.post('/analyze', authenticate, async (req, res, next) => {
       },
     });
 
-    // 扣除积分
-    try {
-      await creditService.consume({
-        userId: req.userId!,
-        membershipLevel,
-        type: 'prompt',
-        customPoints: 80,
-        taskId: task.id,
-        reason: '图片分析',
-      });
-    } catch (err) {
-      console.error('[ImageAnalyze] 积分扣除失败:', (err as Error).message);
-      await prisma.task
-        .update({
-          where: { id: task.id },
-          data: {
-            status: 'failed',
-            error: '积分扣除失败，图片分析已生成但未扣费，请充值后重试或联系客服',
-          },
-        })
-        .catch(() => {});
-      return res.status(402).json({
-        success: false,
-        error: '积分扣除失败，请充值后重试',
-        taskId: task.id,
-      });
-    }
-
     websocketPushService.notifyTaskProgress(req.userId!, task.id, 100).catch(() => {});
 
     res.json({
@@ -3356,7 +2536,6 @@ imageRouter.post('/analyze', authenticate, async (req, res, next) => {
         taskId: task.id,
         analysis: analysisResult,
         model: validatedData.model,
-        points: 80,
       },
     });
   } catch (error: unknown) {
@@ -3388,7 +2567,6 @@ const inpaintSchema = z.object({
 imageRouter.post(
   '/inpaint',
   authenticate,
-  withCreditDeduction((req) => ({ type: 'image', reason: '局部重绘', customPoints: 80 })),
   async (req, res, next) => {
     try {
       const validatedData = inpaintSchema.parse(req.body);
@@ -3564,26 +2742,6 @@ imageRouter.post(
         },
       });
 
-      try {
-        await executeCreditDeduction(req, task.id);
-      } catch (pointsError) {
-        console.error('[Inpaint] 积分扣除失败:', pointsError);
-        await prisma.task
-          .update({
-            where: { id: task.id },
-            data: {
-              status: 'failed',
-              error: '积分扣除失败，图片已生成但未扣费，请充值后重试或联系客服',
-            },
-          })
-          .catch(() => {});
-        return res.status(402).json({
-          success: false,
-          error: '积分扣除失败，请充值后重试',
-          taskId: task.id,
-        });
-      }
-
       autoSaveService
         .autoSaveUrl(req.userId!, resultUrl, 'image', `重绘_${Date.now()}`)
         .then((sr) => {
@@ -3639,7 +2797,6 @@ const outpaintSchema = z.object({
 imageRouter.post(
   '/outpaint',
   authenticate,
-  withCreditDeduction((req) => ({ type: 'image', reason: '画布扩展', customPoints: 10 })),
   async (req, res, next) => {
     try {
       const validatedData = outpaintSchema.parse(req.body);
@@ -3809,26 +2966,6 @@ imageRouter.post(
           progress: 100,
         },
       });
-
-      try {
-        await executeCreditDeduction(req, task.id);
-      } catch (pointsError) {
-        console.error('[Outpaint] 积分扣除失败:', pointsError);
-        await prisma.task
-          .update({
-            where: { id: task.id },
-            data: {
-              status: 'failed',
-              error: '积分扣除失败，图片已生成但未扣费，请充值后重试或联系客服',
-            },
-          })
-          .catch(() => {});
-        return res.status(402).json({
-          success: false,
-          error: '积分扣除失败，请充值后重试',
-          taskId: task.id,
-        });
-      }
 
       autoSaveService
         .autoSaveUrl(req.userId!, resultUrl, 'image', `扩展_${Date.now()}`)
@@ -4191,869 +3328,3 @@ imageRouter.get('/proxy-download', authenticate, async (req: any, res) => {
   }
 });
 
-/** POST /composite-poster —
-服务端合成Logo和二维码到海报上（使用sharp，绕过浏览器CORS）*/
-imageRouter.post('/composite-poster', authenticate, async (req, res, next) => {
-  let posterGenerationRunId: string | undefined;
-  try {
-    const {
-      imageUrl,
-      logoBase64,
-      qrCodeBase64,
-      logoSettings,
-      qrSettings,
-      textOverlays,
-      watermark,
-      borderStyle,
-      requiredLayers,
-      generationRunId,
-    } = req.body as {
-      imageUrl?: string;
-      logoBase64?: string;
-      qrCodeBase64?: string;
-      logoSettings?: {
-        scale?: number;
-        offsetX?: number;
-        offsetY?: number;
-        opacity?: number;
-        borderRadius?: number;
-      };
-      qrSettings?: {
-        scale?: number;
-        offsetX?: number;
-        offsetY?: number;
-        opacity?: number;
-        borderRadius?: number;
-      };
-      textOverlays?: Array<{
-        text: string;
-        x: number;
-        y: number;
-        fontSize?: number;
-        color?: string;
-        fontFamily?: string;
-        fontWeight?: string;
-        opacity?: number;
-        variant?:
-          | 'title'
-          | 'solar-title'
-          | 'festival-title'
-          | 'subtitle'
-          | 'meta'
-          | 'body'
-          | 'seal'
-          | 'ornament'
-          | 'header-band'
-          | 'decor-svg'
-          | 'divider-line'
-          | 'info-icon-strip'
-          | 'info-card'
-          | 'meta-strip'
-          | 'badge'
-          | 'couplet'
-          | 'couplet-scroll';
-        bandPalette?: { bandTop?: string; bandMid?: string; lineAccent?: string };
-        decorId?: string;
-        accentColor?: string;
-        infoStripItems?: Array<{ icon?: string; text?: string }>;
-        cardIndex?: number;
-        sealShape?: 'circle' | 'square';
-        layoutId?: string;
-        letterSpacing?: number;
-        tiltAngle?: number;
-      }>;
-      watermark?: { text: string; opacity?: number; fontSize?: number; color?: string };
-      borderStyle?: { width?: number; color?: string; radius?: number };
-      requiredLayers?: Array<'logo' | 'qr' | 'watermark'>;
-      generationRunId?: string;
-    };
-    posterGenerationRunId = generationRunId;
-    if (!imageUrl || typeof imageUrl !== 'string') {
-      throw new AppError('缺少imageUrl参数', 400);
-    }
-    if (posterGenerationRunId) {
-      const run = await prisma.posterGenerationRun.findFirst({
-        where: { id: posterGenerationRunId, project: { userId: req.userId! } },
-        select: { id: true },
-      });
-      if (!run) throw new AppError('海报生成任务不存在或无权访问', 404);
-    }
-    const requestedRequiredLayers = Array.isArray(requiredLayers) ? requiredLayers : [];
-    const missingRequiredInputs = requestedRequiredLayers.filter(
-      (layer) =>
-        (layer === 'logo' && !logoBase64) ||
-        (layer === 'qr' && !qrCodeBase64) ||
-        (layer === 'watermark' && !watermark?.text)
-    );
-    if (missingRequiredInputs.length) {
-      throw new AppError(`缺少必需合成图层：${missingRequiredInputs.join('、')}`, 400);
-    }
-
-    // 动态导入sharp
-    const sharp = (await import('sharp')).default;
-
-    // 1. 获取底图
-    let baseBuffer: Buffer;
-    if (imageUrl.startsWith('data:')) {
-      const dataMatch = imageUrl.match(/^data:[^;]+;base64,(.+)$/);
-      if (!dataMatch) throw new AppError('无效的data URL', 400);
-      baseBuffer = Buffer.from(dataMatch[1], 'base64');
-    } else {
-      // 通过代理获取远程图片
-      const imgResp = await axios.get(imageUrl, {
-        responseType: 'arraybuffer',
-        timeout: 30000,
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-          Accept: 'image/*,*/*;q=0.8',
-        },
-      });
-      baseBuffer = Buffer.from(imgResp.data);
-    }
-
-    const baseMeta = await sharp(baseBuffer).metadata();
-    const baseWidth = baseMeta.width || 800;
-    const baseHeight = baseMeta.height || 1200;
-
-    const cornerSpec = {
-      // Keep the visible brand mark compact and high in the reserved corner.
-      // Logo assets are trimmed below, so transparent source padding never
-      // makes the mark look low or oversized on the finished poster.
-      logo: { marginX: 0.04, marginY: 0.012, width: 0.14 },
-      qr: { marginX: 0.04, marginY: 0.03, width: 0.16 },
-    } as const;
-    const logoPadX = Math.round(baseWidth * cornerSpec.logo.marginX);
-    const logoPadY = Math.round(baseHeight * cornerSpec.logo.marginY);
-    const qrPadX = Math.round(baseWidth * cornerSpec.qr.marginX);
-    const qrPadY = Math.round(baseHeight * cornerSpec.qr.marginY);
-
-    const composites: Array<{ input: Buffer; left: number; top: number }> = [];
-    // Brand assets must remain above any optional text/watermark overlays.
-    const cornerComposites: Array<{ input: Buffer; left: number; top: number }> = [];
-
-    // 2. 合成Logo（左上角，与前端预留区一致：4%/1.2%边距，宽14%）
-    if (logoBase64 && typeof logoBase64 === 'string') {
-      let logoBuffer: Buffer;
-      if (logoBase64.startsWith('data:')) {
-        const m = logoBase64.match(/^data:[^;]+;base64,(.+)$/);
-        if (!m) throw new AppError('无效的Logo data URL', 400);
-        logoBuffer = Buffer.from(m[1], 'base64');
-      } else {
-        // 如果是URL，获取图片
-        const logoResp = await axios.get(logoBase64, {
-          responseType: 'arraybuffer',
-          timeout: 15000,
-        });
-        logoBuffer = Buffer.from(logoResp.data);
-      }
-
-      // Brand files often include a transparent export canvas. Trim it before
-      // measuring and resizing so the visible mark, not its blank padding,
-      // controls the final size and top-left placement.
-      logoBuffer = await sharp(logoBuffer)
-        .trim({ background: { r: 0, g: 0, b: 0, alpha: 0 } })
-        .png()
-        .toBuffer();
-      const logoMeta = await sharp(logoBuffer).metadata();
-      const logoW = logoMeta.width || 100;
-      const logoH = logoMeta.height || 100;
-      const logoScale = logoSettings?.scale ?? 1;
-      const targetW = Math.round(baseWidth * cornerSpec.logo.width * logoScale);
-      const targetH = Math.round((logoH / logoW) * targetW);
-
-      let resizedLogo = await sharp(logoBuffer)
-        .resize(targetW, targetH, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
-        .png()
-        .toBuffer();
-
-      if (logoSettings?.borderRadius && logoSettings.borderRadius > 0) {
-        const r = Math.min(logoSettings.borderRadius, Math.round(targetW / 2));
-        const roundedMask = Buffer.from(
-          `<svg width="${targetW}" height="${targetH}"><rect width="${targetW}" height="${targetH}" rx="${r}" ry="${r}" fill="white"/></svg>`
-        );
-        resizedLogo = await sharp(resizedLogo)
-          .composite([{ input: roundedMask, blend: 'dest-in' as any }])
-          .png()
-          .toBuffer();
-      }
-
-      const logoOpacity = logoSettings?.opacity ?? 1;
-      if (logoOpacity < 1) {
-        const opacityBuf = await sharp(resizedLogo).metadata();
-        const ow = opacityBuf.width || targetW;
-        const oh = opacityBuf.height || targetH;
-        const overlay = Buffer.from(
-          `<svg width="${ow}" height="${oh}"><rect width="${ow}" height="${oh}" fill="white" opacity="${logoOpacity}"/></svg>`
-        );
-        resizedLogo = await sharp(resizedLogo)
-          .composite([{ input: overlay, blend: 'dest-in' as any }])
-          .png()
-          .toBuffer();
-      }
-
-      cornerComposites.push({
-        input: resizedLogo,
-        left: logoPadX + (logoSettings?.offsetX ?? 0),
-        top: logoPadY + (logoSettings?.offsetY ?? 0),
-      });
-    }
-
-    // 3. 合成二维码（右下角，与前端预留区一致：4%/3%边距，宽16%）
-    if (qrCodeBase64 && typeof qrCodeBase64 === 'string') {
-      let qrBuffer: Buffer;
-      if (qrCodeBase64.startsWith('data:')) {
-        const m = qrCodeBase64.match(/^data:[^;]+;base64,(.+)$/);
-        if (!m) throw new AppError('无效的二维码data URL', 400);
-        qrBuffer = Buffer.from(m[1], 'base64');
-      } else {
-        const qrResp = await axios.get(qrCodeBase64, {
-          responseType: 'arraybuffer',
-          timeout: 15000,
-        });
-        qrBuffer = Buffer.from(qrResp.data);
-      }
-
-      const qrMeta = await sharp(qrBuffer).metadata();
-      const qrW = qrMeta.width || 100;
-      const qrH = qrMeta.height || 100;
-      const qrScale = qrSettings?.scale ?? 1;
-      const targetW = Math.round(baseWidth * cornerSpec.qr.width * qrScale);
-      const targetH = Math.round((qrH / qrW) * targetW);
-
-      let resizedQr = await sharp(qrBuffer)
-        .resize(targetW, targetH, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
-        .png()
-        .toBuffer();
-
-      if (qrSettings?.borderRadius && qrSettings.borderRadius > 0) {
-        const r = Math.min(qrSettings.borderRadius, Math.round(targetW / 2));
-        const roundedMask = Buffer.from(
-          `<svg width="${targetW}" height="${targetH}"><rect width="${targetW}" height="${targetH}" rx="${r}" ry="${r}" fill="white"/></svg>`
-        );
-        resizedQr = await sharp(resizedQr)
-          .composite([{ input: roundedMask, blend: 'dest-in' as any }])
-          .png()
-          .toBuffer();
-      }
-
-      const qrOpacity = qrSettings?.opacity ?? 1;
-      if (qrOpacity < 1) {
-        const opacityMeta = await sharp(resizedQr).metadata();
-        const ow = opacityMeta.width || targetW;
-        const oh = opacityMeta.height || targetH;
-        const overlay = Buffer.from(
-          `<svg width="${ow}" height="${oh}"><rect width="${ow}" height="${oh}" fill="white" opacity="${qrOpacity}"/></svg>`
-        );
-        resizedQr = await sharp(resizedQr)
-          .composite([{ input: overlay, blend: 'dest-in' as any }])
-          .png()
-          .toBuffer();
-      }
-
-      const left = baseWidth - targetW - qrPadX + (qrSettings?.offsetX ?? 0);
-      const top = baseHeight - targetH - qrPadY + (qrSettings?.offsetY ?? 0);
-      cornerComposites.push({
-        input: resizedQr,
-        left,
-        top,
-      });
-    }
-
-    // 3.5 文字叠加
-    if (textOverlays && Array.isArray(textOverlays) && textOverlays.length > 0) {
-      const aspect = baseHeight / Math.max(baseWidth, 1);
-      const isTallPoster = aspect >= 1.45;
-      const holidayVariants = new Set([
-        'title',
-        'solar-title',
-        'festival-title',
-        'subtitle',
-        'meta',
-        'badge',
-        'body',
-        'couplet',
-        'couplet-scroll',
-        'seal',
-        'ornament',
-        'header-band',
-      ]);
-      const isCommercialOverlay = (overlay: { layoutId?: string }) =>
-        String(overlay.layoutId || '').startsWith('commercial-');
-      const resolveFontScale = (variant: string, overlay: { layoutId?: string }) => {
-        if (isTallPoster && holidayVariants.has(variant) && !isCommercialOverlay(overlay)) {
-          return Math.max(0.95, Math.min(2.95, baseHeight / 2000));
-        }
-        return Math.max(0.72, Math.min(2.25, baseWidth / 800));
-      };
-
-      const hasHolidayHeader = textOverlays.some((overlay) => overlay.variant === 'header-band');
-      const isSolarHeader = textOverlays.some((overlay) => overlay.variant === 'solar-title');
-      const headerBandOverlay = textOverlays.find((overlay) => overlay.variant === 'header-band');
-      const bandTop =
-        headerBandOverlay?.bandPalette?.bandTop ||
-        (isSolarHeader ? 'rgba(8,32,24,0.58)' : 'rgba(72,12,12,0.62)');
-      const bandMid =
-        headerBandOverlay?.bandPalette?.bandMid ||
-        (isSolarHeader ? 'rgba(8,32,24,0.28)' : 'rgba(72,12,12,0.26)');
-      const lineAccent =
-        headerBandOverlay?.bandPalette?.lineAccent ||
-        (isSolarHeader ? 'rgba(201,220,169,0.55)' : 'rgba(231,201,106,0.72)');
-      const headerBandSvg = hasHolidayHeader
-        ? `<defs><linearGradient id="posterHeaderBand" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="${bandTop}"/><stop offset="55%" stop-color="${bandMid}"/><stop offset="100%" stop-color="rgba(0,0,0,0)"/></linearGradient></defs><rect x="0" y="0" width="${baseWidth}" height="${Math.round(baseHeight * 0.34)}" fill="url(#posterHeaderBand)"/><line x1="${Math.round(baseWidth * 0.12)}" y1="${Math.round(baseHeight * 0.31)}" x2="${Math.round(baseWidth * 0.88)}" y2="${Math.round(baseHeight * 0.31)}" stroke="${lineAccent}" stroke-width="${Math.max(1.5, Math.round(baseWidth * 0.0015))}" opacity="0.85"/>`
-        : '';
-
-      const textSvgParts = textOverlays
-        .map((overlay) => {
-          const variant = overlay.variant || 'body';
-          if (variant === 'header-band') return '';
-
-          const normalizedText = String(overlay.text || '')
-            .replace(/\s+/g, ' ')
-            .trim();
-          if (!normalizedText && variant !== 'decor-svg' && variant !== 'divider-line') return '';
-          const x = Math.round((overlay.x / 100) * baseWidth);
-          // Keep the primary title optically closer to the fixed upper-left logo.
-          // This affects title text only; QR code, logo, subtitle and main visual remain unchanged.
-          const y = Math.round((overlay.y / 100) * baseHeight) - (variant === 'title' ? 5 : 0);
-          const commercialOverlay = isCommercialOverlay(overlay);
-          const fontScale = resolveFontScale(variant, overlay);
-          const fontSize = Math.round((overlay.fontSize || 32) * fontScale);
-          const color = overlay.color || '#FFFFFF';
-          const fontWeight = overlay.fontWeight || 'bold';
-          const opacity = overlay.opacity ?? 1;
-          const textAnchor =
-            overlay.x >= 45 && overlay.x <= 55 ? 'middle' : overlay.x >= 70 ? 'middle' : 'start';
-          const isCommercialTitle = commercialOverlay && variant === 'title';
-          const isHolidayTitle = variant === 'title' && !commercialOverlay;
-          const isCommercialSubtitle = commercialOverlay && variant === 'subtitle';
-          const titleLike =
-            variant === 'title' || variant === 'solar-title' || variant === 'festival-title';
-          const lineHeight = Math.round(fontSize * (titleLike ? 1.08 : 1.22));
-          const isCjk = /[\u4e00-\u9fa5]/.test(normalizedText);
-          const maxTextWidth =
-            baseWidth * (titleLike ? 0.72 : fontSize >= 40 * fontScale ? 0.76 : 0.72);
-          const maxChars = Math.max(
-            4,
-            Math.floor(maxTextWidth / (fontSize * (isCjk ? 0.96 : 0.56)))
-          );
-          const chunks = isCjk ? Array.from(normalizedText) : normalizedText.split(' ');
-          const lines: string[] = [];
-          let current = '';
-
-          const escapeSvg = (value: string) =>
-            value
-              .replace(/&/g, '&amp;')
-              .replace(/</g, '&lt;')
-              .replace(/>/g, '&gt;')
-              .replace(/"/g, '&quot;');
-
-          if (variant === 'decor-svg' && overlay.decorId) {
-            const decorPaths: Record<string, string> = {
-              cloud:
-                'M18 38 C8 38 4 30 10 24 C6 16 16 12 24 16 C30 8 44 8 50 16 C58 10 72 14 74 24 C84 22 92 30 86 38 Z',
-              lantern:
-                'M40 6 L46 14 L34 14 Z M32 14 H48 V22 H32 Z M28 22 H52 C56 22 58 26 58 30 V86 C58 94 52 100 44 102 V110 H36 V102 C28 100 22 94 22 86 V30 C22 26 24 22 28 22 Z',
-              osmanthus:
-                'M50 18 C54 30 62 34 72 32 C64 40 64 50 72 58 C62 54 54 58 50 70 C46 58 38 54 28 58 C36 50 36 40 28 32 C38 34 46 30 50 18 Z',
-              plum: 'M50 20 C46 34 36 40 24 38 C34 46 36 58 30 68 C42 60 50 66 50 80 C50 66 58 60 70 68 C64 58 66 46 76 38 C64 40 54 34 50 20 Z',
-            };
-            const decorPath = decorPaths[String(overlay.decorId)] || decorPaths.cloud;
-            const size = Math.round(baseWidth * 0.12);
-            const tx = x - size / 2;
-            const ty = y - size / 2;
-            const scale = size / 100;
-            return `<g opacity="${opacity}" transform="translate(${tx} ${ty}) scale(${scale})"><path d="${decorPath}" fill="${color}" stroke="rgba(231,201,106,0.65)" stroke-width="2"/></g>`;
-          }
-
-          if (variant === 'divider-line') {
-            const accent = overlay.accentColor || '#60A5FA';
-            const lineWidth = Math.round(baseWidth * 0.22);
-            return `<line x1="${x - lineWidth / 2}" y1="${y}" x2="${x + lineWidth / 2}" y2="${y}" stroke="${accent}" stroke-width="2" opacity="0.85"/>`;
-          }
-
-          if (
-            variant === 'info-icon-strip' &&
-            Array.isArray(overlay.infoStripItems) &&
-            overlay.infoStripItems.length > 0
-          ) {
-            const stripWidth = Math.round(baseWidth * 0.84);
-            const padY = Math.round(fontSize * 0.45);
-            const boxH = fontSize + padY * 2;
-            const boxX = x - stripWidth / 2;
-            const slotWidth = stripWidth / overlay.infoStripItems.length;
-            const itemSvg = overlay.infoStripItems
-              .map((item: { icon?: string; text?: string }, index: number) => {
-                const slotX = boxX + slotWidth * index + slotWidth / 2;
-                return `<circle cx="${slotX - fontSize * 0.95}" cy="${y + padY + fontSize * 0.48}" r="${Math.round(fontSize * 0.41)}" fill="rgba(231,201,106,0.82)"/><text x="${slotX - fontSize * 0.95}" y="${y + padY + fontSize * 0.52}" font-size="${Math.round(fontSize * 0.55)}" fill="#5C1A07" font-weight="700" text-anchor="middle">${escapeSvg(String(item.icon || ''))}</text><text x="${slotX - fontSize * 0.35}" y="${y + padY + fontSize}" font-size="${fontSize}" fill="${color}" font-weight="${fontWeight}" text-anchor="start">${escapeSvg(String(item.text || ''))}</text>`;
-              })
-              .join('');
-            return `<g opacity="${opacity}"><rect x="${boxX}" y="${y}" width="${stripWidth}" height="${boxH}" rx="${Math.round(boxH * 0.35)}" fill="rgba(72,12,12,0.32)" stroke="rgba(231,201,106,0.38)" stroke-width="1"/>${itemSvg}</g>`;
-          }
-
-          if (variant === 'info-card') {
-            const accent = overlay.accentColor || '#60A5FA';
-            const cardIndex = Number(overlay.cardIndex || 0);
-            const padX = Math.round(fontSize * 0.55);
-            const padY = Math.round(fontSize * 0.38);
-            const cardWidth = Math.round(baseWidth * (cardIndex === 0 ? 0.42 : 0.78));
-            const textWidth = Math.round(normalizedText.length * fontSize * 0.92);
-            const boxW = Math.min(
-              cardWidth,
-              textWidth + padX * 2 + (cardIndex > 0 ? fontSize * 1.2 : 0)
-            );
-            const boxH = fontSize + padY * 2;
-            const boxX = overlay.x >= 45 ? x - boxW / 2 : x;
-            const badgeSvg =
-              cardIndex > 0
-                ? `<circle cx="${boxX + Math.round(padX * 0.55 + fontSize * 0.58)}" cy="${y + Math.round(boxH / 2)}" r="${Math.round(fontSize * 0.58)}" fill="${accent}"/><text x="${boxX + Math.round(padX * 0.55 + fontSize * 0.58)}" y="${y + Math.round(boxH / 2 + fontSize * 0.18)}" font-size="${Math.round(fontSize * 0.72)}" fill="#0B1220" font-weight="700" text-anchor="middle">${cardIndex}</text>`
-                : '';
-            const textX = cardIndex > 0 ? boxX + padX + Math.round(fontSize * 1.2) : boxX + padX;
-            return `<g opacity="${opacity}"><rect x="${boxX}" y="${y}" width="${boxW}" height="${boxH}" rx="${Math.round(boxH * 0.28)}" fill="rgba(8,14,28,0.58)" stroke="rgba(148,163,184,0.28)" stroke-width="1"/><rect x="${boxX}" y="${y}" width="${Math.max(4, Math.round(fontSize * 0.12))}" height="${boxH}" fill="${accent}"/>${badgeSvg}<text x="${textX}" y="${y + padY + fontSize}" font-size="${fontSize}" fill="${color}" font-weight="${fontWeight}" text-anchor="start" font-family="Microsoft YaHei, sans-serif">${escapeSvg(normalizedText)}</text></g>`;
-          }
-
-          if (variant === 'meta-strip') {
-            const accent = overlay.accentColor || '#60A5FA';
-            const stripWidth = Math.round(baseWidth * 0.84);
-            const padY = Math.round(fontSize * 0.42);
-            const boxH = fontSize + padY * 2;
-            const boxX = x - stripWidth / 2;
-            return `<g opacity="${opacity}"><rect x="${boxX}" y="${y}" width="${stripWidth}" height="${boxH}" rx="${Math.round(boxH * 0.35)}" fill="rgba(8,14,28,0.5)" stroke="rgba(148,163,184,0.22)" stroke-width="1"/><rect x="${boxX}" y="${y + boxH - 3}" width="${stripWidth}" height="3" fill="${accent}"/><text x="${x}" y="${y + padY + fontSize}" font-size="${fontSize}" fill="${color}" font-weight="${fontWeight}" text-anchor="middle" font-family="Microsoft YaHei, sans-serif">${escapeSvg(normalizedText)}</text></g>`;
-          }
-
-          if (variant === 'badge') {
-            const padX = Math.round(fontSize * 0.55);
-            const padY = Math.round(fontSize * 0.28);
-            const boxW = Math.round(normalizedText.length * fontSize * 0.92 + padX * 2);
-            const boxH = fontSize + padY * 2;
-            if (commercialOverlay) {
-              return `<g opacity="${opacity}"><rect x="${x - boxW / 2}" y="${y - Math.round(padY * 0.35)}" width="${boxW}" height="${boxH}" rx="${Math.round(boxH * 0.45)}" fill="rgba(8,14,28,0.42)" stroke="rgba(231,201,106,0.72)" stroke-width="${Math.max(1, Math.round(fontSize * 0.05))}"/><text x="${x}" y="${y + fontSize * 0.82}" font-size="${fontSize}" fill="${color}" font-weight="${fontWeight}" text-anchor="middle" font-family="Microsoft YaHei, PingFang SC, Noto Sans CJK SC, sans-serif" filter="url(#posterCommercialTextShadow)">${escapeSvg(normalizedText)}</text></g>`;
-            }
-            return `<g opacity="${opacity}"><rect x="${x - boxW / 2}" y="${y - Math.round(padY * 0.35)}" width="${boxW}" height="${boxH}" rx="${Math.round(boxH * 0.45)}" fill="rgba(0,0,0,0.22)" stroke="rgba(231,201,106,0.72)" stroke-width="${Math.max(1.5, Math.round(fontSize * 0.06))}"/><text x="${x}" y="${y + fontSize * 0.82}" font-size="${fontSize}" fill="${color}" font-weight="${fontWeight}" text-anchor="middle" font-family="STKaiti, KaiTi, Microsoft YaHei, serif" filter="url(#posterTextShadow)">${escapeSvg(normalizedText)}</text></g>`;
-          }
-
-          if (variant === 'seal') {
-            const boxSize = Math.round(fontSize * 2.35);
-            const isCircle = overlay.sealShape === 'circle';
-            const chars = Array.from(normalizedText).slice(0, 4);
-            const rows =
-              chars.length > 2
-                ? [chars.slice(0, 2).join(''), chars.slice(2).join('')]
-                : [chars.join('')];
-            const rowSvg = rows
-              .map((line, index) => {
-                const dy = (index - (rows.length - 1) / 2) * fontSize * 0.95;
-                return `<text x="0" y="${dy}" font-size="${fontSize}" fill="${color}" font-weight="${fontWeight}" text-anchor="middle" dominant-baseline="middle" font-family="STKaiti, KaiTi, Microsoft YaHei, serif">${escapeSvg(line)}</text>`;
-              })
-              .join('');
-            const shapeSvg = isCircle
-              ? `<circle cx="0" cy="0" r="${boxSize / 2}" fill="rgba(127,29,29,0.2)" stroke="rgba(248,113,113,0.92)" stroke-width="${Math.max(2.5, Math.round(fontSize * 0.1))}"/>`
-              : `<rect x="${-boxSize / 2}" y="${-boxSize / 2}" width="${boxSize}" height="${boxSize}" rx="${Math.round(boxSize * 0.1)}" fill="rgba(127,29,29,0.2)" stroke="rgba(248,113,113,0.92)" stroke-width="${Math.max(2.5, Math.round(fontSize * 0.1))}"/>`;
-            return `<g transform="translate(${x} ${y}) rotate(-5)">${shapeSvg}${rowSvg}</g>`;
-          }
-
-          if (variant === 'ornament') {
-            const lineWidth = Math.round(baseWidth * 0.34);
-            return `<g opacity="${opacity}"><line x1="${x - lineWidth / 2}" y1="${y + fontSize * 0.42}" x2="${x + lineWidth / 2}" y2="${y + fontSize * 0.42}" stroke="url(#posterOrnamentGradient)" stroke-width="${Math.max(2.5, Math.round(fontSize * 0.09))}" stroke-linecap="round"/><text x="${x}" y="${y + fontSize * 0.46}" font-size="${fontSize}" fill="${color}" text-anchor="middle" dominant-baseline="middle" filter="url(#posterTextShadow)">${escapeSvg(normalizedText)}</text></g>`;
-          }
-
-          if (variant === 'couplet') {
-            const bracketed = `「${normalizedText}」`;
-            return `<g opacity="${opacity}"><text x="${x}" y="${y + fontSize}" font-size="${fontSize}" fill="${color}" font-weight="${fontWeight}" text-anchor="${textAnchor}" dominant-baseline="text-before-edge" font-family="STKaiti, KaiTi, Microsoft YaHei, serif" stroke="#5C1A07" stroke-opacity="0.72" stroke-width="${Math.max(2, Math.round(fontSize * 0.09))}" paint-order="stroke fill" filter="url(#posterTextShadow)">${escapeSvg(bracketed)}</text></g>`;
-          }
-
-          if (variant === 'couplet-scroll') {
-            const chars = Array.from(normalizedText)
-              .filter((ch) => ch.trim())
-              .slice(0, 8);
-            const charGap = Math.round(fontSize * 0.18);
-            const panelPadX = Math.round(fontSize * 0.42);
-            const panelPadY = Math.round(fontSize * 0.35);
-            const panelW = fontSize + panelPadX * 2;
-            const panelH = chars.length * (fontSize * 0.96 + charGap) + panelPadY * 2;
-            const panelX = x - panelW / 2;
-            const panelY = y - Math.round(panelPadY * 0.2);
-            const charSpans = chars
-              .map((char, index) => {
-                const lineY = panelY + panelPadY + index * (fontSize * 0.96 + charGap);
-                return `<text x="${x}" y="${lineY + fontSize}" font-size="${fontSize}" fill="${color}" font-weight="${fontWeight}" text-anchor="middle" dominant-baseline="text-before-edge" font-family="STKaiti, KaiTi, Microsoft YaHei, serif" stroke="#5C1A07" stroke-opacity="0.72" stroke-width="${Math.max(1.5, Math.round(fontSize * 0.07))}" paint-order="stroke fill" filter="url(#posterTextShadow)">${escapeSvg(char)}</text>`;
-              })
-              .join('');
-            return `<g opacity="${opacity}"><rect x="${panelX}" y="${panelY}" width="${panelW}" height="${panelH}" rx="${Math.round(fontSize * 0.16)}" fill="rgba(72,12,12,0.35)" stroke="rgba(231,201,106,0.78)" stroke-width="${Math.max(2, Math.round(fontSize * 0.07))}"/><rect x="${panelX + Math.round(fontSize * 0.08)}" y="${panelY + Math.round(fontSize * 0.08)}" width="${panelW - Math.round(fontSize * 0.16)}" height="${panelH - Math.round(fontSize * 0.16)}" rx="${Math.round(fontSize * 0.12)}" fill="none" stroke="rgba(255,236,180,0.42)" stroke-width="${Math.max(1, Math.round(fontSize * 0.03))}"/>${charSpans}</g>`;
-          }
-
-          chunks.forEach((chunk) => {
-            const separator = isCjk ? '' : ' ';
-            const next = current ? `${current}${separator}${chunk}` : chunk;
-            if (next.length <= maxChars || !current) {
-              current = next;
-            } else {
-              lines.push(current);
-              current = chunk;
-            }
-          });
-          if (current) lines.push(current);
-
-          const tSpans = lines
-            .slice(
-              0,
-              isHolidayTitle
-                ? 1
-                : variant === 'solar-title' || variant === 'festival-title'
-                  ? 2
-                  : fontSize >= 40 * fontScale
-                    ? 2
-                    : 3
-            )
-            .map((line, index) => {
-              return `<tspan x="${x}" dy="${index === 0 ? 0 : lineHeight}">${escapeSvg(line)}</tspan>`;
-            })
-            .join('');
-
-          const fill = isCommercialTitle
-            ? 'url(#posterCommercialTitleGradient)'
-            : variant === 'title' || variant === 'festival-title'
-              ? 'url(#posterTitleGradient)'
-              : variant === 'solar-title'
-                ? 'url(#posterSolarTitleGradient)'
-                : isCommercialSubtitle
-                  ? color
-                  : variant === 'subtitle'
-                    ? 'url(#posterSubtitleGradient)'
-                    : color;
-          const stroke = isCommercialTitle
-            ? '#071426'
-            : variant === 'title' || variant === 'festival-title'
-              ? '#5C1A07'
-              : variant === 'solar-title'
-                ? '#2F4F2F'
-                : isCommercialSubtitle
-                  ? '#071426'
-                  : variant === 'subtitle'
-                    ? '#033630'
-                    : '#000000';
-          const strokeOpacity = isCommercialTitle
-            ? 0.62
-            : isCommercialSubtitle
-              ? 0.45
-              : variant === 'title' || variant === 'festival-title'
-                ? 0.88
-                : variant === 'solar-title'
-                  ? 0.8
-                  : variant === 'subtitle'
-                    ? 0.72
-                    : 0.45;
-          const strokeWidth = Math.max(
-            2,
-            Math.round(
-              fontSize *
-                (isCommercialTitle
-                  ? 0.075
-                  : isCommercialSubtitle
-                    ? 0.055
-                    : variant === 'title' || variant === 'festival-title'
-                      ? 0.15
-                      : variant === 'solar-title'
-                        ? 0.12
-                        : variant === 'subtitle'
-                          ? 0.1
-                          : 0.08)
-            )
-          );
-          const sparkWidth = Math.max(12, Math.round(fontSize * 0.2));
-          const sparkleOffset = Math.min(maxTextWidth * 0.44, fontSize * 2.3);
-          const sparkle = isHolidayTitle
-            ? `<text x="${x - sparkleOffset}" y="${y + fontSize * 0.44}" font-size="${sparkWidth}" fill="rgba(255,255,255,0.58)" text-anchor="middle">◆</text><text x="${x + sparkleOffset}" y="${y + fontSize * 0.44}" font-size="${sparkWidth}" fill="rgba(255,255,255,0.58)" text-anchor="middle">◆</text>`
-            : '';
-          const fontFamily = commercialOverlay
-            ? 'Microsoft YaHei, PingFang SC, Noto Sans CJK SC, sans-serif'
-            : 'STKaiti, KaiTi, Microsoft YaHei, SimHei, Noto Sans CJK SC, Arial Unicode MS, sans-serif';
-          const textFilter = commercialOverlay
-            ? 'url(#posterCommercialTextShadow)'
-            : 'url(#posterTextShadow)';
-
-          if (variant === 'solar-title' || variant === 'festival-title') {
-            const chars = Array.from(normalizedText)
-              .filter((ch) => ch.trim())
-              .slice(0, 4);
-            const colGap = Math.round(fontSize * 0.14);
-            const vertical = chars
-              .map((char, index) => {
-                const lineY = y + index * (fontSize * 0.94 + colGap);
-                const esc = escapeSvg(char);
-                return `<text x="${x}" y="${lineY}" font-size="${fontSize}" fill="${fill}" font-weight="${fontWeight}" text-anchor="middle" dominant-baseline="text-before-edge" font-family="STKaiti, KaiTi, Microsoft YaHei, serif" stroke="${stroke}" stroke-opacity="${strokeOpacity}" stroke-width="${strokeWidth}" paint-order="stroke fill" filter="url(#posterTextShadow)">${esc}</text>`;
-              })
-              .join('');
-            const railX = variant === 'festival-title' ? x - fontSize * 0.72 : x + fontSize * 0.74;
-            return `<g opacity="${opacity}">${vertical}<path d="M${railX} ${y - fontSize * 0.12} L${railX} ${y + chars.length * fontSize * 0.96}" stroke="${variant === 'festival-title' ? 'rgba(231,201,106,0.72)' : 'rgba(220,234,210,0.72)'}" stroke-width="${Math.max(1, Math.round(fontSize * 0.028))}" stroke-linecap="round" opacity="0.58"/></g>`;
-          }
-
-          return `<g opacity="${opacity}">${sparkle}<text x="${x}" y="${y}" font-size="${fontSize}" fill="${fill}" font-weight="${fontWeight}" text-anchor="${textAnchor}" dominant-baseline="text-before-edge" font-family="${fontFamily}" stroke="${stroke}" stroke-opacity="${strokeOpacity}" stroke-width="${strokeWidth}" paint-order="stroke fill" filter="${textFilter}">${tSpans}</text></g>`;
-        })
-        .join('');
-      const textSvg = Buffer.from(
-        `<svg width="${baseWidth}" height="${baseHeight}" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="posterCommercialTitleGradient" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#FFFFFF"/><stop offset="46%" stop-color="#F7E7A1"/><stop offset="100%" stop-color="#D7A84A"/></linearGradient><linearGradient id="posterTitleGradient" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#FFF7C7"/><stop offset="46%" stop-color="#FFE28A"/><stop offset="100%" stop-color="#E5A93B"/></linearGradient><linearGradient id="posterSolarTitleGradient" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#FFFFFF"/><stop offset="52%" stop-color="#F8F4DA"/><stop offset="100%" stop-color="#B7CA8A"/></linearGradient><linearGradient id="posterSubtitleGradient" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#FFF8D7"/><stop offset="100%" stop-color="#FFD77A"/></linearGradient><linearGradient id="posterOrnamentGradient" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#E7C96A" stop-opacity="0"/><stop offset="50%" stop-color="#E7C96A" stop-opacity="1"/><stop offset="100%" stop-color="#E7C96A" stop-opacity="0"/></linearGradient><filter id="posterTextShadow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="${Math.max(2, Math.round(baseHeight * 0.004))}" stdDeviation="${Math.max(2, Math.round(baseWidth * 0.007))}" flood-color="#3B1206" flood-opacity="0.68"/></filter><filter id="posterCommercialTextShadow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="${Math.max(2, Math.round(baseHeight * 0.004))}" stdDeviation="${Math.max(2, Math.round(baseWidth * 0.006))}" flood-color="#020817" flood-opacity="0.68"/></filter></defs>${headerBandSvg}${textSvgParts}</svg>`
-      );
-      composites.push({ input: textSvg, left: 0, top: 0 });
-    }
-
-    // 3.6 水印
-    if (watermark?.text) {
-      const wmFontSize = watermark.fontSize || 24;
-      const wmColor = watermark.color || '#FFFFFF';
-      const wmOpacity = watermark.opacity ?? 0.15;
-      const wmEscaped = watermark.text
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;');
-      const wmSvg = Buffer.from(
-        `<svg width="${baseWidth}" height="${baseHeight}"><text x="${baseWidth / 2}" y="${baseHeight / 2}" font-size="${wmFontSize}" fill="${wmColor}" opacity="${wmOpacity}" text-anchor="middle" dominant-baseline="middle" transform="rotate(-30 ${baseWidth / 2} ${baseHeight / 2})" font-family="sans-serif">${wmEscaped}</text></svg>`
-      );
-      composites.push({ input: wmSvg, left: 0, top: 0 });
-    }
-
-    // 4. 执行合成
-    let pipeline = sharp(baseBuffer);
-    const finalComposites = [...composites, ...cornerComposites];
-    if (finalComposites.length > 0) {
-      pipeline = pipeline.composite(finalComposites);
-    }
-
-    // 4.5 边框效果
-    if (borderStyle?.width && borderStyle.width > 0) {
-      const bw = borderStyle.width;
-      const bc = borderStyle.color || '#FFFFFF';
-      const br = borderStyle.radius || 0;
-      const borderSvg = Buffer.from(
-        `<svg width="${baseWidth}" height="${baseHeight}"><rect x="${bw / 2}" y="${bw / 2}" width="${baseWidth - bw}" height="${baseHeight - bw}" rx="${br}" ry="${br}" fill="none" stroke="${bc}" stroke-width="${bw}"/></svg>`
-      );
-      pipeline = pipeline.composite([{ input: borderSvg, left: 0, top: 0 }]);
-    }
-
-    const outputBuffer = await pipeline.png().toBuffer();
-
-    // 5. 保存并返回URL
-    const uploadDir = path.join(
-      process.env.UPLOAD_DIR || path.join(process.cwd(), 'uploads'),
-      'images',
-      req.userId!
-    );
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    const filename = `poster_composited_${Date.now()}_${crypto.randomBytes(4).toString('hex')}.png`;
-    fs.writeFileSync(path.join(uploadDir, filename), outputBuffer);
-
-    const resultUrl = `/uploads/images/${req.userId!}/${filename}`;
-
-    const appliedLayers = [
-      logoBase64 ? 'logo' : null,
-      qrCodeBase64 ? 'qr' : null,
-      watermark?.text ? 'watermark' : null,
-    ].filter(Boolean);
-    if (posterGenerationRunId) {
-      await prisma.posterGenerationRun.update({
-        where: { id: posterGenerationRunId },
-        data: { status: 'ready', error: null },
-      });
-    }
-    res.json({ success: true, url: resultUrl, compositionStatus: 'completed', appliedLayers });
-  } catch (error: any) {
-    if (posterGenerationRunId) {
-      await prisma.posterGenerationRun
-        .updateMany({
-          where: { id: posterGenerationRunId, project: { userId: req.userId! } },
-          data: { status: 'composition_failed', error: error?.message || '海报合成失败' },
-        })
-        .catch((persistError) => {
-          logger.error('[composite-poster] 合成失败状态写入失败:', persistError);
-        });
-    }
-    if (error instanceof AppError) {
-      next(error);
-    } else {
-      console.error('[composite-poster] 合成失败:', error.message || error);
-      next(new AppError(error.message || '海报合成失败', 500));
-    }
-  }
-});
-
-/** POST /stitch-ultra-poster —
-将多张图片纵向拼接为超长海报（使用sharp，支持重叠渐变融合） */
-imageRouter.post('/stitch-ultra-poster', authenticate, async (req, res, next) => {
-  try {
-    const {
-      imageUrls,
-      overlapPixels = 40,
-      blendStrength = 0.6,
-      textOverlays = [],
-      logoBase64,
-      qrCodeBase64,
-    } = req.body as {
-      imageUrls: string[];
-      overlapPixels?: number;
-      blendStrength?: number;
-      textOverlays?: Array<{
-        text: string;
-        x: number;
-        y: number;
-        fontSize?: number;
-        color?: string;
-        fontFamily?: string;
-      }>;
-      logoBase64?: string;
-      qrCodeBase64?: string;
-    };
-
-    if (!imageUrls || !Array.isArray(imageUrls) || imageUrls.length < 2) {
-      throw new AppError('至少需要2张图片进行拼接', 400);
-    }
-    if (imageUrls.length > 5) {
-      throw new AppError('最多支持5张图片拼接', 400);
-    }
-
-    const sharp = (await import('sharp')).default;
-
-    const buffers: Buffer[] = [];
-    const metas: Array<{ width: number; height: number }> = [];
-
-    for (const url of imageUrls) {
-      let buf: Buffer;
-      if (url.startsWith('data:')) {
-        const m = url.match(/^data:[^;]+;base64,(.+)$/);
-        if (!m) throw new AppError('无效的data URL', 400);
-        buf = Buffer.from(m[1], 'base64');
-      } else {
-        const imgResp = await axios.get(url, {
-          responseType: 'arraybuffer',
-          timeout: 60000,
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-            Accept: 'image/*,*/*;q=0.8',
-          },
-        });
-        buf = Buffer.from(imgResp.data);
-      }
-      buffers.push(buf);
-      const meta = await sharp(buf).metadata();
-      metas.push({ width: meta.width || 1024, height: meta.height || 1536 });
-    }
-
-    const targetWidth = metas[0].width;
-    const normalizedBuffers: Buffer[] = [];
-
-    for (let i = 0; i < buffers.length; i++) {
-      const h =
-        metas[i].width === targetWidth
-          ? metas[i].height
-          : Math.round(metas[i].height * (targetWidth / metas[i].width));
-      const resized = await sharp(buffers[i])
-        .resize(targetWidth, h, { fit: 'cover', position: 'top' })
-        .png()
-        .toBuffer();
-      normalizedBuffers.push(resized);
-      metas[i] = { width: targetWidth, height: h };
-    }
-
-    const overlap = Math.min(overlapPixels, 100);
-    const totalHeight = metas.reduce((sum, m) => sum + m.height, 0) - overlap * (metas.length - 1);
-
-    const blendComposites: Array<{ input: Buffer; left: number; top: number }> = [];
-
-    for (let i = 1; i < normalizedBuffers.length; i++) {
-      const prevAccumH = metas.slice(0, i).reduce((s, m) => s + m.height, 0) - overlap * i;
-      const blendRegionH = overlap;
-
-      const topSlice = await sharp(normalizedBuffers[i - 1])
-        .extract({
-          left: 0,
-          top: metas[i - 1].height - blendRegionH,
-          width: targetWidth,
-          height: blendRegionH,
-        })
-        .raw()
-        .toBuffer();
-
-      const bottomSlice = await sharp(normalizedBuffers[i])
-        .extract({ left: 0, top: 0, width: targetWidth, height: blendRegionH })
-        .raw()
-        .toBuffer();
-
-      const blended = Buffer.alloc(topSlice.length);
-      const pixels = topSlice.length / 3;
-      for (let p = 0; p < pixels; p++) {
-        const alpha = (p / pixels) * blendStrength;
-        const r = Math.round(topSlice[p * 3] * (1 - alpha) + bottomSlice[p * 3] * alpha);
-        const g = Math.round(topSlice[p * 3 + 1] * (1 - alpha) + bottomSlice[p * 3 + 1] * alpha);
-        const b = Math.round(topSlice[p * 3 + 2] * (1 - alpha) + bottomSlice[p * 3 + 2] * alpha);
-        blended[p * 3] = Math.min(255, Math.max(0, r));
-        blended[p * 3 + 1] = Math.min(255, Math.max(0, g));
-        blended[p * 3 + 2] = Math.min(255, Math.max(0, b));
-      }
-
-      const blendBuf = await sharp(blended, {
-        raw: { width: targetWidth, height: blendRegionH, channels: 3 },
-      })
-        .png()
-        .toBuffer();
-
-      blendComposites.push({
-        input: blendBuf,
-        left: 0,
-        top: prevAccumH,
-      });
-    }
-
-    const segmentComposites: Array<{ input: Buffer; left: number; top: number }> = [];
-    let currentTop = 0;
-    for (let i = 0; i < normalizedBuffers.length; i++) {
-      segmentComposites.push({ input: normalizedBuffers[i], left: 0, top: currentTop });
-      currentTop += metas[i].height - (i < normalizedBuffers.length - 1 ? overlap : 0);
-    }
-
-    let pipeline = sharp({
-      create: {
-        width: targetWidth,
-        height: totalHeight,
-        channels: 3,
-        background: { r: 0, g: 0, b: 0 },
-      },
-    });
-
-    pipeline = pipeline.composite([...segmentComposites, ...blendComposites]);
-
-    const finalBuffer = await pipeline.png().toBuffer();
-
-    const userId = req.userId!;
-    if (!userId) {
-      throw new AppError('用户未认证', 401);
-    }
-    const userDir = path.join(
-      process.env.UPLOAD_DIR || path.join(process.cwd(), 'uploads'),
-      'images',
-      userId
-    );
-    if (!fs.existsSync(userDir)) {
-      fs.mkdirSync(userDir, { recursive: true });
-    }
-    const filename = `ultra_poster_${Date.now()}_${crypto.randomBytes(4).toString('hex')}.png`;
-    const filePath = path.join(userDir, filename);
-    fs.writeFileSync(filePath, finalBuffer);
-
-    const imageUrl = `/uploads/images/${userId}/${filename}`;
-
-    res.json({
-      success: true,
-      url: imageUrl,
-      width: targetWidth,
-      height: totalHeight,
-      segmentCount: imageUrls.length,
-    });
-  } catch (error: any) {
-    if (error instanceof AppError) {
-      next(error);
-    } else {
-      console.error('[stitch-ultra-poster] 拼接失败:', error.message || error);
-      next(new AppError(error.message || '超长海报拼接失败', 500));
-    }
-  }
-});

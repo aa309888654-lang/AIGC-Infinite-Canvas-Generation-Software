@@ -6,7 +6,6 @@ import { unifiedApiService } from './unified-service';
 import { decryptProviderSecrets } from '../routes/ai-provider';
 import { decrypt } from '../utils/encryption';
 import { autoSaveService } from './auto-save-service';
-import { creditService } from './credit-service';
 import { ProviderKeyManager } from './provider-key-manager';
 import { videoModelKeyScheduler } from './video-model-key-scheduler';
 import type { VideoKeyLease } from './video-model-key-scheduler';
@@ -15,7 +14,6 @@ import { websocketPushService } from './websocket-push-service';
 import { logger } from '../utils/logger';
 import { enhanceVideoPromptForModel } from './video-prompt-enhancer';
 import type { VideoParams, ApiProviderConfig, GenerationResult } from '../types/api';
-import type { UserTier } from './cost-optimizer';
 import { getCompatibleLeaseModels } from './video-compatible-models';
 import { resolveVideoModelChannel } from './model-channel-registry';
 import {
@@ -33,9 +31,6 @@ import {
   isPersonalModelKeyId,
   resolvePersonalModelCredentialAuth,
 } from './personal-model-key';
-import { resolveCustomVideoPoints } from './custom-model-points';
-import { isContentReviewEnabled, isTaskAwaitingReview } from './content-review-service';
-
 export const MODEL_POOL_BUSY_ERROR = 'MODEL_POOL_BUSY';
 
 export class ModelPoolBusyError extends AppError {
@@ -66,7 +61,6 @@ export interface CreateVideoTaskResult {
 }
 
 export interface QueryVideoTaskOptions {
-  membershipLevel?: string;
   source?: 'api' | 'poller';
 }
 
@@ -77,21 +71,8 @@ interface RecoverVideoTaskContext extends QueryVideoTaskOptions {
   existingResultForFallback?: Record<string, unknown>;
 }
 
-const DEFAULT_MEMBERSHIP_LEVEL = 'trial';
 const VIDEO_TASK_AGE_LIMIT_MS = 24 * 60 * 60 * 1000;
 const ALLOW_CHARGEABLE_MODEL_RETRY = process.env.ALLOW_CHARGEABLE_MODEL_RETRY === 'true';
-
-function mapMembershipLevelToUserTier(membershipLevel?: string | null): UserTier {
-  const normalized = (membershipLevel || DEFAULT_MEMBERSHIP_LEVEL).toLowerCase();
-
-  if (normalized === 'enterprise') return 'enterprise';
-  if (normalized === 'premium' || normalized === 'pro' || normalized === 'professional' || normalized === 'vip') {
-    return 'premium';
-  }
-  if (normalized === 'basic') return 'basic';
-
-  return 'free';
-}
 
 const PROVIDER_CREDIT_ERRORS = [
   'CreditInsufficient',
@@ -227,13 +208,8 @@ function isDisabledHailuoVideoRequest(provider?: unknown, model?: unknown): bool
   );
 }
 
-function isAgnesVideoModel(model?: unknown): boolean {
-  const normalizedModel = String(model || '').trim().toLowerCase();
-  return normalizedModel === 'agnes-video-v2.0' || normalizedModel === 'agnes_video_v2';
-}
-
-function getDefaultVideoDurationForModel(model?: unknown): number {
-  return isAgnesVideoModel(model) ? 6 : 5;
+function getDefaultVideoDurationForModel(_model?: unknown): number {
+  return 5;
 }
 
 function isProviderCreditError(error?: string | null): boolean {
@@ -266,13 +242,18 @@ function isTransientServiceError(error?: string | null): boolean {
 
 class VideoOrchestrator {
   async createVideoTask(input: CreateVideoTaskInput): Promise<CreateVideoTaskResult> {
-    const disabledHailuoRequest = isDisabledHailuoVideoRequest(
-      input.validatedData.provider,
-      input.validatedData.model,
-    );
-    const sanitizedData = disabledHailuoRequest
-      ? { ...input.validatedData, provider: 'wuyinkeji', model: 'google_omni' }
-      : input.validatedData;
+    if (isDisabledHailuoVideoRequest(input.validatedData.provider, input.validatedData.model)) {
+      throw new AppError('海螺视频模型当前不可用', 400);
+    }
+    const removedModel = String(input.validatedData.model || '').trim().toLowerCase();
+    if (
+      String(input.validatedData.provider || '').trim().toLowerCase() === 'agnes' ||
+      removedModel === 'agnes-video-v2.0' ||
+      removedModel === 'agnes_video_v2'
+    ) {
+      throw new AppError('所选视频模型已下线，请选择当前可用的视频模型', 400);
+    }
+    const sanitizedData = { ...input.validatedData };
     const resolvedChannel = resolveVideoModelChannel(sanitizedData.provider, sanitizedData.model);
     if (resolvedChannel) {
       sanitizedData.provider = resolvedChannel.provider;
@@ -594,7 +575,6 @@ class VideoOrchestrator {
 
   async queryVideoTask(taskId: string, userId: string, options: QueryVideoTaskOptions = {}) {
     const source = options.source || 'api';
-    const membershipLevel = options.membershipLevel || DEFAULT_MEMBERSHIP_LEVEL;
 
     const task = await prisma.task.findUnique({
       where: { id: taskId },
@@ -609,26 +589,9 @@ class VideoOrchestrator {
     }
 
     if (task.status === 'completed') {
-      const reviewPending = isTaskAwaitingReview(task, await isContentReviewEnabled());
-      if (reviewPending) {
-        return {
-          success: true,
-          data: {
-            taskId: task.id,
-            status: task.status,
-            reviewStatus: task.reviewStatus,
-            resultAvailable: false,
-            error: task.error,
-            progress: task.progress,
-          },
-        };
-      }
       const parsedOutput = parseTaskOutput(task.result);
       const taskParams = parseStoredTaskParams(task.params);
-      const watermarkEnabled = resolveWatermarkEnabled(
-        taskParams.watermark,
-        membershipLevel
-      );
+      const watermarkEnabled = resolveWatermarkEnabled(taskParams.watermark);
       const watermarkMetadata = parsedOutput?.metadata?.watermark as
         | { applied?: boolean }
         | undefined;
@@ -843,13 +806,11 @@ class VideoOrchestrator {
         binding,
         taskResult,
         existingResultForFallback,
-        membershipLevel,
         source,
       });
     }
 
     return this.finalizeTaskState(task, providerTaskId, taskResult, binding, {
-      membershipLevel,
       source,
     });
   }
@@ -871,7 +832,6 @@ class VideoOrchestrator {
     const taskResult = context.taskResult;
     const displayError = taskResult?.error || task.error;
     const existingResultForFallback = context.existingResultForFallback || {};
-    const membershipLevel = context.membershipLevel || DEFAULT_MEMBERSHIP_LEVEL;
     const source = context.source || 'api';
 
     logger.warn(
@@ -1206,9 +1166,7 @@ class VideoOrchestrator {
       const batch = tasks.slice(i, i + CONCURRENCY);
       const results = await Promise.allSettled(
         batch.map(async (task) => {
-          const membershipLevel = await this.resolveMembershipLevel(task.userId);
           await this.queryVideoTask(task.id, task.userId, {
-            membershipLevel,
             source: 'poller',
           });
         })
@@ -1233,27 +1191,14 @@ class VideoOrchestrator {
     let providerTaskId: string = binding?.providerTaskId || task.id;
     const output = parseTaskOutput(task.result);
     if (!binding && output) {
-      // agnes-video-v2.0 查询用 task_id（video_id 查询返回 task_not_exist）
-      const isAgnesVideo = task.model === 'agnes-video-v2.0' || task.model === 'Agnes-Video-V2.0';
-      if (isAgnesVideo) {
-        providerTaskId =
-          output.metadata?.task_id ||
-          output.apiTaskId ||
-          output.metadata?.video_id ||
-          output.metadata?.videoId ||
-          output.metadata?.id ||
-          output.metadata?.request_id ||
-          task.id;
-      } else {
-        providerTaskId =
-          output.metadata?.video_id ||
-          output.metadata?.videoId ||
-          output.apiTaskId ||
-          output.metadata?.task_id ||
-          output.metadata?.id ||
-          output.metadata?.request_id ||
-          task.id;
-      }
+      providerTaskId =
+        output.metadata?.video_id ||
+        output.metadata?.videoId ||
+        output.apiTaskId ||
+        output.metadata?.task_id ||
+        output.metadata?.id ||
+        output.metadata?.request_id ||
+        task.id;
     }
 
     if (task.provider === 'minimax' && output?.metadata?.task_id) {
@@ -1378,63 +1323,7 @@ class VideoOrchestrator {
 
     if (newStatus === 'completed') {
       const taskParams = parseStoredTaskParams(task.params);
-      const watermarkEnabled = resolveWatermarkEnabled(
-        taskParams.watermark,
-        options.membershipLevel || DEFAULT_MEMBERSHIP_LEVEL
-      );
-      try {
-        const durationValue = Number.parseInt(String(taskParams.duration || ''), 10);
-        const durationSeconds = Number.isFinite(durationValue)
-          ? durationValue
-          : getDefaultVideoDurationForModel(task.model);
-
-        const taskProviderConfig = await prisma.providerConfig.findUnique({
-          where: { provider: task.provider || '' },
-          select: { config: true },
-        }).catch(() => null);
-        const customVideo = getCustomVideoModel(taskProviderConfig?.config, task.model || '');
-        const hasVideoInput = Boolean(taskParams.videoUrl) || (Array.isArray(taskParams.referenceVideos) && taskParams.referenceVideos.length > 0) || taskParams.generationMode === 'video_to_video';
-        const generateAudio = taskParams.generateAudio === true || (typeof taskParams.audioGeneration === 'string' && taskParams.audioGeneration !== 'none');
-        await creditService.consume({
-          userId: task.userId,
-          membershipLevel: options.membershipLevel || DEFAULT_MEMBERSHIP_LEVEL,
-          type: 'video',
-          taskId: task.id,
-          reason: options.source === 'poller' ? '视频生成(后台轮询)' : '视频生成',
-          provider: task.provider,
-          model: task.model || 'viduq3-turbo',
-          resolution: taskParams.resolution as string,
-          durationSeconds,
-          customPoints: customVideo ? resolveCustomVideoPoints(durationSeconds) : undefined,
-          hasVideoInput,
-          generateAudio,
-          generationMode: taskParams.generationMode as string,
-        });
-      } catch (pointsError) {
-        logger.error('[VideoOrchestrator] 积分扣除失败:', pointsError);
-        // 风险修复：与 BUG-08 保持一致，直接标记为 failed 而非 payment_pending
-        // 视频结果已存储在 task.result 中，管理员可恢复
-        await prisma.task.update({
-          where: { id: task.id },
-          data: { status: 'failed', error: '积分扣除失败，视频已生成但未扣费，请联系客服' },
-        }).catch(e => logger.error('[VideoOrchestrator] Failed to update task status:', e));
-        websocketPushService.notifyTaskFailed(task.userId, task.id, '积分扣除失败，视频已生成但未扣费，请联系客服').catch(e => logger.error('[VideoOrchestrator] WS notifyTaskFailed failed:', e));
-
-        if (options.source === 'api') {
-          throw new AppError('积分不足，视频已生成但未扣费，请充值后联系客服', 402);
-        }
-
-        return {
-          success: false,
-          data: {
-            taskId: task.id,
-            status: 'failed',
-            error: '积分扣除失败，视频已生成但未扣费，请联系客服',
-            progress: taskResult.progress,
-          },
-        };
-      }
-
+      const watermarkEnabled = resolveWatermarkEnabled(taskParams.watermark);
       if (watermarkEnabled && providerResultUrls?.length) {
         finalizedProviderUrls = await Promise.all(
           providerResultUrls.map((url, index) =>
@@ -1544,54 +1433,19 @@ class VideoOrchestrator {
         .catch(() => {});
     }
 
-    const reviewPending = isTaskAwaitingReview(
-      { type: task.type, status: newStatus, reviewStatus: task.reviewStatus },
-      await isContentReviewEnabled(),
-    );
     return {
       success: true,
       data: {
         taskId: task.id,
         status: newStatus,
-        reviewStatus: task.reviewStatus,
-        resultAvailable: !reviewPending,
-        resultUrl: reviewPending ? undefined : (localVideoUrl || finalizedProviderPrimaryUrl),
-        resultUrls: reviewPending ? undefined : normalizeResultUrls(localVideoUrl, finalizedProviderUrls),
-        thumbnailUrl: reviewPending ? undefined : (taskResult.result?.thumbnailUrl || task.thumbnailUrl || undefined),
-        cosUrl: reviewPending ? undefined : newCosUrl,
+        resultUrl: localVideoUrl || finalizedProviderPrimaryUrl,
+        resultUrls: normalizeResultUrls(localVideoUrl, finalizedProviderUrls),
+        thumbnailUrl: taskResult.result?.thumbnailUrl || task.thumbnailUrl || undefined,
+        cosUrl: newCosUrl,
         error: taskResult.error,
         progress: taskResult.progress,
       },
     };
-  }
-
-  private async resolveMembershipLevel(userId: string): Promise<string> {
-    const userMembershipDelegate = (prisma as any).userMembership;
-    if (userMembershipDelegate?.findFirst) {
-      const activeMembership = await userMembershipDelegate.findFirst({
-        where: {
-          userId,
-          status: 'active',
-          endAt: { gte: new Date() },
-        },
-        orderBy: { createdAt: 'desc' },
-      });
-
-      if (activeMembership?.level) {
-        return activeMembership.level;
-      }
-    }
-
-    const activeMembership = await prisma.userMembership.findFirst({
-      where: {
-        userId,
-        status: 'active',
-        endAt: { gte: new Date() },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
-
-    return activeMembership?.level || DEFAULT_MEMBERSHIP_LEVEL;
   }
 }
 

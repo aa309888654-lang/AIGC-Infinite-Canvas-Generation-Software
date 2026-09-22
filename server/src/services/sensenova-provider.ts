@@ -5,15 +5,15 @@ import { logger } from '../utils/logger';
 /**
  * SenseNova 平台 Provider
  *
- * - 图片生成: sensenova-u1-fast (信息图 Infographics 生成)
- *   使用独立的图像生成接口 /v1/images/generations，非 Chat Completions
- *   支持 11 种 aspect ratio (2K 分辨率)
- *
- * 文档: https://platform.sensenova.cn/docs
- */
+  * - 图片生成: sensenova-u1-fast (信息图 Infographics 生成)
+  *   使用独立的图像生成接口 /v1/images/generations，非 Chat Completions
+  *   支持 11 种 aspect ratio (2K 分辨率)
+  *
+  * 文档: https://platform.sensenova.cn/docs
+  */
 export class SenseNovaProvider extends BaseProvider {
   readonly name = 'sensenova';
-  readonly supportedModes = ['text_to_image'];
+  readonly supportedModes = ['chat', 'text', 'reasoning', 'image'];
 
   protected getDefaultEndpoint(): string {
     return DEFAULT_ENDPOINTS.sensenova;

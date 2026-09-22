@@ -33,7 +33,7 @@ const EXHAUSTED_COOLDOWN_MS = 5 * 60 * 1000;
 /** 自动探测恢复的轮询间隔（毫秒） */
 const AUTO_RECOVERY_INTERVAL_MS = 5 * 60 * 1000;
 
-export class  {
+export class SmartKeyManager {
   private keyCache = new Map<string, ProviderKeyWithStats>();
   private statsCache = new Map<string, KeyStats>();
   private lastRefreshTime = 0;
@@ -268,4 +268,4 @@ export class  {
   }
 }
 
-export const smartKeyManager = new ();
+export const smartKeyManager = new SmartKeyManager();

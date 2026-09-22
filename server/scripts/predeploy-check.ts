@@ -81,7 +81,7 @@ async function checkEnvVars(): Promise<void> {
       `缺失关键环境变量: ${missing.join(', ')}`,
       [
         '解决方法：',
-        '  1. 复制 backend/.env.example 为 .env',
+        '  1. 复制 server/.env.example 为 .env',
         '  2. 填入真实值',
         '  3. ENCRYPTION_KEY 生成：openssl rand -hex 32',
         '  4. JWT_SECRET 生成：openssl rand -hex 32',
@@ -133,7 +133,7 @@ async function checkStorageEnv(): Promise<void> {
       `MinIO 配置不完整: ${missing.join(', ')}`,
       [
         '生产环境必须配置 MinIO endpoint、bucket、非默认账号和公网访问地址。',
-        '参考 backend/.env.example 的 MinIO 配置块。',
+        '参考 server/.env.example 的 MinIO 配置块。',
       ]
     );
     return;

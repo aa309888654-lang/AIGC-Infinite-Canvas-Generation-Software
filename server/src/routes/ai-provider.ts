@@ -7,7 +7,6 @@ import { parsePaginationParamsWithNumbers } from '../utils/pagination';
 import { decryptFromStorage, encryptForStorage, isEncrypted, maskApiKey } from '../utils/encryption';
 import {
   type MembershipLevel,
-  normalizeMembershipLevel,
   isProviderAllowedForMembership,
   isModelAllowedForMembership,
 } from './ai-provider-membership';
@@ -17,7 +16,7 @@ import promptSmart3ProviderConfigs from '../services/promptSmart3/providers.json
 import { getChannelMetadata, type ModelMediaType } from '../services/model-channel-registry';
 import { removeUserModelCredential } from '../services/user-model-credential-service';
 import { fetchSafeRemoteResponse } from '../utils/safe-remote-fetch';
-import { resolveSensenovaApiKey, resolveAgnesApiKey, resolveAgnesImageApiKey, resolveAgnesVideoApiKey, resolveApipathsApiKey, resolveZhipuApiKey } from '../utils/provider-env-keys';
+import { resolveSensenovaApiKey, resolveApipathsApiKey, resolveZhipuApiKey } from '../utils/provider-env-keys';
 import {
   asyncHandler,
   ConflictError,
@@ -49,19 +48,10 @@ function sanitizeProviderEndpointPayload<T extends { provider?: string; endpoint
   };
 }
 
-async function getMembershipLevelForUser(userId?: string): Promise<MembershipLevel> {
-  if (!userId) return 'free';
-
-  const activeMembership = await prisma.userMembership.findFirst({
-    where: {
-      userId,
-      status: 'active',
-      endAt: { gte: new Date() },
-    },
-    orderBy: { createdAt: 'desc' },
-  });
-
-  return normalizeMembershipLevel(activeMembership?.level);
+async function getMembershipLevelForUser(_userId?: string): Promise<MembershipLevel> {
+  // 会员系统已移除：所有用户视为最高权限（enterprise），AI 提供商与模型不再受限。
+  // 会员门控函数（isProviderAllowedForMembership / isModelAllowedForMembership）已为空实现，始终放行。
+  return 'enterprise';
 }
 
 function getCredentialEnvFallback(): Record<string, { apiKey: string; apiSecret: string | null; endpoint: string | null }> {
@@ -115,9 +105,6 @@ function getCredentialEnvFallback(): Record<string, { apiKey: string; apiSecret:
   if (zhipuKey) {
     result['zhipu'] = { apiKey: zhipuKey, apiSecret: null, endpoint: process.env.ZHIPU_BASE_URL || 'https://open.bigmodel.cn/api/paas' };
   }
-
-  // agnes-video 和 agnes-image 已合并到 agnes provider（通过 provider-key-sync 同步 API key）
-  // 不再需要单独的 env fallback
 
   return result;
 }
@@ -201,13 +188,6 @@ export function decryptProviderSecrets(provider: {
         return { apiKey: envKey, apiSecret: null };
       }
     }
-    if (provider.provider === 'agnes') {
-      const envKey = resolveAgnesApiKey();
-      if (envKey) {
-        logger.info('使用环境变量中的 Agnes API 密钥作为后备');
-        return { apiKey: envKey, apiSecret: null };
-      }
-    }
     // 已删除 (2026-07-20): 国外 NVIDIA NIM 通道已下线
     if (provider.provider === 'zhipu') {
       const envKey = resolveZhipuApiKey();
@@ -276,10 +256,6 @@ export function decryptProviderSecrets(provider: {
 
   if (!apiKey && provider.provider === 'sensenova') {
     apiKey = resolveSensenovaApiKey();
-  }
-
-  if (!apiKey && provider.provider === 'agnes') {
-    apiKey = resolveAgnesApiKey();
   }
 
   return { apiKey, apiSecret };
@@ -1213,11 +1189,6 @@ function buildArkModelsUrl(baseUrl?: string): string {
   return root.endsWith('/api/v3') ? `${root}/models` : `${root}/api/v3/models`;
 }
 
-function buildAgnesVideoProbeUrl(baseUrl?: string): string {
-  const root = normalizeRootUrl(baseUrl, 'https://apihub.agnes-ai.com/v1').replace(/\/v1$/, '');
-  return `${root}/agnesapi?video_id=codex_health_probe&model_name=agnes-video-v2.0`;
-}
-
 function buildWuyinkejiKeyProbeUrl(baseUrl: string | undefined, apiKey: string): string {
   const root = normalizeRootUrl(baseUrl, 'https://api.wuyinkeji.com');
   return `${root}/api/async/detail?key=${encodeURIComponent(apiKey)}&id=codex_health_probe`;
@@ -1384,15 +1355,14 @@ async function testProviderConnection(
       }
 
       case 'stepfun': {
-        const url = `${baseUrl || 'https://api.stepfun.com/step_plan/v1'}/images/generations`;
+        const url = `${baseUrl || 'https://api.stepfun.com/step_plan/v1'}/chat/completions`;
         const resp = await fetch(url, {
           method: 'POST',
           headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            model: 'step-image-edit-2',
-            prompt: 'test',
-            response_format: 'url',
-            size: '1024x1024',
+            model: 'step-3.5-flash',
+            messages: [{ role: 'user', content: 'hi' }],
+            max_tokens: 1,
           }),
           signal: AbortSignal.timeout(timeout),
         });
@@ -1430,37 +1400,6 @@ async function testProviderConnection(
         return { success: false, message: `HTTP ${resp.status}` };
       }
 
-      case 'agnes-image': {
-        const url = `${baseUrl || 'https://apihub.agnes-ai.com/v1'}/images/generations`;
-        const resp = await fetch(url, {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            model: 'Agnes Image 2.1 Flash',
-            prompt: 'test',
-            n: 1,
-          }),
-          signal: AbortSignal.timeout(timeout),
-        });
-        if (resp.ok) return { success: true, message: 'Agnes Image API连接正常' };
-        if (resp.status === 401 || resp.status === 403) return { success: false, message: `认证失败 HTTP ${resp.status}` };
-        if (resp.status === 400 || resp.status === 422 || resp.status === 429) return { success: true, message: 'Agnes Image API可达(认证通过)' };
-        if (resp.status === 503) return { success: false, message: 'HTTP 503 模型渠道不可用' };
-        return { success: false, message: `HTTP ${resp.status}` };
-      }
-
-      case 'agnes':
-      case 'agnes-video': {
-        const url = buildAgnesVideoProbeUrl(baseUrl);
-        const resp = await fetch(url, {
-          method: 'GET',
-          headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-          signal: AbortSignal.timeout(timeout),
-        });
-        const bodyText = await readProbeText(resp);
-        const result = classifyKeyProbe(resp.status, bodyText, 'Agnes Video 模拟检测通过：通信正常，KEY已识别');
-        return { success: result.online, message: result.message };
-      }
 
       default: {
         if (baseUrl) {
@@ -2353,7 +2292,6 @@ aiProviderPublicRouter.get('/', asyncHandler(async (_req, res) => {
     wuyinkeji: '小天API (小天AICG2)',
     sensenova: 'SenseNova',
     stepfun: 'StepFun',
-    agnes: 'Agnes AI (视频+图片)',
     };
   const allDbProviders = await prisma.providerConfig.findMany({
     select: { provider: true },

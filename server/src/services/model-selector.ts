@@ -41,22 +41,6 @@ export interface ModelSelectionResult {
 
 const MODEL_REGISTRY: ModelOption[] = [
   {
-    provider: 'vidu', model: 'viduq3-pro', qualityTier: 'ultra', speedTier: 'slow',
-    costPerRequest: 100, maxDuration: 12, supportsImageToVideo: true, supportsTextToVideo: true, supportsReference: true,
-  },
-  {
-    provider: 'vidu', model: 'viduq3-pro-fast', qualityTier: 'high', speedTier: 'fast',
-    costPerRequest: 80, maxDuration: 8, supportsImageToVideo: true, supportsTextToVideo: true, supportsReference: true,
-  },
-  {
-    provider: 'vidu', model: 'viduq3-turbo', qualityTier: 'high', speedTier: 'fastest',
-    costPerRequest: 60, maxDuration: 8, supportsImageToVideo: true, supportsTextToVideo: true, supportsReference: true,
-  },
-  {
-    provider: 'vidu', model: 'viduq3-mix', qualityTier: 'standard', speedTier: 'normal',
-    costPerRequest: 50, maxDuration: 8, supportsImageToVideo: true, supportsTextToVideo: true, supportsReference: false,
-  },
-  {
     provider: 'vidu', model: 'viduq2-pro', qualityTier: 'high', speedTier: 'normal',
     costPerRequest: 40, maxDuration: 8, supportsImageToVideo: true, supportsTextToVideo: true, supportsReference: true,
   },

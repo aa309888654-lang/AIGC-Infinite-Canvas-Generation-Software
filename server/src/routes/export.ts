@@ -4,7 +4,7 @@ import { authenticate, requireAuth, requireAdmin } from '../middleware/auth';
 
 const router = Router();
 
-const exportTypes = ['users', 'tasks', 'payments', 'logs', 'quotas'];
+const exportTypes = ['users', 'tasks', 'logs', 'quotas'];
 const exportFormats = ['csv', 'json', 'excel'];
 
 // SEC-AUDIT 修复：根路由加 requireAuth，避免端点结构未授权泄露
@@ -16,7 +16,6 @@ router.get('/', requireAuth, (req, res) => {
     endpoints: {
       users: 'GET /api/export/users?format=csv|json|excel',
       tasks: 'GET /api/export/tasks?format=csv|json|excel',
-      payments: 'GET /api/export/payments?format=csv|json|excel',
       logs: 'GET /api/export/logs?format=csv|json|excel',
       quotas: 'GET /api/export/quotas?format=csv|json|excel',
     },
@@ -125,33 +124,6 @@ router.get('/tasks/all', authenticate, requireAdmin, async (req: Request, res: R
   }
 });
 
-router.get('/payments/all', authenticate, requireAdmin, async (req: Request, res: Response) => {
-  try {
-    const format = (req.query.format as string) || 'csv';
-    const { startDate, endDate } = req.query;
-
-    const result = await exportService.exportPayments({
-      startDate: startDate as string,
-      endDate: endDate as string,
-      format: format as any
-    });
-
-    if (!result.success) {
-      return res.status(500).json(result);
-    }
-
-    res.setHeader('Content-Disposition', `attachment; filename="${result.filename}"`);
-    res.setHeader('Content-Type', result.contentType || 'application/octet-stream');
-    res.send(result.data);
-  } catch (error: unknown) {
-    console.error('[Export] Payments error:', error);
-    res.status(500).json({
-      success: false,
-      message: (error instanceof Error ? error.message : String(error)) || '导出失败'
-    });
-  }
-});
-
 router.get('/logs/all', authenticate, requireAdmin, async (req: Request, res: Response) => {
   try {
     const format = (req.query.format as string) || 'csv';
@@ -221,7 +193,6 @@ function getTypeDescription(type: string): string {
   const descriptions: Record<string, string> = {
     users: '导出用户列表',
     tasks: '导出任务记录',
-    payments: '导出支付记录',
     logs: '导出操作日志',
     quotas: '导出配额使用情况'
   };

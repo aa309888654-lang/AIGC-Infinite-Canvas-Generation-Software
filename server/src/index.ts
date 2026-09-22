@@ -7,8 +7,6 @@ import { startBackgroundTaskPoller, stopBackgroundTaskPoller } from './services/
 import { logger } from './utils/logger';
 // MinIO 临时文件定时清理（side-effect import，构造函数内自动启动 setInterval）
 import './services/minio-cleanup-service';
-// 积分过期 + 会员过期定时清理（side-effect import，每日凌晨4点执行）
-import './services/expiry-cleanup-service';
 // P0 修复：Sentry 错误追踪 + 告警服务
 import { initSentry, captureException } from './services/sentry-service';
 import { alertService } from './services/alert-service';

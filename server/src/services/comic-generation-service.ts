@@ -277,20 +277,8 @@ export class ComicGenerationService {
       providerName = resolvedChannel.provider;
       modelName = resolvedChannel.model || imageModel || '';
     } else {
-      const normalizedModel = String(imageModel || '').toLowerCase();
-      if (normalizedModel === 'sensenova-u1-fast' || normalizedModel.startsWith('sensenova-u1')) {
-        providerName = 'sensenova';
-        modelName = imageModel || 'sensenova-u1-fast';
-      } else if (normalizedModel === 'step-image-edit-2') {
-        providerName = 'stepfun';
-        modelName = 'step-image-edit-2';
-      } else if (normalizedModel.startsWith('agnes-image')) {
-        providerName = 'agnes';
-        modelName = imageModel || '';
-      } else {
-        providerName = imageProvider || 'wuyinkeji';
-        modelName = imageModel || '';
-      }
+      providerName = imageProvider || 'wuyinkeji';
+      modelName = imageModel || '';
     }
 
     const apiConfig = await getApiProviderConfig(providerName);
@@ -976,20 +964,8 @@ export class ComicGenerationService {
       providerName = resolvedChannel.provider;
       modelName = resolvedChannel.model || imageModel || '';
     } else {
-      const normalizedModel = String(imageModel || '').toLowerCase();
-      if (normalizedModel === 'sensenova-u1-fast' || normalizedModel.startsWith('sensenova-u1')) {
-        providerName = 'sensenova';
-        modelName = imageModel || 'sensenova-u1-fast';
-      } else if (normalizedModel === 'step-image-edit-2') {
-        providerName = 'stepfun';
-        modelName = 'step-image-edit-2';
-      } else if (normalizedModel.startsWith('agnes-image')) {
-        providerName = 'agnes';
-        modelName = imageModel || '';
-      } else {
-        providerName = imageProvider || 'wuyinkeji';
-        modelName = imageModel || '';
-      }
+      providerName = imageProvider || 'wuyinkeji';
+      modelName = imageModel || '';
     }
 
     const apiConfig = await getApiProviderConfig(providerName);

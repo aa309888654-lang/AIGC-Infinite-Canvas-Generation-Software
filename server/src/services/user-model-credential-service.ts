@@ -20,6 +20,7 @@ export interface UserModelCredential {
   secretKey?: string;
   baseUrl?: string;
   selectedModel?: string;
+  protocol?: 'openai' | 'anthropic';
 }
 
 /** 仅在服务端解析个人凭据；调用方不得将返回值写入响应、日志或任务参数。 */
@@ -42,6 +43,7 @@ export async function getUserModelCredential(userId: string, provider: string): 
       secretKey: typeof entry.secretKey === 'string' ? entry.secretKey : undefined,
       baseUrl: typeof entry.baseUrl === 'string' ? entry.baseUrl : undefined,
       selectedModel: typeof entry.selectedModel === 'string' ? entry.selectedModel : undefined,
+      protocol: entry.protocol === 'openai' || entry.protocol === 'anthropic' ? entry.protocol : undefined,
     };
   } catch {
     return null;

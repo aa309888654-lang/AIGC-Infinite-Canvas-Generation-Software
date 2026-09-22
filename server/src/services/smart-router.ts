@@ -10,12 +10,11 @@ import { ViduProvider } from './vidu-provider';
 import { DoubaoProvider } from './doubao-provider';
 import { MinimaxProvider } from './minimax-provider';
 import { WuyinkejiProvider } from './wuyinkeji-provider';
-import { AgnesProvider } from './agnes-provider';
 import type { VideoParams as VideoGenerationParams, GenerationResult as VideoGenerationResult } from '../types/api';
 import type { ApiProviderConfig } from '../types/api';
 import { logger } from '../utils/logger';
 
-export type ProviderType = 'vidu' | 'doubao' | 'minimax' | 'wuyinkeji' | 'agnes';
+export type ProviderType = 'vidu' | 'doubao' | 'minimax' | 'wuyinkeji';
 
 export interface RouteResult {
   success: boolean;
@@ -74,11 +73,10 @@ export class SmartRouter {
     doubao: DoubaoProvider,
     minimax: MinimaxProvider,
     wuyinkeji: WuyinkejiProvider,
-    agnes: AgnesProvider,
   };
 
   private readonly MAX_FALLBACK_DEPTH = 3;
-  private readonly FALLBACK_PROVIDER_ORDER: ProviderType[] = ['wuyinkeji', 'agnes', 'vidu', 'doubao', 'minimax'];
+  private readonly FALLBACK_PROVIDER_ORDER: ProviderType[] = ['wuyinkeji', 'vidu', 'doubao', 'minimax'];
 
   async routeVideoGeneration(
     params: VideoGenerationParams,
@@ -92,8 +90,12 @@ export class SmartRouter {
     let currentProvider = providerType || params.provider as ProviderType || 'wuyinkeji';
     let currentModel = params.model || 'Wan2.7';
     if (isDisabledHailuoVideoRoute(currentProvider, currentModel)) {
-      currentProvider = 'wuyinkeji';
-      currentModel = 'Wan2.7';
+      return {
+        success: false,
+        error: '海螺视频模型当前不可用，请选择当前可用的视频模型',
+        providerUsed: currentProvider,
+        errorCategory: ErrorCategory.INVALID_REQUEST,
+      };
     }
 
     logger.info(`[SmartRouter] 开始路由: provider=${currentProvider}, model=${currentModel}, user=${options?.userId || 'anonymous'}`);

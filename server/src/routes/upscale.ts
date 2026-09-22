@@ -2,16 +2,14 @@ import { Router, Request, Response } from 'express';
 import axios from 'axios';
 import FormData from 'form-data';
 import { authenticate, AuthRequest } from '../middleware/auth';
-import { creditService } from '../services/credit-service';
 import { logger } from '../utils/logger';
 import { fetchRemoteBuffer, getRemoteImportAllowedHosts } from '../utils/safe-remote-fetch';
 
 const upscaleRouter = Router();
 
-// Real-ESRGAN 服务配置（模型已嵌入 backend/models/realesrgan/）
+// Real-ESRGAN 服务配置（模型已嵌入 server/models/realesrgan/）
 const REAL_ESRGAN_SERVER_URL = process.env.REAL_ESRGAN_SERVER_URL || 'http://127.0.0.1:7300';
 const REAL_ESRGAN_ENABLED = process.env.REAL_ESRGAN_ENABLED !== 'false';
-const UPSCALE_POINTS = parseInt(process.env.UPSCALE_POINTS || '100', 10);
 
 // 嵌入模型清单
 const UPSCALE_MODELS = [
@@ -61,21 +59,6 @@ upscaleRouter.post('/realesrgan', authenticate, async (req: AuthRequest, res: Re
 
     if (!image_url && !image_base64) {
       return res.status(400).json({ success: false, error: '请提供 image_url 或 image_base64' });
-    }
-
-    // 积分预检查
-    const membershipLevel = req.membershipLevel || 'trial';
-    const creditCheck = await creditService.preCheck({
-      userId: req.userId!,
-      membershipLevel,
-      type: 'image',
-      customPoints: UPSCALE_POINTS,
-      taskId: `upscale_${Date.now()}`,
-      reason: '图像超分预检查',
-    });
-
-    if (!creditCheck.allowed) {
-      return res.status(402).json({ success: false, error: creditCheck.reason });
     }
 
     // 解析图片
@@ -130,22 +113,11 @@ upscaleRouter.post('/realesrgan', authenticate, async (req: AuthRequest, res: Re
 
     const resultBase64 = Buffer.from(response.data).toString('base64');
 
-    // 扣除积分
-    await creditService.consume({
-      userId: req.userId!,
-      membershipLevel,
-      type: 'image',
-      customPoints: UPSCALE_POINTS,
-      taskId: `upscale_${Date.now()}`,
-      reason: '图像超分',
-    });
-
     return res.json({
       success: true,
       image: resultBase64,
       format: 'png',
       engine: 'realesrgan',
-      points: UPSCALE_POINTS,
     });
   } catch (error: unknown) {
     const err = error as any;

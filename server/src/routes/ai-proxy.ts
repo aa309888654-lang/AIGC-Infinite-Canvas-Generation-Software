@@ -87,17 +87,10 @@ function isQuotaOrAuthError(error: any): boolean {
 }
 
 import { requireAuth, AuthRequest } from '../middleware/auth';
-import { isTrustedInternalRequest } from '../utils/internal-request-auth';
 import { aiPublicLimiter } from '../middleware/rateLimiter'; // P1 修复 #8：AI 公开接口限流
 import { config } from '../types/env';
 import { decryptProviderSecrets } from './ai-provider';
 import { generateVoiceChatAudio } from './audio';
-// SEC-AUDIT 修复：导入会员等级模型白名单校验，防止前端绕过会员等级限制调用 Pro 专属模型
-import {
-  isModelAllowedForMembership,
-  isProviderAllowedForMembership,
-} from './ai-provider-membership';
-import { creditService } from '../services/credit-service';
 import { redisService } from '../services/redis-service';
 import { logger } from '../utils/logger';
 import { initOptimizePipeline, optimizePrompt } from '../services/promptSmart3/optimizePipeline';
@@ -114,6 +107,11 @@ import {
 import { getAllStats } from '../services/promptSmart3/statsStore';
 import { routeRequest } from '../services/promptSmart3/router';
 import promptSmart3ProviderConfigs from '../services/promptSmart3/providers.json';
+import { getUserModelCredential } from '../services/user-model-credential-service';
+import {
+  getPromptOptimizerLlmDefinition,
+  PROMPT_OPTIMIZER_CREDENTIAL_PROVIDER,
+} from '../services/promptSmart3/promptOptimizerLlmPolicy';
 
 const providersConfig: ProviderConfig[] = promptSmart3ProviderConfigs;
 
@@ -579,11 +577,6 @@ async function optionalAuth(req: AuthRequest): Promise<void> {
     if (decoded.userId) {
       req.userId = decoded.userId;
       req.userRole = (decoded.role || 'user').toLowerCase();
-      const activeMembership = await prisma.userMembership.findFirst({
-        where: { userId: decoded.userId, status: 'active', endAt: { gte: new Date() } },
-        orderBy: { createdAt: 'desc' },
-      });
-      req.membershipLevel = activeMembership?.level || 'trial';
     }
   } catch {
     // ignore auth errors for optional auth
@@ -694,7 +687,6 @@ async function optimizePromptFallback(
 }
 
 const aiProxyRouter = Router();
-const DEFAULT_MEMBERSHIP_LEVEL = 'trial';
 
 // SEC M-2 修复：ai-proxy 的 inpaint 等接口接收 base64 图片，单独放宽 body 限制到 20mb。
 // 全局限制已降到 2mb，此处显式放宽以容纳 base64 图片数据。
@@ -770,13 +762,8 @@ aiProxyRouter.post('/chat', requireAuth, async (req: AuthRequest, res: Response)
   let apiConfig: { apiKey: string; baseUrl: string; defaultModel: string } | null = null;
   let endpoint = '';
   let requestBody: Record<string, unknown> = {};
-  let membershipLevel = 'trial';
-  let LLM_CHAT_POINTS = 5;
-  let chatReasonPrefix = 'AI对话';
   let resolvedModel = '';
   let useHomepageSmartRoute = false;
-  // T-15 修复：在 preCheck 之前生成一次 taskId，后续 consume/refund 复用同一 taskId 保证幂等
-  let chatTaskId = '';
 
   try {
     const parseResult = chatSchema.safeParse(req.body);
@@ -829,28 +816,6 @@ aiProxyRouter.post('/chat', requireAuth, async (req: AuthRequest, res: Response)
       }
     }
 
-    // 积分预检查
-    membershipLevel = req.membershipLevel || 'trial';
-    const isPosterChat = source === 'ai-poster' || source === 'poster';
-    const isPosterAgentInternalCall = isTrustedInternalRequest(req, 'poster-agent');
-    chatReasonPrefix = isPosterAgentInternalCall ? '海报内部规划' : isPosterChat ? 'AI海报' : 'AI对话';
-    // 首页海报的单次 60 积分包含其内部文字规划，避免一次生成被重复收费。
-    LLM_CHAT_POINTS = isPosterAgentInternalCall ? 0 : isPosterChat ? 10 : 5;
-    // T-15 修复：生成一次 taskId，后续 consume/refund 复用，避免 preCheck/consume taskId 不一致
-    chatTaskId = `chat_${Date.now()}`;
-    const creditCheck = await creditService.preCheck({
-      userId: req.userId!,
-      membershipLevel,
-      type: 'prompt',
-      customPoints: LLM_CHAT_POINTS,
-      taskId: chatTaskId,
-      reason: `${chatReasonPrefix}预检查`,
-    });
-
-    if (!creditCheck.allowed) {
-      return res.status(402).json({ success: false, error: creditCheck.reason });
-    }
-
     if (useHomepageSmartRoute) {
       const ready = await ensurePromptSmart3Init();
       if (!ready) {
@@ -892,14 +857,6 @@ aiProxyRouter.post('/chat', requireAuth, async (req: AuthRequest, res: Response)
       );
 
       const content = stripThinkingTags(smartResult.content || '');
-      await creditService.consume({
-        userId: req.userId!,
-        membershipLevel,
-        type: 'prompt',
-        customPoints: LLM_CHAT_POINTS,
-        taskId: chatTaskId,
-        reason: `${chatReasonPrefix}(智能路由)`,
-      });
 
       return res.json({
         success: true,
@@ -934,17 +891,6 @@ aiProxyRouter.post('/chat', requireAuth, async (req: AuthRequest, res: Response)
       };
 
       if (stream) {
-        await creditService
-          .consume({
-            userId: req.userId!,
-            membershipLevel,
-            type: 'prompt',
-            customPoints: LLM_CHAT_POINTS,
-            taskId: chatTaskId,
-            reason: `${chatReasonPrefix}(流式)`,
-          })
-          .catch((err) => logger.error('[AI Proxy] 流式积分扣除失败:', err.message));
-
         res.setHeader('Content-Type', 'text/event-stream');
         res.setHeader('Cache-Control', 'no-cache');
         res.setHeader('Connection', 'keep-alive');
@@ -966,16 +912,6 @@ aiProxyRouter.post('/chat', requireAuth, async (req: AuthRequest, res: Response)
             '[AI Proxy] Stream error:',
             err instanceof Error ? err.message : String(err)
           );
-          // T-1/T-2 修复：wuyinkeji 流式分支扣费后流中断，退还积分
-          creditService
-            .refund({
-              userId: req.userId!,
-              type: 'prompt',
-              customPoints: LLM_CHAT_POINTS,
-              taskId: chatTaskId,
-              reason: `${chatReasonPrefix}失败退款`,
-            })
-            .catch((refundErr) => logger.error('[AI Proxy] 退款失败:', refundErr));
           res.end();
         });
         req.on('close', () => {
@@ -997,17 +933,6 @@ aiProxyRouter.post('/chat', requireAuth, async (req: AuthRequest, res: Response)
 
         const rawContent = data.data?.choices?.[0]?.message?.content || '';
         const content = stripThinkingTags(rawContent);
-
-        await creditService
-          .consume({
-            userId: req.userId!,
-            membershipLevel,
-            type: 'prompt',
-            customPoints: LLM_CHAT_POINTS,
-            taskId: chatTaskId,
-            reason: chatReasonPrefix,
-          })
-          .catch((err) => logger.error('[AI Proxy] 积分扣除失败:', err.message));
 
         return res.json({
           success: true,
@@ -1062,18 +987,7 @@ aiProxyRouter.post('/chat', requireAuth, async (req: AuthRequest, res: Response)
     };
 
     if (stream) {
-      // 流式响应：先扣积分，再转发 SSE 流
-      await creditService
-        .consume({
-          userId: req.userId!,
-          membershipLevel,
-          type: 'prompt',
-          customPoints: LLM_CHAT_POINTS,
-          taskId: chatTaskId,
-          reason: `${chatReasonPrefix}(流式)`,
-        })
-        .catch((err) => logger.error('[AI Proxy] 流式积分扣除失败:', err.message));
-
+      // 流式响应：转发 SSE 流
       res.setHeader('Content-Type', 'text/event-stream');
       res.setHeader('Cache-Control', 'no-cache');
       res.setHeader('Connection', 'keep-alive');
@@ -1133,18 +1047,6 @@ aiProxyRouter.post('/chat', requireAuth, async (req: AuthRequest, res: Response)
       const content = stripThinkingTags(rawContent);
       const reasoningContent = data.choices?.[0]?.message?.reasoning_content || '';
       const toolCalls = parseChatToolCalls(messageObj);
-
-      // 成功响应后扣除积分
-      await creditService
-        .consume({
-          userId: req.userId!,
-          membershipLevel,
-          type: 'prompt',
-          customPoints: LLM_CHAT_POINTS,
-          taskId: chatTaskId,
-          reason: chatReasonPrefix,
-        })
-        .catch((err) => logger.error('[AI Proxy] 积分扣除失败:', err));
 
       return res.json({
         success: true,
@@ -1207,17 +1109,6 @@ aiProxyRouter.post('/chat', requireAuth, async (req: AuthRequest, res: Response)
             const reasoningContent = data.choices?.[0]?.message?.reasoning_content || '';
             const toolCalls = parseChatToolCalls(messageObj);
 
-            await creditService
-              .consume({
-                userId: req.userId!,
-                membershipLevel,
-                type: 'prompt',
-                customPoints: LLM_CHAT_POINTS,
-                taskId: chatTaskId,
-                reason: `${chatReasonPrefix}(SenseNova秘钥2)`,
-              })
-              .catch((err) => logger.error('[AI Proxy] 积分扣除失败:', err.message));
-
             return res.json({
               success: true,
               content,
@@ -1247,20 +1138,6 @@ aiProxyRouter.post('/chat', requireAuth, async (req: AuthRequest, res: Response)
 
     const errorMsg = error.response?.data?.message || error.message || String(error);
     const errorDetail = error.response?.data || {};
-
-    // T-1/T-2 修复：流式分支先扣费后调用 AI，失败时退还积分（非 SenseNova 重试路径）
-    // 非流式分支扣费发生在 AI 调用成功之后，失败时无需退款
-    if (stream) {
-      await creditService
-        .refund({
-          userId: req.userId!,
-          type: 'prompt',
-          customPoints: LLM_CHAT_POINTS,
-          taskId: chatTaskId,
-          reason: `${chatReasonPrefix}失败退款`,
-        })
-        .catch((err) => logger.error('[AI Proxy] 退款失败:', err));
-    }
 
     logger.error('[AI Proxy] Chat error details:', {
       message: error.message,
@@ -1294,21 +1171,6 @@ aiProxyRouter.post('/optimize-prompt', requireAuth, async (req: AuthRequest, res
       });
     }
 
-    const checkResult = await creditService.preCheck({
-      userId: req.userId!,
-      membershipLevel: req.membershipLevel || DEFAULT_MEMBERSHIP_LEVEL,
-      type: 'prompt',
-      taskId: 'temp',
-      reason: '提示词优化预检查',
-    });
-
-    if (!checkResult.allowed) {
-      return res.status(402).json({
-        success: false,
-        error: checkResult.reason,
-      });
-    }
-
     const ready = await ensurePromptSmart3Init();
     if (!ready) {
       const hasFallback = await getAvailableChatProvider();
@@ -1334,20 +1196,11 @@ aiProxyRouter.post('/optimize-prompt', requireAuth, async (req: AuthRequest, res
       result = await optimizePromptFallback(prompt, scenario, category);
     }
 
-    await creditService.consume({
-      userId: req.userId!,
-      membershipLevel: req.membershipLevel || DEFAULT_MEMBERSHIP_LEVEL,
-      type: 'prompt',
-      taskId: 'prompt_opt_' + Date.now(),
-      reason: '提示词优化',
-    });
-
     return res.json({
       success: true,
       optimizedPrompt: result.optimizedPrompt,
       provider: result.provider,
       cached: (result as any).cached ?? false,
-      points: checkResult.pointsNeeded,
     });
   } catch (error: unknown) {
     logger.error(
@@ -1368,85 +1221,45 @@ aiProxyRouter.post('/optimize-prompt', requireAuth, async (req: AuthRequest, res
  */
 aiProxyRouter.post('/optimize-prompt-v3', requireAuth, async (req: AuthRequest, res: Response) => {
   try {
-    const { prompt, scenario, category, models, preferredProvider, prePrompt, storyboardPlanning } =
+    const { prompt, scenario, category, models, preferredProvider, prePrompt } =
       req.body;
 
-    if (!prompt || typeof prompt !== 'string') {
+    if (!prompt || typeof prompt !== 'string' || prompt.length > 20000) {
       return res.status(400).json({
         success: false,
         error: '提示词不能为空',
       });
     }
 
-    // SEC-AUDIT 修复：会员等级模型白名单校验，防止前端绕过调用 Pro 专属优化模型
-    if (preferredProvider) {
-      const membershipLevel = (req.membershipLevel || 'trial') as Parameters<
-        typeof isProviderAllowedForMembership
-      >[1];
-      if (!isProviderAllowedForMembership(preferredProvider, membershipLevel)) {
-        return res.status(403).json({
-          success: false,
-          error: '当前会员等级无权使用该服务商',
-          code: 'PROVIDER_NOT_ALLOWED',
-        });
-      }
+    if (preferredProvider !== undefined) {
+      return res.status(400).json({ success: false, error: '不允许从请求指定 LLM Provider' });
+    }
+    if (models !== undefined && (!Array.isArray(models) || models.length > 8 || models.some((item) => typeof item !== 'string' || item.length > 200))) {
+      return res.status(400).json({ success: false, error: '目标模型参数格式不正确' });
+    }
+    if (prePrompt !== undefined && (typeof prePrompt !== 'string' || prePrompt.length > 20000)) {
+      return res.status(400).json({ success: false, error: '优化指令过长或格式不正确' });
     }
 
-    const ready = await ensurePromptSmart3Init();
-    if (!ready) {
-      const hasFallback = await getAvailableChatProvider();
-      if (!hasFallback) {
-        return res.status(503).json({
-          success: false,
-          error: '提示词优化服务尚未就绪，请检查 Provider 配置',
-        });
-      }
+    const credential = await getUserModelCredential(req.userId!, PROMPT_OPTIMIZER_CREDENTIAL_PROVIDER);
+    const definition = getPromptOptimizerLlmDefinition(credential?.selectedModel);
+    const apiKey = credential?.apiKey?.trim();
+    if (!credential || !definition || credential.protocol !== definition.protocol || !apiKey) {
+      return res.status(400).json({ success: false, error: '请前往系统设置 → LLM配置选择模型并填写 API Key' });
     }
 
-    const PROMPT_MODEL_POINTS: Record<string, number> = {
-      auto: 20,
-      'deepseek-v4-flash': 20,
-      'deepseek-v4-pro': 30,
-      'xunfei-1': 10,
-      'xunfei-2': 10,
-      minimax: 15,
-      'longcat-flash-lite': 10,
-      'longcat-flash-thinking': 20,
-
-      'qwen3-plus': 25,
-      'moonshot-k2.5': 25,
-      'yi-large': 22,
-      'step-3.7-flash': 28,
-      'step-3.5-flash': 25,
-      'sensenova-6.7-flash-lite': 20,
-      'kimi-k2-thinking': 25,
-      'doubao-seed-pro': 25,
-      'sensenova': 20,
+    const fixedProvider: ProviderConfig = {
+      name: definition.providerName,
+      protocol: definition.protocol,
+      model: definition.id,
+      baseUrl: definition.baseUrl,
+      apiKey,
+      weight: 1,
+      timeout: 90000,
+      temperature: 0.35,
+      topP: 0.95,
+      maxTokens: 16384,
     };
-    // 故事版规划采用固定套餐价，避免被前端选择的文本模型覆盖实际扣费。
-    const customPoints =
-      storyboardPlanning === true
-        ? 60
-        : preferredProvider
-          ? (PROMPT_MODEL_POINTS[preferredProvider] ?? 0)
-          : undefined;
-
-    const promptTaskId = 'prompt_opt_v3_' + Date.now();
-    const checkResult = await creditService.preCheck({
-      userId: req.userId!,
-      membershipLevel: req.membershipLevel || DEFAULT_MEMBERSHIP_LEVEL,
-      type: 'prompt',
-      taskId: promptTaskId,
-      reason: storyboardPlanning === true ? '故事版方案生成预检查' : '提示词优化预检查',
-      customPoints,
-    });
-
-    if (!checkResult.allowed) {
-      return res.status(402).json({
-        success: false,
-        error: checkResult.reason,
-      });
-    }
 
     let result: {
       optimizedPrompt: string;
@@ -1456,30 +1269,16 @@ aiProxyRouter.post('/optimize-prompt-v3', requireAuth, async (req: AuthRequest, 
       qualityReport?: unknown;
       modelProfile?: string;
     };
-    if (ready) {
-      result = await optimizePrompt(
+    result = await optimizePrompt(
         prompt,
         scenario,
         category,
         models,
-        preferredProvider,
-        prePrompt
+        undefined,
+        prePrompt,
+        fixedProvider,
+        `${req.userId}:${definition.id}`
       );
-    } else {
-      result = await optimizePromptFallback(prompt, scenario, category, prePrompt);
-    }
-
-    await creditService.consume({
-      userId: req.userId!,
-      membershipLevel: req.membershipLevel || DEFAULT_MEMBERSHIP_LEVEL,
-      type: 'prompt',
-      taskId: promptTaskId,
-      reason:
-        storyboardPlanning === true
-          ? '故事版方案生成（60积分）'
-          : `智能提示词优化${preferredProvider ? `(${preferredProvider})` : ''}`,
-      customPoints,
-    });
 
     return res.json({
       success: true,
@@ -1489,7 +1288,6 @@ aiProxyRouter.post('/optimize-prompt-v3', requireAuth, async (req: AuthRequest, 
       latencyMs: (result as any).latencyMs ?? 0,
       qualityReport: result.qualityReport,
       modelProfile: result.modelProfile,
-      points: checkResult.pointsNeeded,
     });
   } catch (error: unknown) {
     logger.error(
@@ -1574,22 +1372,6 @@ aiProxyRouter.post('/inpaint', requireAuth, async (req: AuthRequest, res: Respon
     }
 
     const { image, mask, prompt, provider } = parseResult.data;
-
-    // 积分预检查
-    const membershipLevel = req.membershipLevel || 'trial';
-    const INPAINT_POINTS = 80;
-    const creditCheck = await creditService.preCheck({
-      userId: req.userId!,
-      membershipLevel,
-      type: 'image',
-      customPoints: INPAINT_POINTS,
-      taskId: `inpaint_${Date.now()}`,
-      reason: 'AI局部重绘预检查',
-    });
-
-    if (!creditCheck.allowed) {
-      return res.status(402).json({ success: false, error: creditCheck.reason });
-    }
 
     let result: { imageUrl: string } | null = null;
 
@@ -1685,22 +1467,9 @@ aiProxyRouter.post('/inpaint', requireAuth, async (req: AuthRequest, res: Respon
       });
     }
 
-    // 成功生成，扣除积分
-    await creditService
-      .consume({
-        userId: req.userId!,
-        membershipLevel,
-        type: 'image',
-        customPoints: INPAINT_POINTS,
-        taskId: `inpaint_${Date.now()}`,
-        reason: 'AI局部重绘',
-      })
-      .catch((err) => logger.error('[AI Proxy] Inpaint积分扣除失败:', err.message));
-
     return res.json({
       success: true,
       imageUrl: result.imageUrl,
-      points: INPAINT_POINTS,
     });
   } catch (error: unknown) {
     logger.error(
@@ -2786,7 +2555,7 @@ aiPublicRouter.post('/voice-chat', requireGuestVoiceTrial, async (req: Request, 
       audioUrl,
       aiGenerated: true,
       provider: 'stepfun',
-      model: 'stepaudio-2.5-tts',
+      model: 'step-tts-2',
       remaining,
       unlimited,
     });
@@ -2804,14 +2573,13 @@ aiPublicRouter.post('/detect-intent', requireGuestTrial, async (req: Request, re
     }
     const systemMsg = `You are an intent classifier. Given user input, determine their intent.
 Reply ONLY with a JSON object, no markdown, no explanation:
-{"intent":"chat|image|video|poster","confidence":0.0-1.0,"enhancedPrompt":"expanded detailed prompt in the same language as user input or empty string"}
+{"intent":"chat|image|video","confidence":0.0-1.0,"enhancedPrompt":"expanded detailed prompt in the same language as user input or empty string"}
 
 Rules:
 - "chat" = conversational questions, greetings, asking for advice, life topics, philosophy
 - "image" = wants to generate/see/create a picture, photo, illustration, drawing
 - "video" = wants to generate/create a video, animation, motion
-- "poster" = wants to design a poster, banner, card, flyer, advertisement
-- enhancedPrompt: if intent is image/video/poster, expand the user's short description into a detailed creative prompt (keep same language). If intent is chat, return empty string.
+- enhancedPrompt: if intent is image/video, expand the user's short description into a detailed creative prompt (keep same language). If intent is chat, return empty string.
 - confidence: how sure you are (0.0 to 1.0)
 - Keep enhancedPrompt concise, under 100 chars`;
 
@@ -2845,7 +2613,7 @@ aiPublicRouter.post('/enhance-prompt', requireGuestTrial, async (req: Request, r
     if (!prompt || typeof prompt !== 'string' || prompt.trim().length < 2) {
       return res.json({ success: true, enhanced: prompt || '', suggestions: [] });
     }
-    const modeLabel = mode === 'video' ? '视频' : mode === 'poster' ? '海报' : '图片';
+    const modeLabel = mode === 'video' ? '视频' : '图片';
     const systemMsg = `You are a creative prompt enhancer for ${modeLabel} generation.
 Given a short user prompt, enhance it into a detailed creative prompt and suggest 3 alternative styles.
 Reply ONLY with JSON, no markdown:

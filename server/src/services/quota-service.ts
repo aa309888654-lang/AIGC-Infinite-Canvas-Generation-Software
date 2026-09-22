@@ -1,6 +1,5 @@
 import { redisService } from './redis-service';
 import prisma from '../lib/prisma';
-import { deductPoints } from './points-service';
 import { logger } from '../utils/logger';
 
 export interface QuotaResult {
@@ -15,8 +14,6 @@ export interface UserQuota {
   storageLimit: number;
   fileCount: number;
   fileLimit: number;
-  apiCallsUsed: number;
-  apiCallsLimit: number;
 }
 
 export interface QuotaCheckResult {
@@ -29,34 +26,14 @@ export interface QuotaCheckResult {
 class QuotaService {
   private readonly DEFAULT_STORAGE_LIMIT = 0;
   private readonly DEFAULT_FILE_LIMIT = 1000;
-  private readonly DEFAULT_API_CALL_LIMIT = 1000;
 
   async getUserQuota(userId: string): Promise<UserQuota> {
-    const [user, userQuota, membership] = await Promise.all([
-      prisma.user.findUnique({
-        where: { id: userId },
-        select: {
-          usedQuota: true,
-          role: true,
-        }
-      }),
-      prisma.userQuota.findUnique({
-        where: { userId }
-      }),
-      prisma.userMembership.findFirst({
-        where: {
-          userId,
-          status: 'active',
-          endAt: { gte: new Date() },
-        },
-        orderBy: { createdAt: 'desc' },
-        select: { level: true },
-      }),
-    ]);
+    const userQuota = await prisma.userQuota.findUnique({
+      where: { userId }
+    });
 
     const storageUsed = await this.calculateStorageUsed(userId);
     const fileCount = await this.getFileCount(userId);
-    const membershipLevel = membership?.level || user?.role || 'free';
     const defaultStorageLimit = 104857600; // 100MB default after removing membership system
     const dbStorageLimit = userQuota?.storageLimit ? Number(userQuota.storageLimit) : 0;
     const effectiveStorageLimit = Math.max(dbStorageLimit, defaultStorageLimit, this.DEFAULT_STORAGE_LIMIT);
@@ -66,9 +43,7 @@ class QuotaService {
       storageUsed,
       storageLimit: effectiveStorageLimit,
       fileCount,
-      fileLimit: userQuota?.fileLimit || this.DEFAULT_FILE_LIMIT,
-      apiCallsUsed: user?.usedQuota || 0,
-      apiCallsLimit: userQuota?.apiCallsLimit || this.DEFAULT_API_CALL_LIMIT
+      fileLimit: userQuota?.fileLimit || this.DEFAULT_FILE_LIMIT
     };
   }
 
@@ -96,43 +71,19 @@ class QuotaService {
     };
   }
 
-  async checkApiQuota(userId: string): Promise<QuotaCheckResult> {
-    const [user, userQuota] = await Promise.all([
-      prisma.user.findUnique({
-        where: { id: userId },
-        select: { usedQuota: true }
-      }),
-      prisma.userQuota.findUnique({
-        where: { userId },
-        select: { apiCallsLimit: true }
-      }),
-    ]);
-
-    const limit = userQuota?.apiCallsLimit || this.DEFAULT_API_CALL_LIMIT;
-    const current = user?.usedQuota || 0;
-    const remaining = limit - current;
-
+  async checkApiQuota(_userId: string): Promise<QuotaCheckResult> {
+    // 计费系统已移除：AI 调用免费无限制，始终允许
     return {
-      allowed: remaining > 0,
-      current,
-      limit,
-      remaining: Math.max(0, remaining)
+      allowed: true,
+      current: 0,
+      limit: 0,
+      remaining: 0
     };
   }
 
-  async incrementApiUsage(userId: string, count: number = 1): Promise<boolean> {
-    try {
-      // 使用原子化积分服务，确保余额检查+扣减在同一事务中
-      await deductPoints(userId, count, 'API调用');
-
-      // 缓存失效
-      await redisService.deleteCache(`quota:${userId}`);
-
-      return true;
-    } catch (error) {
-      console.error('[Quota] Increment API usage failed:', error);
-      return false;
-    }
+  async incrementApiUsage(_userId: string, _count: number = 1): Promise<boolean> {
+    // 计费系统已移除：AI 调用免费无限制，此处保留为空实现以兼容调用方
+    return true;
   }
 
   async updateUserQuota(
@@ -140,7 +91,6 @@ class QuotaService {
     updates: {
       storageLimit?: number | bigint;
       fileLimit?: number;
-      apiCallsLimit?: number;
       membershipId?: string;
     },
     tx?: any
@@ -244,20 +194,17 @@ class QuotaService {
     totalUsers: number;
     totalStorageUsed: number;
     totalFiles: number;
-    totalApiCalls: number;
   }> {
-    const [userCount, storageResult, fileCount, apiResult] = await Promise.all([
+    const [userCount, storageResult, fileCount] = await Promise.all([
       prisma.user.count(),
       prisma.userFile.aggregate({ _sum: { fileSize: true } }),
       prisma.userFile.count(),
-      prisma.user.aggregate({ _sum: { usedQuota: true } })
     ]);
 
     return {
       totalUsers: userCount,
       totalStorageUsed: storageResult._sum.fileSize || 0,
-      totalFiles: fileCount,
-      totalApiCalls: apiResult._sum.usedQuota || 0
+      totalFiles: fileCount
     };
   }
 

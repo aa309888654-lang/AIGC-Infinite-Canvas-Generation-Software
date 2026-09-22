@@ -12,8 +12,9 @@ export async function getCachedResult(
   prompt: string,
   scenario?: string,
   category?: string,
+  cacheScope?: string,
 ): Promise<string | null> {
-  const key = CACHE_PREFIX + hashKey(`${prompt}|${scenario || ''}|${category || ''}`);
+  const key = CACHE_PREFIX + hashKey(`${prompt}|${scenario || ''}|${category || ''}|${cacheScope || 'global'}`);
   try {
     const cached = await redisService.getCache(key);
     return cached || null;
@@ -28,8 +29,9 @@ export async function setCachedResult(
   scenario?: string,
   category?: string,
   ttl: number = DEFAULT_TTL,
+  cacheScope?: string,
 ): Promise<void> {
-  const key = CACHE_PREFIX + hashKey(`${prompt}|${scenario || ''}|${category || ''}`);
+  const key = CACHE_PREFIX + hashKey(`${prompt}|${scenario || ''}|${category || ''}|${cacheScope || 'global'}`);
   try {
     await redisService.setCache(key, result, ttl);
   } catch {

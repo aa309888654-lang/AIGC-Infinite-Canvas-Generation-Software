@@ -1,0 +1,34 @@
+{
+  "id": "multiAngle",
+  "name": "多角度",
+  "category": "image",
+  "description": "基于输入图片生成正面、侧面、背面、俯视、仰视、细节等多角度视图提示词与结果面板",
+  "icon": "◈",
+  "color": "#8B5CF6",
+  "ports": {
+    "inputs": [{ "id": "input", "name": "参考图片", "type": "image", "optional": true }],
+    "outputs": [
+      { "id": "output", "name": "多角度结果", "type": "image" },
+      { "id": "prompt", "name": "多角度提示词", "type": "prompt", "optional": true }
+    ]
+  },
+  "ui": { "shell": "glass-stack", "promptPanel": true, "resultRenderer": "image", "toolbar": "default" },
+  "execution": {
+    "executable": true,
+    "handler": "image-gen",
+    "mode": "async",
+    "maxRetries": 2,
+    "timeout": 120000
+  },
+  "models": {
+    "mediaType": "image",
+    "allowedProviders": ["minimax", "apipaths", "doubao"],
+    "defaultModelId": "doubao-seedream-5-0-pro",
+    "excludeIdPatterns": ["gpt-5", "claude", "gemini-pro-vision", "speech", "tts", "music", "video"],
+    "requireCapabilities": ["text-to-image", "image-to-image", "reference", "image-edit"],
+    "fallbackModels": [
+      { "modelId": "doubao-seedream-5-0-pro", "provider": "doubao" },
+      { "modelId": "doubao-seedream-5-0-lite", "provider": "doubao" }
+    ]
+  }
+}

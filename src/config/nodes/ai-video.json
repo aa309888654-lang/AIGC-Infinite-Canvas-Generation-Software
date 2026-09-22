@@ -1,0 +1,52 @@
+{
+  "id": "aiVideo",
+  "name": "AI视频",
+  "category": "video",
+  "description": "统一 AI 视频入口 - 按模型动态切换文生视频、图生视频、首尾帧、多参考等参数",
+  "icon": "🎞️",
+  "color": "#FF6B00",
+  "ports": {
+    "inputs": [
+      { "id": "input", "name": "输入", "type": "image", "optional": true, "multiple": true },
+      { "id": "prompt", "name": "提示词", "type": "prompt", "optional": true },
+      { "id": "referenceImage", "name": "参考图", "type": "image", "optional": true, "multiple": true },
+      { "id": "referenceImage1", "name": "参考图 1", "type": "image", "optional": true },
+      { "id": "referenceImage2", "name": "参考图 2", "type": "image", "optional": true },
+      { "id": "referenceImage3", "name": "参考图 3", "type": "image", "optional": true },
+      { "id": "referenceImage4", "name": "参考图 4", "type": "image", "optional": true },
+      { "id": "referenceImage5", "name": "参考图 5", "type": "image", "optional": true },
+      { "id": "referenceImage6", "name": "参考图 6", "type": "image", "optional": true },
+      { "id": "firstFrame", "name": "首帧", "type": "image", "optional": true },
+      { "id": "lastFrame", "name": "尾帧", "type": "image", "optional": true },
+      { "id": "video", "name": "视频参考", "type": "video", "optional": true }
+    ],
+    "outputs": [
+      { "id": "output", "name": "生成视频", "type": "video" }
+    ]
+  },
+  "ui": { "shell": "glass-stack", "promptPanel": true, "resultRenderer": "video", "toolbar": "default" },
+  "execution": {
+    "executable": true,
+    "handler": "video-gen",
+    "mode": "async",
+    "maxRetries": 2,
+    "timeout": 300000,
+    "requiredParams": [
+      { "key": "prompt", "type": "string", "required": true, "minLength": 1, "label": "提示词" },
+      { "key": "modelId", "type": "string", "required": true, "label": "模型" },
+      { "key": "modelProvider", "type": "string", "required": true, "label": "提供商" }
+    ]
+  },
+  "models": {
+    "mediaType": "video",
+    "allowedProviders": ["vidu", "doubao", "minimax", "happyhorse", "wan", "skyreels", "hailuo"],
+    "defaultModelId": "doubao-seedance-2-0",
+    "excludedModelIds": ["ep-20260321212919-vfr2q", "video-01-higher", "seedance-lite-2-0", "video-01"],
+    "excludeIdPatterns": ["speech", "tts", "music", "audio", "voice", "sound", "lyrics", "cover"],
+    "requireCapabilities": ["text-to-video", "image-to-video", "first-last-frame", "reference-to-video", "video-to-video", "multi-reference"],
+    "fallbackModels": [
+      { "modelId": "doubao-seedance-2-0", "provider": "doubao" },
+      { "modelId": "viduq3-pro", "provider": "vidu" }
+    ]
+  }
+}

@@ -4,7 +4,6 @@ import { AppError } from '../middleware/errorHandler';
 import { z } from 'zod';
 import prisma from '../lib/prisma';
 import { comicGenerationService, ComicCharacterInput, ComicSceneInput } from '../services/comic-generation-service';
-import { creditService } from '../services/credit-service';
 import { websocketPushService } from '../services/websocket-push-service';
 import { ComicProject } from '@shared/types/comic';
 import { parseTaskResult, stringifyTaskResult } from '../utils/task-result-helper';
@@ -309,57 +308,7 @@ comicProjectRouter.post('/:id/batch-generate', authenticate, async (req, res, ne
 
     const characters = result.characters || [];
     const scenes = result.scenes || [];
-    const membershipLevel = req.membershipLevel || 'trial';
     const userId = req.userId!;
-
-    // 积分预检查
-    if (validatedData.options.generateVideos) {
-      const videoCheck = await creditService.preCheck({
-        userId,
-        membershipLevel,
-        type: 'video',
-        amount: scenes.length,
-        taskId: 'temp',
-        reason: '漫剧批量视频生成预检查',
-        provider: validatedData.options.videoProvider,
-      });
-      if (!videoCheck.allowed) {
-        throw new AppError(videoCheck.reason, 402);
-      }
-    }
-
-    if (validatedData.options.generateAudio) {
-      const totalDialogues = scenes.reduce((sum: number, s: any) => sum + (s.dialogues?.length || 0), 0);
-      const audioCheck = await creditService.preCheck({
-        userId,
-        membershipLevel,
-        type: 'audio',
-        amount: totalDialogues || 1,
-        taskId: 'temp',
-        reason: '漫剧批量音频生成预检查',
-      });
-      if (!audioCheck.allowed) {
-        throw new AppError(audioCheck.reason, 402);
-      }
-    }
-
-    if (validatedData.options.generateCharacterImages || validatedData.options.generateSceneImages) {
-      const imageCount = (validatedData.options.generateCharacterImages ? characters.length : 0)
-                       + (validatedData.options.generateSceneImages ? scenes.length : 0);
-      if (imageCount > 0) {
-        const imageCheck = await creditService.preCheck({
-          userId,
-          membershipLevel,
-          type: 'image',
-          amount: imageCount,
-          taskId: 'temp',
-          reason: '漫剧批量图片生成预检查',
-        });
-        if (!imageCheck.allowed) {
-          throw new AppError(imageCheck.reason, 402);
-        }
-      }
-    }
 
     // 计算总任务数用于进度推送
     const totalTasks =
@@ -518,59 +467,6 @@ comicProjectRouter.post('/:id/batch-generate', authenticate, async (req, res, ne
           ),
           generatedAt: new Date().toISOString(),
         };
-
-        // 批量生成完成后实际扣除积分
-        const consumePromises: Promise<any>[] = [];
-        if (validatedData.options.generateCharacterImages && generatedResults.characters.length > 0) {
-          consumePromises.push(
-            creditService.consume({
-              userId,
-              membershipLevel,
-              type: 'image',
-              amount: generatedResults.characters.length,
-              taskId: `comic_project_${id}`,
-              reason: '漫剧批量角色图片生成',
-            }).catch(err => console.error(`[CREDIT_AUDIT] userId=${req.userId} 漫剧批量角色图片生成积分扣除失败:`, err))
-          );
-        }
-        if (validatedData.options.generateSceneImages && generatedResults.scenes.length > 0) {
-          consumePromises.push(
-            creditService.consume({
-              userId,
-              membershipLevel,
-              type: 'image',
-              amount: generatedResults.scenes.length,
-              taskId: `comic_project_${id}`,
-              reason: '漫剧批量场景图片生成',
-            }).catch(err => console.error(`[CREDIT_AUDIT] userId=${req.userId} 漫剧批量场景图片生成积分扣除失败:`, err))
-          );
-        }
-        if (validatedData.options.generateVideos && generatedResults.videos.length > 0) {
-          consumePromises.push(
-            creditService.consume({
-              userId,
-              membershipLevel,
-              type: 'video',
-              amount: generatedResults.videos.length,
-              taskId: `comic_project_${id}`,
-              reason: '漫剧批量视频生成',
-              provider: validatedData.options.videoProvider,
-            }).catch(err => console.error(`[CREDIT_AUDIT] userId=${req.userId} 漫剧批量视频生成积分扣除失败:`, err))
-          );
-        }
-        if (validatedData.options.generateAudio && generatedResults.audio.length > 0) {
-          consumePromises.push(
-            creditService.consume({
-              userId,
-              membershipLevel,
-              type: 'audio',
-              amount: generatedResults.audio.length,
-              taskId: `comic_project_${id}`,
-              reason: '漫剧批量音频生成',
-            }).catch(err => console.error(`[CREDIT_AUDIT] userId=${req.userId} 漫剧批量音频生成积分扣除失败:`, err))
-          );
-        }
-        await Promise.all(consumePromises);
 
         await prisma.task.update({
           where: { id },

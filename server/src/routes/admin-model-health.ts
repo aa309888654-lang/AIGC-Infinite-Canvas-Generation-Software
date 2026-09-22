@@ -55,13 +55,11 @@ const PROVIDER_ENDPOINTS: Record<string, ProviderEndpointConfig> = {
     timeout: 15000,
     apiKeyEnv: ['STEPFUN_API_KEY', 'STEPFUN_API_KEY_2', 'STEPFUN_API_KEY_3'],
     supportedModels: [
-      { id: 'step-image-edit-2', name: 'Step Image Edit 2 (文生图/编辑)', type: 'image' },
       { id: 'step-3.7-flash', name: 'Step 3.7 Flash (推理+多模态)', type: 'text' },
       { id: 'step-3.5-flash', name: 'Step 3.5 Flash (推理)', type: 'text' },
       { id: 'step-3.5-flash-2603', name: 'Step 3.5 Flash 2603 (版本)', type: 'text' },
       { id: 'step-router-v1', name: 'Step Router V1 (智能路由)', type: 'text' },
       { id: 'stepaudio-2.5-chat', name: 'StepAudio 2.5 Chat (语音对话)', type: 'audio' },
-      { id: 'stepaudio-2.5-tts', name: 'StepAudio 2.5 TTS (语音合成)', type: 'audio' },
       { id: 'stepaudio-2.5-asr', name: 'StepAudio 2.5 ASR (语音识别)', type: 'audio' },
       { id: 'stepaudio-2.5-realtime', name: 'StepAudio 2.5 Realtime (实时语音)', type: 'audio' },
       { id: 'step-1o-audio', name: 'Step-1o Audio', type: 'audio' },
@@ -115,11 +113,6 @@ const PROVIDER_ENDPOINTS: Record<string, ProviderEndpointConfig> = {
     url: 'https://ark.cn-beijing.volces.com/api/coding/v3/models',
     method: 'GET', timeout: 10000,
     apiKeyEnv: ['VOLCANO_API_KEY', 'ARK_API_KEY'],
-  },
-  agnes: {
-    url: 'https://apihub.agnes-ai.com/v1/models',
-    method: 'GET', timeout: 10000,
-    apiKeyEnv: ['AGNES_API_KEY', 'AGNES_KEY_POOL_API_KEY', 'AGNES_VIDEO_API_KEY'],
   },
   wuyinkeji: {
     url: 'https://api.wuyinkeji.com/api/async/detail',
@@ -196,7 +189,7 @@ const TEXT_MODELS: TextModelConfig[] = [
   { model: 'step-3.5-flash', displayName: 'Step 3.5 Flash (推理)', category: 'step', provider: 'stepfun', baseUrl: 'https://api.stepfun.com/step_plan/v1', apiKeyEnv: ['STEPFUN_API_KEY', 'STEPFUN_API_KEY_2', 'STEPFUN_API_KEY_3'], apiKeyEnvLabel: 'STEPFUN_API_KEY' },
   { model: 'step-router-v1', displayName: 'Step Router V1 (智能路由)', category: 'step', provider: 'stepfun', baseUrl: 'https://api.stepfun.com/step_plan/v1', apiKeyEnv: ['STEPFUN_API_KEY', 'STEPFUN_API_KEY_2', 'STEPFUN_API_KEY_3'], apiKeyEnvLabel: 'STEPFUN_API_KEY' },
   { model: 'stepaudio-2.5-chat', displayName: 'StepAudio 2.5 Chat (语音对话)', category: 'step', provider: 'stepfun', baseUrl: 'https://api.stepfun.com/step_plan/v1', apiKeyEnv: ['STEPFUN_API_KEY', 'STEPFUN_API_KEY_2', 'STEPFUN_API_KEY_3'], apiKeyEnvLabel: 'STEPFUN_API_KEY' },
-  // 注: stepaudio-2.5-tts 使用 /v1/audio/speech 端点, stepaudio-2.5-asr 使用 /v1/audio/asr/sse 端点
+    // StepFun TTS 使用 /v1/audio/speech 端点, ASR 使用 /v1/audio/asr/sse 端点
   // step-tts-mini 和 step-1o-audio 使用专用音频端点, 非Chat Completion API, 不在此检测
 
   // === Volcano (火山引擎) ===

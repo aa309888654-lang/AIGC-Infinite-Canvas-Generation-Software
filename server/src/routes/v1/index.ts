@@ -1,8 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { requireAuth } from '../../middleware/auth'; // SEC-10 修复：导入 requireAuth
 import axios from 'axios'; // SEC-10 修复：使用标准 import 而非内联 require
-import { authRouter } from '../auth';
-import { adminUserRouter } from '../admin-user';
 import { adminTaskRouter } from '../admin-task';
 import adminNotificationsRouter from '../admin/notifications';
 import { adminFrontendMonitoringRouter } from '../admin-frontend-monitoring';
@@ -14,11 +12,8 @@ import adminMediaGatewayRouter from '../admin-mediagateway';
 import { adminAiUsageRouter } from '../admin-ai-usage';
 import { adminGeneratedCleanupRouter } from '../admin-generated-cleanup';
 import { adminModelHealthRouter } from '../admin-model-health';
-import { adminPosterAgentRouter } from '../admin-poster-agent';
 import { adminGovernanceRouter } from '../admin-governance';
 import { adminAccessControlRouter } from '../admin-access-control';
-import { adminSmsConfigRouter } from '../admin-sms-config';
-import { adminEmailConfigRouter } from '../admin-email-config';
 import { adminRouter } from '../admin';
 import { frontendMonitoringRouter } from '../frontend-monitoring';
 import { stabilityMonitorRouter } from '../stability-monitor';
@@ -29,7 +24,6 @@ import siteMessagesRouter from '../site-messages';
 import websocketPushRouter from '../websocket-push';
 import exportRouter from '../export';
 import auditRouter from '../audit';
-import { userRouter } from '../user';
 import { taskRouter } from '../task';
 import { videoRouter } from '../video';
 import { videoProxyRouter } from '../video-proxy';
@@ -42,9 +36,6 @@ import { userApiKeyRouter } from '../user-api-key';
 import { userModelCredentialsRouter } from '../user-model-credentials';
 import { operationLogRouter } from '../operation-log';
 import { aiProxyRouter, aiPublicRouter } from '../ai-proxy';
-import { posterAgentRouter } from '../poster-agent';
-import { homePosterRouter } from '../home-poster';
-import { posterQualityRouter } from '../poster-quality';
 import { secureProxyRouter } from '../secure-proxy';
 import { rembgRouter } from '../rembg';
 import { baiduAiRouter } from '../baidu-ai';
@@ -67,6 +58,7 @@ import { ragRouter } from '../rag';
 import publicChatRouter from '../public-chat';
 import { syncRouter } from '../sync';
 import publicSponsorRouter from '../public-sponsor';
+import publicSponsorOrdersRouter from '../public-sponsor-orders';
 import { appConfigRouter, adminAppConfigRouter } from '../app-config';
 import { tutorialVideosRouter } from '../tutorial-videos';
 import { promptSafety } from '../../middleware/prompt-safety';
@@ -77,7 +69,6 @@ const v1Router = Router();
 type RouteMount = readonly [path: string, router: Router];
 
 export const ADMIN_ROUTE_MOUNTS = [
-  '/admin/users',
   '/admin/tasks',
   '/admin/notifications',
   '/admin/frontend-monitoring',
@@ -89,11 +80,8 @@ export const ADMIN_ROUTE_MOUNTS = [
   '/admin/ai-usage',
   '/admin/generated-cleanup',
   '/admin/model-health',
-  '/admin/poster-agent',
   '/admin/governance',
   '/admin/access-control',
-  '/admin/sms-config',
-  '/admin/email-config',
   '/admin/app-config',
   '/admin/stability',
   '/admin/operation-logs',
@@ -109,7 +97,6 @@ export const PUBLIC_ROUTE_MOUNTS = [
   '/ws-push',
   '/export',
   '/audit',
-  '/users',
   '/tasks',
   '/video',
   '/video-proxy',
@@ -121,9 +108,6 @@ export const PUBLIC_ROUTE_MOUNTS = [
   '/user-api-keys',
   '/user-model-credentials',
   '/ai',
-  '/poster-agent',
-  '/home-poster',
-  '/poster-quality',
   '/proxy',
   '/rembg',
   '/baidu-ai',
@@ -159,11 +143,8 @@ v1Router.get('/', (_req, res) => {
   });
 });
 
-v1Router.use('/auth', authRouter);
-
 // 后台管理路由集中挂载，避免管理/运维接口散落在 v1 顶层。
 const adminRouteMounts: RouteMount[] = [
-  ['/admin/users', adminUserRouter],
   ['/admin/tasks', adminTaskRouter],
   ['/admin/notifications', adminNotificationsRouter],
   ['/admin/frontend-monitoring', adminFrontendMonitoringRouter],
@@ -175,11 +156,8 @@ const adminRouteMounts: RouteMount[] = [
   ['/admin/ai-usage', adminAiUsageRouter],
   ['/admin/generated-cleanup', adminGeneratedCleanupRouter],
   ['/admin/model-health', adminModelHealthRouter],
-  ['/admin/poster-agent', adminPosterAgentRouter],
   ['/admin/governance', adminGovernanceRouter],
   ['/admin/access-control', adminAccessControlRouter],
-  ['/admin/sms-config', adminSmsConfigRouter],
-  ['/admin/email-config', adminEmailConfigRouter],
   ['/admin/app-config', adminAppConfigRouter],
   ['/admin/stability', stabilityMonitorRouter],
   ['/admin/operation-logs', operationLogRouter],
@@ -196,7 +174,6 @@ v1Router.use('/ws-push', websocketPushRouter);
 v1Router.use('/export', exportRouter);
 v1Router.use('/audit', auditRouter);
 
-v1Router.use('/users', userRouter);
 v1Router.use('/tasks', taskRouter);
 // Public video API entry. Clients should stay on /api/v1/video for compatibility.
 v1Router.use('/video', promptSafety, videoRouter);
@@ -204,7 +181,7 @@ v1Router.use('/video', promptSafety, videoRouter);
 v1Router.use('/video-proxy', promptSafety, videoProxyRouter);
 v1Router.use('/image', promptSafety, imageRouter);
 
-// VIP payment routes removed (membership system removed)
+// 计费/会员/支付/用户管理/内容审核/短信/邮件/海报功能已移除
 
 v1Router.use('/permission', permissionRouter);
 v1Router.use('/logs', logsRouter);
@@ -215,9 +192,6 @@ v1Router.use('/ai-providers', aiProviderRouter);
 v1Router.use('/user-api-keys', userApiKeyRouter);
 v1Router.use('/user-model-credentials', userModelCredentialsRouter);
 v1Router.use('/ai', promptSafety, aiProxyRouter);
-v1Router.use('/poster-agent', promptSafety, posterAgentRouter);
-v1Router.use('/home-poster', promptSafety, homePosterRouter);
-v1Router.use('/poster-quality', promptSafety, posterQualityRouter);
 v1Router.use('/proxy', secureProxyRouter);
 v1Router.use('/rembg', rembgRouter);
 v1Router.use('/baidu-ai', baiduAiRouter);
@@ -265,7 +239,7 @@ v1Router.get('/wuyinkeji/task/:taskId', requireAuth, async (req: Request, res: R
   }
 });
 
-// RAG 海报知识库检索
+// RAG 知识库检索
 v1Router.use('/rag', promptSafety, ragRouter);
 
 // 公开路由（无需认证）
@@ -274,5 +248,6 @@ v1Router.use('/public/ai', promptSafety, aiPublicRouter);
 v1Router.use('/public/ai-providers', aiProviderPublicRouter);
 v1Router.use('/sync', syncRouter);
 v1Router.use('/public', publicSponsorRouter);
+v1Router.use('/sponsor-orders', publicSponsorOrdersRouter);
 
 export { v1Router };

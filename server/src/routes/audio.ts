@@ -6,8 +6,6 @@ import { z } from 'zod';
 import multer from 'multer';
 import * as fs from 'fs';
 import * as path from 'path';
-import { creditService } from '../services/credit-service';
-import { withCreditDeduction, executeCreditDeduction } from '../middleware/credit-deduction';
 import { websocketPushService } from '../services/websocket-push-service';
 import { decryptProviderSecrets, getApiProviderConfig } from './ai-provider';
 import { autoSaveService } from '../services/auto-save-service';
@@ -32,8 +30,6 @@ import {
 import { fetchRemoteBuffer } from '../utils/safe-remote-fetch';
 
 export const audioRouter = Router();
-const DEFAULT_MEMBERSHIP_LEVEL = 'trial';
-const MUSIC_GENERATION_POINTS = 60;
 const MUSIC_DIR = path.join(process.cwd(), 'public', 'music');
 const GENERATED_AUDIO_DIR = path.join(process.cwd(), 'public', 'audio');
 const DEFAULT_UPLOAD_DIR = path.join(process.cwd(), 'uploads');
@@ -150,7 +146,7 @@ function resolveAudioProvider(body: Record<string, unknown>, model?: string): Au
 }
 
 async function getStepFunConfig(): Promise<{ apiKey: string; baseUrl: string }> {
-  // 优先使用环境变量中的主密钥（确保 stepaudio-2.5-tts 可用）
+  // 优先使用环境变量中的主密钥
   const envKey = process.env.STEPFUN_API_KEY || process.env.STEPFUN_API_KEY_2 || '';
   if (envKey) {
     return {
@@ -200,7 +196,7 @@ export async function generateVoiceChatAudio(
   const config = await getAudioProviderConfig('stepfun');
   const audioParams: AudioParams & Record<string, unknown> = {
     provider: 'stepfun',
-    model: 'stepaudio-2.5-tts',
+    model: 'step-tts-2',
     mode: 'tts',
     text: normalizedText,
     voiceId: 'linjiajiejie',
@@ -611,39 +607,6 @@ audioRouter.post('/generate', authenticate, async (req: AuthRequest, res, next) 
     const validatedData = ttsV2Schema.parse(req.body);
     const providerName = resolveAudioProvider(req.body, validatedData.model);
 
-    const textLength =
-      req.body.mode === 'music'
-        ? validatedData.lyrics?.length || validatedData.prompt?.length || 0
-        : validatedData.text.length;
-    const estimatedMinutes = Math.max(1, Math.ceil(textLength / 250));
-
-    const creditType = req.body.mode === 'music' ? 'music' : 'audio';
-    const creditAmount = creditType === 'music' ? 1 : estimatedMinutes;
-
-    const checkResult = await creditService.preCheck({
-      userId: req.userId!,
-      membershipLevel: req.membershipLevel || DEFAULT_MEMBERSHIP_LEVEL,
-      type: creditType,
-      amount: creditAmount,
-      taskId: 'temp',
-      reason: '预检查',
-      provider: creditType === 'music' ? validatedData.model || 'music-2.6' : providerName,
-      model: validatedData.model,
-    });
-
-    if (!checkResult.allowed) {
-      throw new AppError(checkResult.reason, 402);
-    }
-
-    (req as any).creditCheck = checkResult;
-    (req as any).creditConfig = {
-      type: creditType,
-      amount: creditAmount,
-      reason: creditType === 'music' ? '音乐生成' : '音频生成',
-      provider: creditType === 'music' ? validatedData.model || 'music-2.6' : providerName,
-      model: validatedData.model,
-    };
-
     // 获取配置
     const config = await getAudioProviderConfig(providerName);
 
@@ -766,7 +729,7 @@ audioRouter.post('/generate', authenticate, async (req: AuthRequest, res, next) 
         });
     }
 
-    // 更新任务记录 & 扣费
+    // 更新任务记录
     await prisma.task.update({
       where: { id: task.id },
       data: {
@@ -778,14 +741,6 @@ audioRouter.post('/generate', authenticate, async (req: AuthRequest, res, next) 
       },
     });
 
-    if (result.status === 'completed' || isPendingMusicTask) {
-      (req as any).creditConfig.reason =
-        creditType === 'music'
-          ? `音乐生成 - ${validatedData.model || 'music-2.6'}`
-          : `音频生成 - ${validatedData.model} (${textLength}字符)`;
-      await executeCreditDeduction(req, task.id);
-    }
-
     res.status(201).json({
       success: true,
       data: {
@@ -794,7 +749,6 @@ audioRouter.post('/generate', authenticate, async (req: AuthRequest, res, next) 
         minimaxTaskId: isPendingMusicTask ? result.taskId : undefined,
         audioUrl,
         voiceId: result.result?.voiceId,
-        points: (req as any).creditCheck?.pointsNeeded,
         provider: providerName,
         model: validatedData.model,
       },
@@ -872,13 +826,6 @@ audioRouter.get('/image-query', async (req: AuthRequest, res, next) => {
           result: JSON.stringify({ imageUrl, minimaxTaskId }),
         },
       });
-
-      (req as any).creditConfig = {
-        type: 'image' as const,
-        reason: '封面生成 - image-01',
-        provider: 'image-01',
-      };
-      await executeCreditDeduction(req, task.id);
 
       return res.json({
         success: true,
@@ -973,29 +920,6 @@ audioRouter.post('/async-create', async (req: AuthRequest, res, next) => {
   try {
     const validatedData = ttsV2Schema.parse(req.body);
 
-    const textLength = validatedData.text?.length || 0;
-    const estimatedMinutes = Math.max(1, Math.ceil(textLength / 250));
-
-    const checkResult = await creditService.preCheck({
-      userId: req.userId!,
-      membershipLevel: req.membershipLevel || DEFAULT_MEMBERSHIP_LEVEL,
-      type: 'audio',
-      amount: estimatedMinutes,
-      taskId: 'temp',
-      reason: '预检查',
-    });
-
-    if (!checkResult.allowed) {
-      throw new AppError(checkResult.reason, 402);
-    }
-
-    (req as any).creditCheck = checkResult;
-    (req as any).creditConfig = {
-      type: 'audio' as const,
-      amount: estimatedMinutes,
-      reason: '异步音频生成',
-    };
-
     const requestBody: Record<string, any> = {
       model: validatedData.model,
       text: validatedData.text,
@@ -1062,13 +986,13 @@ audioRouter.get('/async-query', async (req: AuthRequest, res, next) => {
     const result = await callMiniMaxGET(`/v1/query/t2a_async_query_v2?task_id=${taskId}`);
     checkMiniMaxBusinessError(result);
 
-    // 如果任务完成，更新本地记录并扣费
+    // 如果任务完成，更新本地记录
     const status = result.data?.status || result.status;
     if (status === 'success' || status === 'Success') {
       const audioUrl = result.data?.audio_url || extractAudioUrl(result);
       if (audioUrl) {
-        // Use atomic update to prevent double-deduction race condition
-        const updated = await prisma.task.updateMany({
+        // Use atomic update to prevent double-completion race condition
+        await prisma.task.updateMany({
           where: {
             userId: req.userId!,
             result: { contains: taskId },
@@ -1080,29 +1004,6 @@ audioRouter.get('/async-query', async (req: AuthRequest, res, next) => {
             result: JSON.stringify({ audioUrl, minimaxTaskId: taskId }),
           },
         });
-
-        if (updated.count > 0) {
-          const localTask = await prisma.task.findFirst({
-            where: {
-              userId: req.userId!,
-              result: { contains: taskId },
-              type: 'audio',
-            },
-            orderBy: { createdAt: 'desc' },
-          });
-
-          if (localTask) {
-            const inputParams = (localTask.params as unknown as Record<string, unknown>) || {};
-            const textLength = (inputParams.text as string)?.length || 0;
-            const estimatedMinutes = Math.max(1, Math.ceil(textLength / 250));
-            (req as any).creditConfig = {
-              type: 'audio' as const,
-              amount: estimatedMinutes,
-              reason: `异步音频生成 (${textLength}字符)`,
-            };
-            await executeCreditDeduction(req, localTask.id);
-          }
-        }
       }
     }
 
@@ -1171,11 +1072,6 @@ audioRouter.post('/upload', audioUpload.single('file'), async (req: AuthRequest,
 // 5. 音色复刻
 audioRouter.post(
   '/voice-clone',
-  withCreditDeduction((req) => ({
-    type: 'audio',
-    reason: req.body?.voice_id ? `音色复刻 - ${req.body.voice_id}` : '音色复刻',
-    customPoints: 50,
-  })),
   async (req: AuthRequest, res, next) => {
     try {
       const validatedData = voiceCloneSchema.parse(req.body);
@@ -1212,14 +1108,11 @@ audioRouter.post(
         },
       });
 
-      await executeCreditDeduction(req, task.id);
-
       res.status(201).json({
         success: true,
         data: {
           taskId: task.id,
           voice_id: validatedData.voice_id,
-          points: (req as any).creditCheck?.pointsNeeded || 50,
         },
       });
     } catch (error) {
@@ -1231,7 +1124,6 @@ audioRouter.post(
 // 6. 音色设计
 audioRouter.post(
   '/voice-design',
-  withCreditDeduction({ type: 'audio', reason: '音色设计', customPoints: 30 }),
   async (req: AuthRequest, res, next) => {
     try {
       const validatedData = voiceDesignSchema.parse(req.body);
@@ -1275,19 +1167,12 @@ audioRouter.post(
         },
       });
 
-      if (generatedVoiceId) {
-        (req as any).creditConfig.reason = `音色设计 - ${generatedVoiceId}`;
-      }
-
-      await executeCreditDeduction(req, task.id);
-
       res.status(201).json({
         success: true,
         data: {
           taskId: task.id,
           voice_id: generatedVoiceId,
           trial_audio_url: trialAudioUrl,
-          points: (req as any).creditCheck?.pointsNeeded || 30,
         },
       });
     } catch (error) {
@@ -1301,22 +1186,6 @@ audioRouter.post('/voice-preview', async (req: AuthRequest, res, next) => {
   try {
     const { voice_id, text } = req.body;
     if (!voice_id) throw new AppError('voice_id 不能为空', 400);
-
-    // 积分预检查
-    const membershipLevel = req.membershipLevel || DEFAULT_MEMBERSHIP_LEVEL;
-    const VOICE_PREVIEW_POINTS = 5;
-    const taskId = `voice_preview_${Date.now()}`;
-    const creditCheck = await creditService.preCheck({
-      userId: req.userId!,
-      membershipLevel,
-      type: 'audio',
-      customPoints: VOICE_PREVIEW_POINTS,
-      taskId,
-      reason: '音色试听预检查',
-    });
-    if (!creditCheck.allowed) {
-      return res.status(402).json({ success: false, error: creditCheck.reason });
-    }
 
     const previewText = text || '你好，这是一段试听音频，欢迎使用。';
 
@@ -1353,18 +1222,6 @@ audioRouter.post('/voice-preview', async (req: AuthRequest, res, next) => {
     if (!audioUrl && !hexAudio) {
       throw new AppError('试听音频生成失败：未收到音频数据', 500);
     }
-
-    // 扣除积分
-    await creditService
-      .consume({
-        userId: req.userId!,
-        membershipLevel,
-        type: 'audio',
-        customPoints: VOICE_PREVIEW_POINTS,
-        taskId,
-        reason: '音色试听',
-      })
-      .catch((err) => logger.warn(`[VoicePreview] 积分扣除失败: ${err.message}`));
 
     res.json({
       success: true,
@@ -1446,13 +1303,6 @@ audioRouter.delete('/voices/:voiceId', async (req: AuthRequest, res, next) => {
 // 9. 音乐生成 (music-2.6)
 audioRouter.post(
   '/music-generate',
-  withCreditDeduction({
-    type: 'music',
-    reason: '音乐生成 - music-2.6',
-    provider: 'music-2.6',
-    model: 'music-2.6',
-    customPoints: MUSIC_GENERATION_POINTS,
-  }),
   async (req: AuthRequest, res, next) => {
     try {
       const { prompt, lyrics, audioSetting, instrumental } = req.body;
@@ -1568,7 +1418,6 @@ audioRouter.post(
             status: 'processing',
             audioUrl: null,
             extraAudioUrl: null,
-            points: 0,
             provider: 'minimax',
             model: 'music-2.6',
           },
@@ -1584,10 +1433,6 @@ audioRouter.post(
         },
       });
 
-      await executeCreditDeduction(req, task.id);
-
-      const consumedPoints = (req as any).creditCheck?.pointsNeeded || 0;
-
       res.status(201).json({
         success: true,
         data: {
@@ -1596,7 +1441,6 @@ audioRouter.post(
           audioUrl: getPublicAudioUrl(req, audioUrl),
           extraAudioUrl: getPublicAudioUrl(req, extraAudioUrl),
           extraInfo,
-          points: consumedPoints,
           provider: 'minimax',
           model: 'music-2.6',
         },
@@ -1648,13 +1492,6 @@ audioRouter.post(
 // 10. 翻唱生成 (music-cover)
 audioRouter.post(
   '/music-cover',
-  withCreditDeduction({
-    type: 'music',
-    reason: '翻唱生成 - music-2.6',
-    provider: 'music-2.6',
-    model: 'music-2.6',
-    customPoints: MUSIC_GENERATION_POINTS,
-  }),
   async (req: AuthRequest, res, next) => {
     try {
       const { audioUrl, prompt, lyrics } = req.body;
@@ -1782,7 +1619,6 @@ audioRouter.post(
             status: 'processing',
             audioUrl: null,
             extraAudioUrl: null,
-            points: 0,
             provider: 'minimax',
             model: 'music-2.6',
           },
@@ -1798,10 +1634,6 @@ audioRouter.post(
         },
       });
 
-      await executeCreditDeduction(req, task.id);
-
-      const consumedPoints = (req as any).creditCheck?.pointsNeeded || 0;
-
       res.status(201).json({
         success: true,
         data: {
@@ -1809,7 +1641,6 @@ audioRouter.post(
           status: 'completed',
           audioUrl: resultAudioUrl,
           extraAudioUrl,
-          points: consumedPoints,
           provider: 'minimax',
           model: 'music-2.6',
         },
@@ -1904,15 +1735,6 @@ audioRouter.get('/music-query', async (req: AuthRequest, res, next) => {
         },
       });
 
-      (req as any).creditConfig = {
-        type: 'music' as const,
-        reason: '音乐生成 - music-2.6',
-        provider: 'music-2.6',
-        model: 'music-2.6',
-        customPoints: MUSIC_GENERATION_POINTS,
-      };
-      await executeCreditDeduction(req, task.id);
-
       return res.json({
         success: true,
         data: {
@@ -1972,7 +1794,6 @@ audioRouter.get('/models', async (_req, res) => {
 // 12. 歌词生成
 audioRouter.post(
   '/lyrics-generate',
-  withCreditDeduction({ type: 'prompt', reason: '歌词生成（歌曲套餐内） - lyrics-01', customPoints: 0 }),
   async (req: AuthRequest, res, next) => {
     try {
       const { prompt, mode, lyrics: existingLyrics, title, language } = req.body;
@@ -2016,8 +1837,6 @@ audioRouter.post(
         },
       });
 
-      await executeCreditDeduction(req, task.id);
-
       res.status(201).json({
         success: true,
         data: {
@@ -2026,7 +1845,6 @@ audioRouter.post(
           lyrics: generatedLyrics,
           songTitle,
           styleTags,
-          points: 0,
           provider: 'minimax',
           model: 'lyrics-01',
         },
@@ -2040,7 +1858,6 @@ audioRouter.post(
 // 13. 封面图片生成
 audioRouter.post(
   '/music-cover-image',
-  withCreditDeduction({ type: 'image', reason: '封面生成（歌曲套餐内） - image-01', provider: 'image-01', customPoints: 0 }),
   async (req: AuthRequest, res, next) => {
     try {
       const { prompt, musicTitle } = req.body;
@@ -2084,7 +1901,6 @@ audioRouter.post(
             minimaxTaskId,
             status: 'processing',
             imageUrl: null,
-            points: 0,
             provider: 'minimax',
             model: 'image-01',
           },
@@ -2105,17 +1921,12 @@ audioRouter.post(
         },
       });
 
-      await executeCreditDeduction(req, task.id);
-
-      const consumedPoints = (req as any).creditCheck?.pointsNeeded || 0;
-
       res.status(201).json({
         success: true,
         data: {
           taskId: task.id,
           status: 'completed',
           imageUrl,
-          points: consumedPoints,
           provider: 'minimax',
           model: 'image-01',
         },
@@ -2254,22 +2065,6 @@ audioRouter.post('/asr', async (req: AuthRequest, res, next) => {
     const providerName: AudioProviderName =
       provider === 'stepfun' || model?.startsWith('stepaudio') ? 'stepfun' : 'minimax';
 
-    // 积分预检查
-    const membershipLevel = req.membershipLevel || DEFAULT_MEMBERSHIP_LEVEL;
-    const ASR_POINTS = 5;
-    const taskId = `asr_${Date.now()}`;
-    const creditCheck = await creditService.preCheck({
-      userId: req.userId!,
-      membershipLevel,
-      type: 'audio',
-      customPoints: ASR_POINTS,
-      taskId,
-      reason: '语音识别预检查',
-    });
-    if (!creditCheck.allowed) {
-      return res.status(402).json({ success: false, error: creditCheck.reason });
-    }
-
     if (providerName === 'stepfun') {
       const config = await getAudioProviderConfig('stepfun');
       const result = await stepFunProvider.recognizeAudio(
@@ -2281,17 +2076,6 @@ audioRouter.post('/asr', async (req: AuthRequest, res, next) => {
       if (result.status === 'failed') {
         throw new AppError(result.error || 'StepFun ASR 识别失败', 502);
       }
-
-      await creditService
-        .consume({
-          userId: req.userId!,
-          membershipLevel,
-          type: 'audio',
-          customPoints: ASR_POINTS,
-          taskId,
-          reason: '语音识别',
-        })
-        .catch((err) => logger.warn(`[ASR] 积分扣除失败: ${err.message}`));
 
       return res.json({
         success: true,
@@ -2320,18 +2104,6 @@ audioRouter.post('/asr', async (req: AuthRequest, res, next) => {
     }
 
     const data = await result.json();
-
-    // 扣除积分
-    await creditService
-      .consume({
-        userId: req.userId!,
-        membershipLevel,
-        type: 'audio',
-        customPoints: ASR_POINTS,
-        taskId,
-        reason: '语音识别',
-      })
-      .catch((err) => logger.warn(`[ASR] 积分扣除失败: ${err.message}`));
 
     res.json({ success: true, result: data });
   } catch (error) {
@@ -2447,22 +2219,6 @@ audioRouter.post('/voice-chat', audioUpload.single('file'), async (req: AuthRequ
     }
     if (!inputAudioSource) throw new AppError('需要上传音频文件或提供 audioUrl', 400);
 
-    // 积分预检查
-    const membershipLevel = req.membershipLevel || DEFAULT_MEMBERSHIP_LEVEL;
-    const VOICE_CHAT_POINTS = 10;
-    const taskId = `voice_chat_${Date.now()}`;
-    const creditCheck = await creditService.preCheck({
-      userId: req.userId!,
-      membershipLevel,
-      type: 'audio',
-      customPoints: VOICE_CHAT_POINTS,
-      taskId,
-      reason: '语音对话预检查',
-    });
-    if (!creditCheck.allowed) {
-      return res.status(402).json({ success: false, error: creditCheck.reason });
-    }
-
     // 1. ASR: 语音转文字
     const asrConfig = await getAudioProviderConfig('stepfun');
     const asrResult = await stepFunProvider.recognizeAudio(
@@ -2530,7 +2286,7 @@ audioRouter.post('/voice-chat', audioUpload.single('file'), async (req: AuthRequ
     const ttsResult = await stepFunProvider.generateAudio(
       {
         text: replyText,
-        model: ttsModel || 'stepaudio-2.5-tts',
+        model: ttsModel || 'step-tts-2',
         voice: ttsVoiceFinal,
         instruction: ttsInstruction,
         provider: 'stepfun',
@@ -2547,18 +2303,6 @@ audioRouter.post('/voice-chat', audioUpload.single('file'), async (req: AuthRequ
     // `/audio/...` is converted to the existing authenticated file route. A
     // data URL or a provider-hosted URL remains directly playable as-is.
     const audioResponseUrl = getPublicAudioUrl(req, rawAudioResponseUrl);
-
-    // 扣除积分
-    await creditService
-      .consume({
-        userId: req.userId!,
-        membershipLevel,
-        type: 'audio',
-        customPoints: VOICE_CHAT_POINTS,
-        taskId,
-        reason: '语音对话',
-      })
-      .catch((err) => logger.warn(`[VoiceChat] 积分扣除失败: ${err.message}`));
 
     persistVoiceChatTurn(req.userId!, sessionId, recognizedText, replyText);
 
@@ -2578,7 +2322,7 @@ audioRouter.post('/voice-chat', audioUpload.single('file'), async (req: AuthRequ
         models: {
           asr: 'stepaudio-2.5-asr',
           chat: chatModelUsed,
-          tts: ttsModel || 'stepaudio-2.5-tts',
+          tts: ttsModel || 'step-tts-2',
         },
       },
     });
@@ -2620,26 +2364,10 @@ audioRouter.post(
         inputUrl = `/uploads/audio/${tmpName}`;
       }
 
-      if (!inputUrl) throw new AppError('请提供音频文件或 audioUrl', 400);
+    if (!inputUrl) throw new AppError('请提供音频文件或 audioUrl', 400);
 
-      // 积分预检查
-      const membershipLevel = req.membershipLevel || DEFAULT_MEMBERSHIP_LEVEL;
-      const AUDIO_PROCESSING_POINTS = 3;
-      const taskId = `noise_reduce_${Date.now()}`;
-      const creditCheck = await creditService.preCheck({
-        userId: req.userId!,
-        membershipLevel,
-        type: 'audio',
-        customPoints: AUDIO_PROCESSING_POINTS,
-        taskId,
-        reason: '音频降噪预检查',
-      });
-      if (!creditCheck.allowed) {
-        return res.status(402).json({ success: false, error: creditCheck.reason });
-      }
-
-      const { apiKey, baseUrl } = await getMinimaxConfig();
-      const result = await fetch(`${baseUrl}/v1/audio/noise_reduction`, {
+    const { apiKey, baseUrl } = await getMinimaxConfig();
+    const result = await fetch(`${baseUrl}/v1/audio/noise_reduction`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${apiKey}`,
@@ -2665,18 +2393,6 @@ audioRouter.post(
         );
         savedUrl = saved.primaryUrl || cleanedUrl;
       }
-
-      // 扣除积分
-      await creditService
-        .consume({
-          userId: req.userId!,
-          membershipLevel,
-          type: 'audio',
-          customPoints: AUDIO_PROCESSING_POINTS,
-          taskId,
-          reason: '音频降噪',
-        })
-        .catch((err) => logger.warn(`[NoiseReduce] 积分扣除失败: ${err.message}`));
 
       res.json({
         success: true,
@@ -2712,21 +2428,6 @@ audioRouter.post('/enhance', audioUpload.single('file'), async (req: AuthRequest
 
     if (!inputUrl) throw new AppError('请提供音频文件或 audioUrl', 400);
 
-    // 积分预检查
-    const membershipLevel = req.membershipLevel || DEFAULT_MEMBERSHIP_LEVEL;
-    const taskId = `enhance_${Date.now()}`;
-    const creditCheck = await creditService.preCheck({
-      userId: req.userId!,
-      membershipLevel,
-      type: 'audio',
-      customPoints: 3,
-      taskId,
-      reason: '音频增强预检查',
-    });
-    if (!creditCheck.allowed) {
-      return res.status(402).json({ success: false, error: creditCheck.reason });
-    }
-
     const { apiKey, baseUrl } = await getMinimaxConfig();
     const result = await fetch(`${baseUrl}/v1/audio/enhance`, {
       method: 'POST',
@@ -2754,18 +2455,6 @@ audioRouter.post('/enhance', audioUpload.single('file'), async (req: AuthRequest
       );
       savedUrl = saved.primaryUrl || enhancedUrl;
     }
-
-    // 扣除积分
-    await creditService
-      .consume({
-        userId: req.userId!,
-        membershipLevel,
-        type: 'audio',
-        customPoints: 3,
-        taskId,
-        reason: '音频增强',
-      })
-      .catch((err) => logger.warn(`[Enhance] 积分扣除失败: ${err.message}`));
 
     res.json({
       success: true,
@@ -2799,21 +2488,6 @@ audioRouter.post('/normalize', audioUpload.single('file'), async (req: AuthReque
 
     if (!inputUrl) throw new AppError('请提供音频文件或 audioUrl', 400);
 
-    // 积分预检查
-    const membershipLevel = req.membershipLevel || DEFAULT_MEMBERSHIP_LEVEL;
-    const taskId = `normalize_${Date.now()}`;
-    const creditCheck = await creditService.preCheck({
-      userId: req.userId!,
-      membershipLevel,
-      type: 'audio',
-      customPoints: 3,
-      taskId,
-      reason: '响度归一化预检查',
-    });
-    if (!creditCheck.allowed) {
-      return res.status(402).json({ success: false, error: creditCheck.reason });
-    }
-
     const { apiKey, baseUrl } = await getMinimaxConfig();
     const result = await fetch(`${baseUrl}/v1/audio/normalize`, {
       method: 'POST',
@@ -2841,18 +2515,6 @@ audioRouter.post('/normalize', audioUpload.single('file'), async (req: AuthReque
       );
       savedUrl = saved.primaryUrl || normalizedUrl;
     }
-
-    // 扣除积分
-    await creditService
-      .consume({
-        userId: req.userId!,
-        membershipLevel,
-        type: 'audio',
-        customPoints: 3,
-        taskId,
-        reason: '响度归一化',
-      })
-      .catch((err) => logger.warn(`[Normalize] 积分扣除失败: ${err.message}`));
 
     res.json({
       success: true,
@@ -2887,21 +2549,6 @@ audioRouter.post('/convert', audioUpload.single('file'), async (req: AuthRequest
 
     if (!inputUrl) throw new AppError('请提供音频文件或 audioUrl', 400);
 
-    // 积分预检查
-    const membershipLevel = req.membershipLevel || DEFAULT_MEMBERSHIP_LEVEL;
-    const taskId = `convert_${Date.now()}`;
-    const creditCheck = await creditService.preCheck({
-      userId: req.userId!,
-      membershipLevel,
-      type: 'audio',
-      customPoints: 3,
-      taskId,
-      reason: '格式转换预检查',
-    });
-    if (!creditCheck.allowed) {
-      return res.status(402).json({ success: false, error: creditCheck.reason });
-    }
-
     const { apiKey, baseUrl } = await getMinimaxConfig();
     const result = await fetch(`${baseUrl}/v1/audio/convert`, {
       method: 'POST',
@@ -2934,18 +2581,6 @@ audioRouter.post('/convert', audioUpload.single('file'), async (req: AuthRequest
       );
       savedUrl = saved.primaryUrl || convertedUrl;
     }
-
-    // 扣除积分
-    await creditService
-      .consume({
-        userId: req.userId!,
-        membershipLevel,
-        type: 'audio',
-        customPoints: 3,
-        taskId,
-        reason: '格式转换',
-      })
-      .catch((err) => logger.warn(`[Convert] 积分扣除失败: ${err.message}`));
 
     res.json({
       success: true,

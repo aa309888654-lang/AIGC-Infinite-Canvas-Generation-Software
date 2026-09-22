@@ -3,10 +3,6 @@ import prisma from '../lib/prisma';
 import { authenticate, requireAdmin } from '../middleware/auth';
 import { parsePaginationParamsWithNumbers } from '../utils/pagination';
 import { z } from 'zod';
-import {
-  isContentReviewEnabled,
-  updateContentReviewSetting,
-} from '../services/content-review-service';
 import { websocketPushService } from '../services/websocket-push-service';
 
 export const adminTaskRouter = Router();
@@ -46,7 +42,7 @@ async function getAdminUsername(adminId?: string): Promise<string> {
 // 获取所有任务（内容管理）
 adminTaskRouter.get('/', authenticate, requireAdmin, async (req, res) => {
   try {
-    const { page, pageSize, status, type, search, reviewStatus } = req.query;
+    const { page, pageSize, status, type, search } = req.query;
     const pagination = parsePaginationParamsWithNumbers(Number(page), Number(pageSize));
 
     const where: any = {};
@@ -57,7 +53,6 @@ adminTaskRouter.get('/', authenticate, requireAdmin, async (req, res) => {
       where.status = { not: 'deleted' };
     }
     if (type && type !== 'all') where.type = type;
-    if (reviewStatus && reviewStatus !== 'all') where.reviewStatus = reviewStatus;
     if (search) {
       where.OR = [
         { id: { contains: search as string } },
@@ -134,7 +129,7 @@ adminTaskRouter.get('/', authenticate, requireAdmin, async (req, res) => {
 adminTaskRouter.get('/stats', authenticate, requireAdmin, async (req, res) => {
   try {
     const notDeleted = { status: { not: 'deleted' } };
-    const [total, pending, processing, completed, failed, images, videos, audio, music, pendingReview, approvedReview, rejectedReview] = await Promise.all([
+    const [total, pending, processing, completed, failed, images, videos, audio, music] = await Promise.all([
       prisma.task.count({ where: notDeleted }),
       prisma.task.count({ where: { status: 'pending' } }),
       prisma.task.count({ where: { status: 'processing' } }),
@@ -144,9 +139,6 @@ adminTaskRouter.get('/stats', authenticate, requireAdmin, async (req, res) => {
       prisma.task.count({ where: { type: 'video', ...notDeleted } }),
       prisma.task.count({ where: { type: 'audio', ...notDeleted } }),
       prisma.task.count({ where: { type: 'music', ...notDeleted } }),
-      prisma.task.count({ where: { type: { in: ['image', 'video'] }, status: 'completed', reviewStatus: 'pending' } }),
-      prisma.task.count({ where: { type: { in: ['image', 'video'] }, reviewStatus: 'approved', ...notDeleted } }),
-      prisma.task.count({ where: { type: { in: ['image', 'video'] }, reviewStatus: 'rejected', ...notDeleted } }),
     ]);
 
     res.json({
@@ -161,9 +153,6 @@ adminTaskRouter.get('/stats', authenticate, requireAdmin, async (req, res) => {
         videos,
         audio,
         music,
-        pendingReview,
-        approvedReview,
-        rejectedReview,
       }
     });
   } catch (error: unknown) {
@@ -171,116 +160,7 @@ adminTaskRouter.get('/stats', authenticate, requireAdmin, async (req, res) => {
   }
 });
 
-adminTaskRouter.get('/review-settings', authenticate, requireAdmin, async (_req, res) => {
-  try {
-    res.json({ success: true, data: { enabled: await isContentReviewEnabled() } });
-  } catch (error: unknown) {
-    res.status(500).json({ success: false, error: error instanceof Error ? error.message : String(error) });
-  }
-});
-
-adminTaskRouter.put('/review-settings', authenticate, requireAdmin, async (req, res) => {
-  try {
-    const { enabled } = reviewSettingsSchema.parse(req.body);
-    await updateContentReviewSetting(enabled);
-    const adminUsername = await getAdminUsername(req.userId);
-    await prisma.adminOperationLog.create({
-      data: {
-        adminId: req.userId || 'unknown',
-        adminUsername,
-        action: enabled ? 'content_review.enable' : 'content_review.disable',
-        targetType: 'system_config',
-        targetId: 'content_review_gate_enabled',
-        afterValue: JSON.stringify({ enabled }),
-        ipAddress: req.ip,
-        userAgent: req.get('user-agent'),
-      },
-    });
-    res.json({ success: true, data: { enabled } });
-  } catch (error: unknown) {
-    if (error instanceof z.ZodError) return res.status(400).json({ success: false, error: '参数验证失败' });
-    res.status(500).json({ success: false, error: error instanceof Error ? error.message : String(error) });
-  }
-});
-
-adminTaskRouter.post('/batch-review', authenticate, requireAdmin, async (req, res) => {
-  try {
-    const { taskIds, status, note } = batchReviewSchema.parse(req.body);
-    const adminUsername = await getAdminUsername(req.userId);
-    const tasks = await prisma.task.findMany({
-      where: { id: { in: taskIds }, type: { in: ['image', 'video'] }, status: 'completed' },
-    });
-    const reviewedAt = new Date();
-    const result = await prisma.task.updateMany({
-      where: { id: { in: tasks.map((task) => task.id) } },
-      data: { reviewStatus: status, reviewedAt, reviewedBy: req.userId, reviewNote: note || null },
-    });
-
-    await Promise.all(tasks.map(async (task) => {
-      if (status === 'approved') {
-        const payload = parseTaskResult(task.result) || { url: task.outputUrl || task.cosUrl };
-        await websocketPushService.notifyTaskComplete(task.userId, task.id, payload, {
-          type: task.type,
-          provider: task.provider || undefined,
-          prompt: task.prompt,
-        });
-      } else {
-        await websocketPushService.notifyTaskReviewRejected(task.userId, task.id, note);
-      }
-    }));
-
-    await prisma.adminOperationLog.create({
-      data: {
-        adminId: req.userId || 'unknown', adminUsername, action: `content_review.batch_${status}`,
-        targetType: 'task', afterValue: JSON.stringify({ taskIds: tasks.map((task) => task.id), note }),
-        ipAddress: req.ip, userAgent: req.get('user-agent'),
-      },
-    });
-    res.json({ success: true, data: { reviewedCount: result.count } });
-  } catch (error: unknown) {
-    if (error instanceof z.ZodError) return res.status(400).json({ success: false, error: '参数验证失败' });
-    res.status(500).json({ success: false, error: error instanceof Error ? error.message : String(error) });
-  }
-});
-
-adminTaskRouter.post('/:id/review', authenticate, requireAdmin, async (req, res) => {
-  try {
-    const { status, note } = reviewSchema.parse(req.body);
-    const task = await prisma.task.findUnique({ where: { id: req.params.id } });
-    if (!task) return res.status(404).json({ success: false, error: '任务不存在' });
-    if (!['image', 'video'].includes(task.type) || task.status !== 'completed') {
-      return res.status(409).json({ success: false, error: '只有已完成的图片或视频任务可以审核' });
-    }
-    const adminUsername = await getAdminUsername(req.userId);
-    const updated = await prisma.task.update({
-      where: { id: task.id },
-      data: { reviewStatus: status, reviewedAt: new Date(), reviewedBy: req.userId, reviewNote: note || null },
-    });
-    if (status === 'approved') {
-      const payload = parseTaskResult(task.result) || { url: task.outputUrl || task.cosUrl };
-      await websocketPushService.notifyTaskComplete(task.userId, task.id, payload, {
-        type: task.type,
-        provider: task.provider || undefined,
-        prompt: task.prompt,
-      });
-    } else {
-      await websocketPushService.notifyTaskReviewRejected(task.userId, task.id, note);
-    }
-    await prisma.adminOperationLog.create({
-      data: {
-        adminId: req.userId || 'unknown', adminUsername, action: `content_review.${status}`,
-        targetType: 'task', targetId: task.id, targetName: task.prompt.slice(0, 100),
-        beforeValue: JSON.stringify({ reviewStatus: task.reviewStatus }),
-        afterValue: JSON.stringify({ reviewStatus: status, note }), ipAddress: req.ip,
-        userAgent: req.get('user-agent'),
-      },
-    });
-    res.json({ success: true, data: updated });
-  } catch (error: unknown) {
-    if (error instanceof z.ZodError) return res.status(400).json({ success: false, error: '参数验证失败' });
-    res.status(500).json({ success: false, error: error instanceof Error ? error.message : String(error) });
-  }
-});
+// 内容审核端点（review-settings / batch-review / :id/review）已随审核系统移除
 
 // 取消任务
 adminTaskRouter.post('/:id/cancel', authenticate, requireAdmin, async (req, res) => {

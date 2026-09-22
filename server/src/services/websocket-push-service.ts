@@ -5,7 +5,6 @@ import { config } from '../types/env';
 import { loggingService } from './logging-service';
 import { redisService } from './redis-service';
 import prisma from '../lib/prisma';
-import { isContentReviewEnabled, isTaskAwaitingReview } from './content-review-service';
 
 export enum WebSocketEvent {
   TASK_PROGRESS = 'task:progress',
@@ -329,29 +328,17 @@ class WebSocketPushService {
   async notifyTaskComplete(userId: string, taskId: string, result: any, meta?: { type?: string; provider?: string; prompt?: string }): Promise<void> {
     const task = await prisma.task.findUnique({
       where: { id: taskId },
-      select: { id: true, userId: true, type: true, status: true, reviewStatus: true },
+      select: { id: true, userId: true, type: true, status: true },
     });
-    const reviewEnabled = await isContentReviewEnabled();
 
     await this.broadcastToRole('admin', {
       type: WebSocketEvent.ADMIN_TASK_UPDATED,
-      data: { taskId, status: 'completed', reviewStatus: task?.reviewStatus || 'pending', result, ...meta },
+      data: { taskId, status: 'completed', result, ...meta },
       timestamp: new Date().toISOString(),
       userId,
     });
 
-    if (task && isTaskAwaitingReview(task, reviewEnabled)) {
-      await this.sendToUser(userId, {
-        type: WebSocketEvent.TASK_REVIEW_PENDING,
-        data: { taskId, status: 'pending_review', resultAvailable: false, ...meta },
-        timestamp: new Date().toISOString(),
-        userId,
-      });
-      await loggingService.logUserAction(userId, 'websocket_notify', taskId, {
-        event: 'task_review_pending', taskId,
-      });
-      return;
-    }
+    void task; // 任务查询保留以兼容原逻辑，审核门控已移除
 
     await this.sendToUser(userId, {
       type: WebSocketEvent.TASK_COMPLETE,

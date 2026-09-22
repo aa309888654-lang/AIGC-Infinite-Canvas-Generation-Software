@@ -133,3 +133,14 @@ The sponsor QR code `qrcode.webp` is open-sourced at the repo root.
 ## 🙏 Acknowledgments
 
 Thanks to all model providers, third-party dependencies, and open-source contributors.
+
+---
+
+## 🧩 Build From Source & Security
+
+- **This repository is the full source**: `src/` (frontend), `server/` (backend) and `public/` (runtime assets) are readable source code, with no variable obfuscation, string hiding, compression or source maps.
+- **No sensitive content**: no real API keys, tokens, databases, logs, `node_modules`, build output or user uploads are included.
+- **Build**: run `npm install` then `npm run build` at the repo root; for the backend, `cd server && npm install && npx prisma generate && npx tsc`.
+- **Keys stay server-side**: copy `server/.env.example` to `server/.env` and fill in `DATABASE_URL`, model API keys, `JWT_SECRET`, and a 32-byte random `ENCRYPTION_KEY` (64 hex characters). Never commit real keys.
+- **Release verification**: see [`docs/GITHUB_PUBLISH_RULES.md`](./docs/GITHUB_PUBLISH_RULES.md). Demo recordings over 100 MiB are pruned from the release pack; rerun `node scripts/publish-github-release.cjs` to reproduce and cross-check the file manifest.
+- **Third-party licenses**: `LICENSE` and `LICENSE-COMMERCIAL.md` define this project's terms; licenses of models, assets, fonts and npm dependencies remain the deployer's responsibility.

@@ -12,8 +12,6 @@ import { VideoParams, ApiProviderConfig } from '../types/api';
 import type { GenerationResult } from '../types/api';
 import { decryptProviderSecrets } from './ai-provider';
 import { decrypt } from '../utils/encryption';
-import { executeCreditDeduction } from '../middleware/credit-deduction';
-import { creditService } from '../services/credit-service';
 import { autoSaveService } from '../services/auto-save-service';
 import { ProviderKeyManager } from '../services/provider-key-manager';
 import { videoModelKeyScheduler } from '../services/video-model-key-scheduler';
@@ -26,8 +24,6 @@ import { logger } from '../utils/logger';
 import { promptLogService } from '../services/prompt-log-service';
 import { checkPromptSafety } from '../services/prompt-firewall';
 import { resolveVideoModelChannel } from '../services/model-channel-registry';
-import { resolveWatermarkEnabled } from '../services/watermark-service';
-import { resolveCustomVideoPoints } from '../services/custom-model-points';
 import { WuyinkejiProvider } from '../services/wuyinkeji-provider';
 import {
   buildGenerationIdempotencyKey,
@@ -35,8 +31,6 @@ import {
   createIdempotentGenerationTask,
   isLocalIdempotencyTaskId,
 } from '../services/generation-idempotency';
-// SEC-AUDIT 修复：导入会员等级模型白名单校验，防止前端绕过会员等级限制调用 Pro 专属模型
-import { isModelAllowedForMembership, isProviderAllowedForMembership, MembershipLevel } from './ai-provider-membership';
 import { fetchRemoteBuffer } from '../utils/safe-remote-fetch';
 
 export const videoRouter = Router();
@@ -374,8 +368,14 @@ videoRouter.post('/generate', authenticate, async (req, res, next) => {
     const { websocketPushService } = await import('../services/websocket-push-service');
     websocketPushService.notifyTaskProgress(req.userId!, 'pending', 0).catch(() => {});
 
-    // 已删除 (2026-07-20): 国外模型 google_omni 默认值已下线，改用国内 Wan2.7
-    const requestedModel = validatedData.model || 'Wan2.7';
+    const removedVideoModelIds = new Set(['agnes-video-v2.0', 'agnes_video_v2']);
+    const requestedModel = validatedData.model || 'doubao-seedance-2-0';
+    if (
+      removedVideoModelIds.has(String(requestedModel).trim().toLowerCase()) ||
+      String(validatedData.provider || '').trim().toLowerCase() === 'agnes'
+    ) {
+      throw new AppError('所选视频模型已下线，请选择当前可用的视频模型', 400);
+    }
     const resolvedChannel = resolveVideoModelChannel(validatedData.provider, requestedModel);
     if (resolvedChannel) {
       if (!resolvedChannel.channel.enabled && !resolvedChannel.fallbackApplied) {
@@ -396,23 +396,6 @@ videoRouter.post('/generate', authenticate, async (req, res, next) => {
       validatedData.model = requestedModel;
     }
     const providerName = validatedData.provider || 'vidu';
-
-    // SEC-AUDIT 修复：会员等级模型白名单校验，防止前端绕过调用 Pro 专属模型
-    // 注意：在模型通道解析后校验，确保校验的是最终生效的 model/provider
-    const membershipLevel = (req.membershipLevel || DEFAULT_MEMBERSHIP_LEVEL) as MembershipLevel;
-    validatedData.watermark = resolveWatermarkEnabled(
-      validatedData.watermark,
-      membershipLevel
-    );
-    const finalModel = validatedData.model || '';
-    const finalProvider = validatedData.provider || '';
-    const isCustomProviderRequest = finalProvider.startsWith('custom-video-');
-    if (finalModel && !isCustomProviderRequest && !isModelAllowedForMembership(finalModel, membershipLevel)) {
-      return res.status(403).json({ success: false, error: '当前会员等级无权使用该模型', code: 'MODEL_NOT_ALLOWED' });
-    }
-    if (finalProvider && !isCustomProviderRequest && !isProviderAllowedForMembership(finalProvider, membershipLevel)) {
-      return res.status(403).json({ success: false, error: '当前会员等级无权使用该服务商', code: 'PROVIDER_NOT_ALLOWED' });
-    }
 
     // 检查用户
     const user = await prisma.user.findUnique({
@@ -448,27 +431,15 @@ videoRouter.post('/generate', authenticate, async (req, res, next) => {
       }
     }
 
-    // BUG-1 配套修复：duration 现在可能是 string 或 number，统一处理
-    // Digital_Humans / Package_1.0 按视频时长计费，但前端不传 duration（模型无固定时长参数）。
-    // 若缺失 duration，默认按 30 秒预扣，避免"5秒默认值"造成明显少扣。
-    const isPerSecondVideoModel = validatedData.model === 'Digital_Humans' || validatedData.model === 'Package_1.0';
-    const durationSeconds = typeof validatedData.duration === 'number'
-      ? validatedData.duration
-      : validatedData.duration
-        ? parseInt(String(validatedData.duration), 10)
-        : (isPerSecondVideoModel ? 30 : 5);
-    const hasVideoInput = Boolean(validatedData.videoUrl) || (Array.isArray(validatedData.referenceVideos) && validatedData.referenceVideos.length > 0) || validatedData.generationMode === 'video_to_video';
-    const generateAudio = validatedData.generateAudio === true || (typeof validatedData.audioGeneration === 'string' && validatedData.audioGeneration !== 'none');
+    // 自定义视频服务商：根据其模型能力声明自动归一化 resolution/aspectRatio
     const customProviderRow = providerName.startsWith('custom-video-')
       ? await prisma.providerConfig.findUnique({ where: { provider: providerName }, select: { config: true, isActive: true } })
       : null;
-    let customVideoPoints: number | undefined;
     try {
       const customConfig = customProviderRow?.config
         ? (typeof customProviderRow.config === 'string' ? JSON.parse(customProviderRow.config) : customProviderRow.config)
         : null;
       if (customProviderRow?.isActive && customConfig?.isCustomModel === true && customConfig?.mediaType === 'video') {
-        customVideoPoints = resolveCustomVideoPoints(durationSeconds);
         const modelCapabilities = Array.isArray(customConfig.models)
           ? customConfig.models.find((item: any) => String(item?.id || item) === String(validatedData.model || ''))
           : undefined;
@@ -493,44 +464,8 @@ videoRouter.post('/generate', authenticate, async (req, res, next) => {
         }
       }
     } catch {
-      // 配置异常时继续走原有计费规则，避免绕过扣费。
+      // 配置异常时忽略，继续按用户参数生成。
     }
-    const checkResult = await creditService.preCheck({
-      userId: req.userId!,
-      membershipLevel: req.membershipLevel || DEFAULT_MEMBERSHIP_LEVEL,
-      type: 'video',
-      taskId: 'temp',
-      reason: '预检查',
-      provider: providerName,
-      // 已删除 (2026-07-20): 国外模型 google_omni 默认值已下线
-      model: validatedData.model || 'Wan2.7',
-      resolution: validatedData.resolution,
-      durationSeconds,
-      customPoints: customVideoPoints,
-      hasVideoInput,
-      generateAudio,
-      generationMode: validatedData.generationMode,
-    });
-
-    if (!checkResult.allowed) {
-      throw new AppError(checkResult.reason, 402);
-    }
-
-    (req as any).creditCheck = checkResult;
-    (req as any).creditConfig = {
-      type: 'video',
-      reason: '视频生成',
-      provider: providerName,
-      // 已删除 (2026-07-20): 国外模型 google_omni 默认值已下线
-      model: validatedData.model || 'Wan2.7',
-      resolution: validatedData.resolution,
-      durationSeconds,
-      customPoints: customVideoPoints,
-      hasVideoInput,
-      generateAudio,
-      generationMode: validatedData.generationMode,
-    };
-
     // 参考图归一化：把 base64 / localhost URL 转换为 MinIO 公网 URL，供远程大模型 API 访问
     const videoUserId = req.userId!;
     if (validatedData.referenceImage) {
@@ -578,7 +513,6 @@ videoRouter.post('/generate', authenticate, async (req, res, next) => {
         taskId: orchestrationResult.localTaskId,
         status: orchestrationResult.status,
         progress: orchestrationResult.progress ?? 0,
-        points: (req as any).creditCheck?.pointsNeeded,
         provider: orchestrationResult.provider,
       },
     });
@@ -719,22 +653,6 @@ videoRouter.post('/vidu-template', authenticate, async (req, res, next) => {
       }
     }
 
-    const membershipLevel = req.membershipLevel || DEFAULT_MEMBERSHIP_LEVEL;
-
-    // 积分预检查
-    const creditCheck = await creditService.preCheck({
-      userId: req.userId!,
-      membershipLevel,
-      type: 'video',
-      taskId: `vidu_template_${Date.now()}`,
-      reason: 'Vidu模板视频生成预检查',
-      provider: 'vidu',
-    });
-
-    if (!creditCheck.allowed) {
-      return res.status(402).json({ success: false, error: creditCheck.reason });
-    }
-
     const viduConfig = await prisma.providerConfig.findFirst({
       where: { provider: 'vidu', isActive: true },
     });
@@ -803,73 +721,24 @@ videoRouter.post('/vidu-template', authenticate, async (req, res, next) => {
     }
     const task = idempotentTask.task;
 
-    // 风险修复：积分扣除移到提交外部 API 之前，避免浪费外部配额后才发现积分不足
-    try {
-      await creditService.consume({
-        userId: req.userId!,
-        membershipLevel,
-        type: 'video',
-        taskId: task.id,
-        reason: 'Vidu模板视频生成',
-        provider: 'vidu',
-      });
-    } catch (creditErr) {
-      logger.error('[ViduTemplate] 积分扣除失败:', creditErr);
-      await (prisma.task as any).update({
-        where: { id: task.id },
-        data: { status: 'failed', error: '积分扣除失败，请检查积分余额' },
-      }).catch(() => {});
-      return res.status(402).json({
-        success: false,
-        error: '积分不足，请充值后重试',
-      });
-    }
-
-    // 风险修复：API 调用异常时退还积分并标记任务失败
-    // P1 修复：refund 失败时明确告知用户，不谎称已退还
     let result: GenerationResult;
     try {
       result = await unifiedApiService.generateVideo(videoParams, apiConfig);
     } catch (apiErr) {
-      let refundMsg = '视频生成请求失败，积分已退还';
-      try {
-        await creditService.refund({
-          userId: req.userId!,
-          type: 'video',
-          taskId: task.id,
-          reason: 'Vidu模板视频API异常',
-        });
-      } catch (refundErr) {
-        logger.error('[ViduTemplate] 积分退还失败:', refundErr);
-        refundMsg = '视频生成请求失败，积分退还失败请联系客服';
-      }
       await (prisma.task as any).update({
         where: { id: task.id },
         data: { status: 'failed', error: '视频生成请求异常' },
       }).catch(() => {});
       logger.error('[ViduTemplate] generateVideo 异常:', apiErr);
-      return res.status(500).json({ success: false, error: refundMsg, taskId: task.id });
+      return res.status(500).json({ success: false, error: '生成失败', taskId: task.id });
     }
 
     if (result.status === 'failed') {
-      // 风险修复：API 返回失败时退还已扣除的积分
-      let refundMsg = '视频生成失败，积分已退还';
-      try {
-        await creditService.refund({
-          userId: req.userId!,
-          type: 'video',
-          taskId: task.id,
-          reason: 'Vidu模板视频生成失败',
-        });
-      } catch (refundErr) {
-        logger.error('[ViduTemplate] 积分退还失败:', refundErr);
-        refundMsg = '视频生成失败，积分退还失败请联系客服';
-      }
       await (prisma.task as any).update({
         where: { id: task.id },
         data: { status: 'failed', error: typeof result.error === 'string' ? result.error : JSON.stringify(result.error), result: JSON.stringify(result) },
       });
-      return res.status(400).json({ success: false, error: typeof result.error === 'string' ? result.error : refundMsg, taskId: task.id });
+      return res.status(400).json({ success: false, error: typeof result.error === 'string' ? result.error : '生成失败', taskId: task.id });
     }
 
     const providerTaskId = result.taskId;
@@ -896,8 +765,6 @@ videoRouter.post('/vidu-template', authenticate, async (req, res, next) => {
       logger.warn(`[ViduTemplate] 任务绑定失败: ${bindErr}`);
     }
 
-    // 风险修复：积分已在提交外部 API 前扣除，此处无需重复扣费
-
     res.json({
       success: true,
       data: {
@@ -923,7 +790,6 @@ videoRouter.get('/query/:taskId', authenticate, async (req, res, next) => {
   try {
     const { taskId } = queryTaskSchema.parse(req.params);
     const orchestrated = await videoOrchestrator.queryVideoTask(taskId, req.userId!, {
-      membershipLevel: req.membershipLevel || DEFAULT_MEMBERSHIP_LEVEL,
       source: 'api',
     });
     return res.json(orchestrated);
@@ -998,27 +864,7 @@ const videoUpscaleSchema = z.object({
 
 videoRouter.post('/upscale', authenticate, async (req, res, next) => {
   try {
-    const { video_url, duration, source } = videoUpscaleSchema.parse(req.body);
-
-    const membershipLevel = (req.membershipLevel || DEFAULT_MEMBERSHIP_LEVEL) as MembershipLevel;
-    const POINTS_PER_SECOND = parseFloat(process.env.VIDEO_UPSCALE_POINTS_PER_SECOND || '12');
-    const durationSeconds = typeof duration === 'number' && duration > 0 ? duration : 30;
-    const upscalePoints = Math.ceil(durationSeconds * POINTS_PER_SECOND);
-
-    const creditCheck = await creditService.preCheck({
-      userId: req.userId!,
-      membershipLevel,
-      type: 'video',
-      provider: 'wuyinkeji',
-      model: 'video-upscale',
-      customPoints: upscalePoints,
-      taskId: `video_upscale_${Date.now()}`,
-      reason: '视频超分预检查',
-    });
-
-    if (!creditCheck.allowed) {
-      return res.status(402).json({ success: false, error: creditCheck.reason });
-    }
+    const { video_url } = videoUpscaleSchema.parse(req.body);
 
     const providerConfig = await prisma.providerConfig.findUnique({
       where: { provider: 'wuyinkeji' },
@@ -1058,26 +904,12 @@ videoRouter.post('/upscale', authenticate, async (req, res, next) => {
       });
     }
 
-    await creditService.consume({
-      userId: req.userId!,
-      membershipLevel,
-      type: 'video',
-      provider: 'wuyinkeji',
-      model: 'video-upscale',
-      customPoints: upscalePoints,
-      taskId: `video_upscale_${Date.now()}`,
-      reason: `视频超分${source ? `(来源:${source})` : ''}`,
-    });
-
     logger.info(`[VideoUpscale] 成功: userId=${req.userId}, taskId=${result.taskId}`);
 
     return res.json({
       success: true,
       video_url: resultUrl,
       original_url: video_url,
-      points: upscalePoints,
-      durationSeconds,
-      pointsPerSecond: POINTS_PER_SECOND,
       taskId: result.taskId,
     });
   } catch (error: unknown) {
