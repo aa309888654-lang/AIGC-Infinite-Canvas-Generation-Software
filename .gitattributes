@@ -1,0 +1,57 @@
+# 仓库维护：把大体积素材标成 binary，避免 git 做无意义的文本 diff、
+# 也避免自动换行转换把这些文件判成"已修改"。
+#
+# 这里刻意不使用 Git LFS。免费额度是 1 GB 存储 + 每月 1 GB 流量，
+# 每一次 clone 都会消耗流量，演示视频放 LFS 会让拉取变慢且容易爆额度。
+# 真正需要瘦身时，按 docs/REPO_MAINTENANCE.md 的说明走 Releases，而不是 LFS。
+*.mp4   binary
+*.mov   binary
+*.webm  binary
+*.mkv   binary
+*.avi   binary
+*.gif   binary
+*.webp  binary
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.ico   binary
+*.glb   binary
+*.gltf  binary
+*.fbx   binary
+*.obj   binary
+*.stl   binary
+*.bin   binary
+*.pt    binary
+*.pth   binary
+*.onnx  binary
+*.wasm  binary
+*.ttf   binary
+*.otf   binary
+*.woff  binary
+*.woff2 binary
+*.mp3   binary
+*.wav   binary
+*.flac  binary
+*.ogg   binary
+*.m4a   binary
+*.pdf   binary
+*.zip   binary
+*.7z    binary
+*.db    binary
+*.sqlite binary
+
+# 代码与文档按真实换行提交，不吃 Windows 的 CRLF 自动转换。
+*.ts    text eol=lf
+*.tsx   text eol=lf
+*.js    text eol=lf
+*.jsx   text eol=lf
+*.mjs   text eol=lf
+*.cjs   text eol=lf
+*.json  text eol=lf
+*.css   text eol=lf
+*.html  text eol=lf
+*.md    text eol=lf
+*.prisma text eol=lf
+*.yml   text eol=lf
+*.yaml  text eol=lf
+*.svg   text eol=lf

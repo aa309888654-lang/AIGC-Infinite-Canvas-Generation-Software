@@ -1,6 +1,7 @@
 .env
 .env.*
 !.env.example
+_oversized/
 node_modules/
 dist/
 uploads/

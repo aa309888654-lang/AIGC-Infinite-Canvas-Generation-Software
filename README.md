@@ -11,6 +11,8 @@
 
 一站式 AI 创作平台：**AI 生图 · AI 视频 · AI 配音 · AI 音乐 · 故事板 · 角色设计**。本地优先，一个进程即可启动。
 
+> 🔄 **本仓库持续更新**：新功能、新模型适配和问题修复会不定时推到 `main`，不按固定版本号发布。想跟进最新进度，Watch 仓库或看提交记录即可；需要稳定快照就自己打 tag。
+
 📖 **完整产品介绍（含 11 张 demo 图）**：[`docs/产品介绍.md`](./docs/产品介绍.md)
 
 ---
@@ -144,5 +146,5 @@ npm run dev
 - **不含敏感内容**：没有真实 API Key、访问令牌、数据库、日志、`node_modules`、构建产物和用户上传文件。
 - **从源码构建**：根目录 `npm install` → `npm run build`；后端 `cd server && npm install && npx prisma generate && npx tsc`。
 - **密钥只放服务端**：复制 `server/.env.example` 为 `server/.env`，填写 `DATABASE_URL`、模型 API Key、`JWT_SECRET`，以及 32 字节随机的 `ENCRYPTION_KEY`（64 位十六进制）。不要把真实密钥提交进仓库。
-- **版本校验**：发布流程见 [`docs/GITHUB_PUBLISH_RULES.md`](./docs/GITHUB_PUBLISH_RULES.md)；单文件超过 100 MiB 的演示录像已在发布包中剔除，可用 `node scripts/publish-github-release.cjs` 复现并核对文件清单。
+- **版本校验**：发布流程见 [`docs/REPO_MAINTENANCE.md`](./docs/REPO_MAINTENANCE.md)；单文件超过 100 MiB 的演示录像已在发布包中剔除，可用 `node scripts/publish-github-release.cjs` 复现并核对 `PUBLISH_MANIFEST.json` 文件清单。
 - **第三方依赖**：`LICENSE` 与 `LICENSE-COMMERCIAL.md` 界定本项目授权范围；模型、素材、字体和 npm 依赖的许可协议由部署者自行核验。

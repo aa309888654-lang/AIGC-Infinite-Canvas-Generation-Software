@@ -7,6 +7,8 @@
 
 A one-stop AI creation platform: **AI image · AI video · AI voice-over · AI music · storyboard · character design**. Local-first, started in one command.
 
+> 🔄 **This repository is updated continuously**: new features, new model adapters and fixes land on `main` at irregular intervals, with no fixed release cadence. Watch the repo or follow the commit history to keep up; tag a commit yourself if you need a stable snapshot.
+
 > 📖 中文文档：[README.md](./README.md)  ·  📘 **Full product guide (with 11 demo images)**：[`docs/INTRODUCTION.md`](./docs/INTRODUCTION.md)
 
 ---
@@ -142,5 +144,5 @@ Thanks to all model providers, third-party dependencies, and open-source contrib
 - **No sensitive content**: no real API keys, tokens, databases, logs, `node_modules`, build output or user uploads are included.
 - **Build**: run `npm install` then `npm run build` at the repo root; for the backend, `cd server && npm install && npx prisma generate && npx tsc`.
 - **Keys stay server-side**: copy `server/.env.example` to `server/.env` and fill in `DATABASE_URL`, model API keys, `JWT_SECRET`, and a 32-byte random `ENCRYPTION_KEY` (64 hex characters). Never commit real keys.
-- **Release verification**: see [`docs/GITHUB_PUBLISH_RULES.md`](./docs/GITHUB_PUBLISH_RULES.md). Demo recordings over 100 MiB are pruned from the release pack; rerun `node scripts/publish-github-release.cjs` to reproduce and cross-check the file manifest.
+- **Release verification**: see [`docs/REPO_MAINTENANCE.md`](./docs/REPO_MAINTENANCE.md). Demo recordings over 100 MiB are pruned from the release pack; rerun `node scripts/publish-github-release.cjs` and cross-check the `PUBLISH_MANIFEST.json` file manifest.
 - **Third-party licenses**: `LICENSE` and `LICENSE-COMMERCIAL.md` define this project's terms; licenses of models, assets, fonts and npm dependencies remain the deployer's responsibility.

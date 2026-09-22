@@ -15,17 +15,32 @@ const releaseRoot = path.join(outputRoot, releaseFolderName);
 // GitHub 拒绝大于 100 MiB 的单个文件。演示视频不属于源码，超限时直接剔除，
 // 避免生成无法推送的上传包。
 const GITHUB_MAX_FILE_BYTES = 100 * 1024 * 1024;
+// GitHub 对单文件的两条线：超过 50 MiB 推送时告警，超过 100 MiB 直接拒绝。
+const GITHUB_WARN_FILE_BYTES = 50 * 1024 * 1024;
+// 发布规则第 3 节要求保护运行时可达素材。工作流市场的预览视频由
+// src/services/workflow-marketplace-completeness.ts 直接引用，删掉会让克隆者
+// 看到加载失败的演示，所以这些文件即使超过 50 MiB 也照常进仓库。
+const RUNTIME_PROTECTED_PREFIXES = ['public/sample-videos/'];
+function isRuntimeProtected(relative) {
+  return RUNTIME_PROTECTED_PREFIXES.some((prefix) => relative.startsWith(prefix));
+}
 
 // web/ 是根目录前端的历史副本，内容与 src/、public/ 完全一致且不参与构建，
 // 因此只保留其构建脚本与配置参考，避免发布包里出现重复源码和素材。
 const sourceFiles = [
-  '.gitignore', '.npmrc', '.prettierrc', 'README.md', 'LICENSE-COMMERCIAL.md',
+  '.gitignore', '.gitattributes', '.npmrc', '.prettierrc',
+  'README.md', 'README.en.md', 'LICENSE', 'LICENSE-COMMERCIAL.md', 'qrcode.webp',
   'package.json', 'package-lock.json', 'tsconfig.json', 'tsconfig.node.json',
   'vite.config.ts', 'index.html', 'postcss.config.cjs', 'tailwind.config.js',
   'electron-builder.yml', 'electron-main.cjs', 'electron-preload.cjs',
   'src', 'public', 'scripts', 'server', 'docs',
   'web/scripts', 'web/vite.config.ts', 'web/tailwind.config.js', 'web/.env.example',
 ];
+
+// 被隔离出去的大文件不计入发布包体积与文件清单。
+function isQuarantined(relative) {
+  return relative.startsWith('_oversized/');
+}
 const deniedNames = new Set([
   '.git', '.env', '.env.local', '.env.development', '.env.production', '.env.cloud',
   '.mimosa', '.joycode', '.zcode', '.agents', '.codex', 'node_modules',
@@ -99,18 +114,33 @@ function copySourceRelease() {
   }
 }
 
+// 演示视频不是源码。超过 GitHub 硬上限的必须剔除；50 MiB 到 100 MiB 之间的
+// 挪进 _oversized/（.gitignore 已忽略），文件仍留在本地发布目录可取回，但不会
+// 进入 git 历史，避免每次推送都触发大文件告警。
 function pruneOversizedReleaseFiles() {
   const removed = [];
+  const oversized = [];
+  const quarantine = path.join(releaseRoot, '_oversized');
   for (const file of walk(releaseRoot)) {
     const relative = path.relative(releaseRoot, file).replace(/\\/g, '/');
     const size = fs.statSync(file).size;
-    // 完整教程录像只是演示素材，且远超 GitHub 单文件上限。
+    if (isQuarantined(relative)) continue;
+    // 完整教程录像只是演示素材，且远超 GitHub 单文件上限，直接剔除。
     const demoOnlyMedia = /(^|\/)sample-videos\/tutorial-episode-1-full\.mp4$/i.test(relative);
-    if (!demoOnlyMedia && size <= GITHUB_MAX_FILE_BYTES) continue;
-    fs.rmSync(file, { force: true });
-    removed.push({ file: relative, bytes: size });
+    if (size > GITHUB_MAX_FILE_BYTES || demoOnlyMedia) {
+      fs.rmSync(file, { force: true });
+      removed.push({ file: relative, bytes: size });
+      continue;
+    }
+    if (size > GITHUB_WARN_FILE_BYTES) {
+      if (isRuntimeProtected(relative)) continue;
+      const target = path.join(quarantine, relative);
+      fs.mkdirSync(path.dirname(target), { recursive: true });
+      fs.renameSync(file, target);
+      oversized.push({ file: relative, bytes: size });
+    }
   }
-  return removed;
+  return { removed, oversized };
 }
 
 function verifyNoProtectedFiles() {
@@ -143,15 +173,28 @@ function assertNotLiveDeploy() {
 }
 
 function writeReleaseDocs() {
-  const licenseSource = path.join(workspace, 'LICENSE-COMMERCIAL.md');
-  if (!fs.existsSync(licenseSource)) {
-    throw new Error(`找不到发布许可证: ${licenseSource}`);
+  // LICENSE 与 LICENSE-COMMERCIAL.md 是两份不同内容：前者是 GitHub 用来识别
+  // 授权协议的仓库根文件，后者是商业条款。早先这里用后者覆盖前者，等于把仓库的
+  // LICENSE 换成了商业条款副本，现在两份都按源项目原件复制。
+  for (const name of ['LICENSE', 'LICENSE-COMMERCIAL.md']) {
+    const source = path.join(workspace, name);
+    if (!fs.existsSync(source)) {
+      throw new Error(`找不到发布许可证: ${source}`);
+    }
+    fs.copyFileSync(source, path.join(releaseRoot, name));
   }
-  fs.copyFileSync(licenseSource, path.join(releaseRoot, 'LICENSE'));
+  // README.md 是仓库门面，由源项目手工维护（截图、授权表、赞助说明都在里面）。
+  // 这里不再生成白板 README，否则每次发布都会把手写内容覆盖掉。
+  const readmeSource = path.join(workspace, 'README.md');
+  if (!fs.existsSync(readmeSource)) {
+    throw new Error(`找不到发布 README: ${readmeSource}`);
+  }
+  fs.copyFileSync(readmeSource, path.join(releaseRoot, 'README.md'));
   fs.writeFileSync(path.join(releaseRoot, '.gitignore'), [
     '.env',
     '.env.*',
     '!.env.example',
+    '_oversized/',
     'node_modules/',
     'dist/',
     'uploads/',
@@ -164,38 +207,12 @@ function writeReleaseDocs() {
     '.DS_Store',
     '',
   ].join('\n'), 'utf8');
-  fs.writeFileSync(path.join(releaseRoot, 'README.md'), [
-    '# 小天画布 | AI 图片与视频生成', '',
-    '面向图片生成、视频生成与节点式创作工作流的开源代码包。本仓库是完整源代码，',
-    '不包含密钥、数据库、用户上传文件和构建产物；前端与后端代码均为可读源码，未做任何混淆。', '',
-    '## 用途', '',
-    '- 图片生成、图生图、重绘、扩图，统一接入图片模型。',
-    '- 视频生成与节点式创作工作流。',
-    '- 服务端负责模型调用、任务队列与本地密钥管理。', '',
-    '## 目录', '',
-    '- `src/`：前端源码（React + TypeScript + Vite）。',
-    '- `server/`：后端源码（Node.js + Express + Prisma）。',
-    '- `public/`：运行期静态素材（模型文件、字体、模板、工作流素材）。',
-    '- `docs/`：设计与发布规范文档。', '',
-    '## 本地构建', '',
-    '1. 安装 Node.js 20 或更高版本。',
-    '2. 根目录执行 `npm install`。',
-    '3. 根目录执行 `npm run build` 生成前端产物 `dist/`。',
-    '4. 后端执行 `cd server && npm install && npx prisma generate && npx tsc`，生成 `server/dist/`。',
-    '5. 复制 `server/.env.example` 为 `server/.env`，填写 `DATABASE_URL`、模型 API Key、`JWT_SECRET` 和 `ENCRYPTION_KEY`。',
-    '6. 确保 `DATABASE_URL` 指向已按 `server/prisma/schema.prisma` 初始化的数据库。',
-    '7. 保持 `FRONTEND_DIST_PATH=..`，运行 `npm start` 由后端同源托管前端。', '',
-    '## 安全边界', '',
-    '- 本仓库不包含任何真实 API Key、访问令牌、数据库或用户数据。',
-    '- 密钥只能放在服务端环境变量或密钥管理系统中，不要提交到仓库。',
-    '- 第三方模型、素材、字体和依赖的许可证由部署者自行核验。',
-    '- 使用条款见 `LICENSE`。', '',
-  ].join('\n'), 'utf8');
   fs.writeFileSync(path.join(releaseRoot, 'RELEASE-NOTES.md'), [
     '# 发布说明', '',
     '- 发布形态：完整源代码包，前端与后端均未做压缩混淆。',
     '- 不包含 `.env`、数据库、日志、`node_modules`、构建产物与用户上传内容。',
-    '- 单文件超过 100 MiB 的演示视频和完整教程录像已剔除，以保证 GitHub 可推送。',
+    '- 单文件超过 100 MiB 的演示视频和完整教程录像已剔除；50 MiB 到 100 MiB 之间的文件',
+    '  挪到本地发布目录的 `_oversized/`，不入 git 历史，需要时挂到 Releases 分发。',
     '- `web/` 目录是根目录前端的历史副本，内容与 `src/`、`public/` 完全一致，因此发布包只保留其构建脚本与配置。',
     '- 本地服务默认跑在本机，模型密钥保存在本机数据库中，无需登录账户即可使用全部功能。', '',
   ].join('\n'), 'utf8');
@@ -228,11 +245,13 @@ function main() {
   removeIfExists(releaseRoot);
   fs.mkdirSync(releaseRoot, { recursive: true });
   copySourceRelease();
-  const prunedFiles = pruneOversizedReleaseFiles();
+  const { removed: prunedFiles, oversized } = pruneOversizedReleaseFiles();
   verifyNoProtectedFiles();
   writeReleaseDocs();
-  const releaseFiles = walk(releaseRoot).length;
-  const releaseBytes = walk(releaseRoot).reduce((total, file) => total + fs.statSync(file).size, 0);
+  // 被隔离的大文件不计入发布包体积和文件清单。
+  const shippable = walk(releaseRoot).filter((file) => !isQuarantined(path.relative(releaseRoot, file).replace(/\\/g, '/')));
+  const releaseFiles = shippable.length;
+  const releaseBytes = shippable.reduce((total, file) => total + fs.statSync(file).size, 0);
   const rules = path.join(workspace, 'docs', 'GITHUB_PUBLISH_RULES.md');
   copyFiltered(rules, path.join(outputRoot, 'PUBLISH_RULES.md'));
   writePublishSummary({
@@ -242,6 +261,7 @@ function main() {
     releaseFiles,
     releaseBytes,
     prunedFiles,
+    oversizedFiles: oversized,
     security: {
       frontendObfuscation: false,
       backendObfuscation: false,
@@ -254,6 +274,12 @@ function main() {
   });
   console.log(`源代码发布目录已生成: ${releaseRoot}`);
   console.log(`文件: ${releaseFiles}; 大小: ${(releaseBytes / 1024 / 1024).toFixed(1)} MB; 剔除超限文件: ${prunedFiles.length}`);
+  if (oversized.length > 0) {
+    console.log(`已隔离 ${oversized.length} 个 50 MiB 以上文件到 _oversized/（不入仓库）:`);
+    for (const item of oversized) {
+      console.log(`  - ${item.file} (${(item.bytes / 1024 / 1024).toFixed(1)} MB)`);
+    }
+  }
 }
 
 try {
